@@ -227,7 +227,7 @@ export async function caricaImmagini(file: File[], esercizi: Esercizio[]): Promi
     const percorso = `${String(esercizio.ordine).padStart(3, "0")}/${f.name}`;
     const { error: erroreUpload } = await supabase.storage
       .from(BUCKET_IMMAGINI)
-      .upload(percorso, f, { upsert: true, contentType: f.type || undefined });
+      .upload(percorso, f, f.type ? { upsert: true, contentType: f.type } : { upsert: true });
     if (erroreUpload) {
       esito.errori.push(`${f.name}: ${erroreUpload.message}`);
       continue;
