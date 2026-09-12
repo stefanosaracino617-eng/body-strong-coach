@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      cliente_obiettivi: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data_selezione: string
+          id: string
+          obiettivo_id: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data_selezione?: string
+          id?: string
+          obiettivo_id: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data_selezione?: string
+          id?: string
+          obiettivo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_obiettivi_obiettivo_id_fkey"
+            columns: ["obiettivo_id"]
+            isOneToOne: false
+            referencedRelation: "obiettivi"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      obiettivi: {
+        Row: {
+          attivo: boolean
+          created_at: string
+          descrizione: string | null
+          gruppo: string
+          id: string
+          nome: string
+          ordine: number
+          updated_at: string
+        }
+        Insert: {
+          attivo?: boolean
+          created_at?: string
+          descrizione?: string | null
+          gruppo?: string
+          id?: string
+          nome: string
+          ordine?: number
+          updated_at?: string
+        }
+        Update: {
+          attivo?: boolean
+          created_at?: string
+          descrizione?: string | null
+          gruppo?: string
+          id?: string
+          nome?: string
+          ordine?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profili: {
         Row: {
           cognome: string
