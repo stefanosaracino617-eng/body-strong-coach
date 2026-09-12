@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp } from "@/lib/profilo";
+import { caricaObiettiviCliente } from "@/lib/obiettivi";
 
 export const Route = createFileRoute("/_authenticated/area")({
   head: () => ({
