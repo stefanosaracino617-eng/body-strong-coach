@@ -15,6 +15,7 @@ import { Route as AuthenticatedAccessiRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAreaRouteImport } from './routes/_authenticated/area'
 import { Route as AuthenticatedCatalogoObiettiviRouteImport } from './routes/_authenticated/catalogo-obiettivi'
 import { Route as AuthenticatedClientiRouteImport } from './routes/_authenticated/clienti'
+import { Route as AuthenticatedEserciziRouteImport } from './routes/_authenticated/esercizi'
 import { Route as AuthenticatedObiettiviRouteImport } from './routes/_authenticated/obiettivi'
 import { Route as AuthenticatedRegistrazioniRouteImport } from './routes/_authenticated/registrazioni'
 
@@ -48,6 +49,11 @@ const AuthenticatedClientiRoute = AuthenticatedClientiRouteImport.update({
   path: '/clienti',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEserciziRoute = AuthenticatedEserciziRouteImport.update({
+  id: '/esercizi',
+  path: '/esercizi',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedObiettiviRoute = AuthenticatedObiettiviRouteImport.update({
   id: '/obiettivi',
   path: '/obiettivi',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/area': typeof AuthenticatedAreaRoute
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
   '/clienti': typeof AuthenticatedClientiRoute
+  '/esercizi': typeof AuthenticatedEserciziRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
 }
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/area': typeof AuthenticatedAreaRoute
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
   '/clienti': typeof AuthenticatedClientiRoute
+  '/esercizi': typeof AuthenticatedEserciziRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
 }
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_authenticated/area': typeof AuthenticatedAreaRoute
   '/_authenticated/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
   '/_authenticated/clienti': typeof AuthenticatedClientiRoute
+  '/_authenticated/esercizi': typeof AuthenticatedEserciziRoute
   '/_authenticated/obiettivi': typeof AuthenticatedObiettiviRoute
   '/_authenticated/registrazioni': typeof AuthenticatedRegistrazioniRoute
 }
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/area'
     | '/catalogo-obiettivi'
     | '/clienti'
+    | '/esercizi'
     | '/obiettivi'
     | '/registrazioni'
   fileRoutesByTo: FileRoutesByTo
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/area'
     | '/catalogo-obiettivi'
     | '/clienti'
+    | '/esercizi'
     | '/obiettivi'
     | '/registrazioni'
   id:
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/_authenticated/area'
     | '/_authenticated/catalogo-obiettivi'
     | '/_authenticated/clienti'
+    | '/_authenticated/esercizi'
     | '/_authenticated/obiettivi'
     | '/_authenticated/registrazioni'
   fileRoutesById: FileRoutesById
@@ -169,6 +181,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientiRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/esercizi': {
+      id: '/_authenticated/esercizi'
+      path: '/esercizi'
+      fullPath: '/esercizi'
+      preLoaderRoute: typeof AuthenticatedEserciziRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/obiettivi': {
       id: '/_authenticated/obiettivi'
       path: '/obiettivi'
@@ -191,6 +210,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAreaRoute: typeof AuthenticatedAreaRoute
   AuthenticatedCatalogoObiettiviRoute: typeof AuthenticatedCatalogoObiettiviRoute
   AuthenticatedClientiRoute: typeof AuthenticatedClientiRoute
+  AuthenticatedEserciziRoute: typeof AuthenticatedEserciziRoute
   AuthenticatedObiettiviRoute: typeof AuthenticatedObiettiviRoute
   AuthenticatedRegistrazioniRoute: typeof AuthenticatedRegistrazioniRoute
 }
@@ -200,6 +220,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAreaRoute: AuthenticatedAreaRoute,
   AuthenticatedCatalogoObiettiviRoute: AuthenticatedCatalogoObiettiviRoute,
   AuthenticatedClientiRoute: AuthenticatedClientiRoute,
+  AuthenticatedEserciziRoute: AuthenticatedEserciziRoute,
   AuthenticatedObiettiviRoute: AuthenticatedObiettiviRoute,
   AuthenticatedRegistrazioniRoute: AuthenticatedRegistrazioniRoute,
 }
