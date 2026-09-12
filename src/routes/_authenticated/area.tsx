@@ -31,12 +31,28 @@ function Area() {
     queryFn: caricaSessioneApp,
   });
 
+  const profilo0 = data?.profilo;
+  const deveSceglierne = !!profilo0 && !data?.isGestore && profilo0.stato === "approvato";
+
+  const miei = useQuery({
+    queryKey: ["obiettivi-cliente", profilo0?.id],
+    enabled: deveSceglierne,
+    queryFn: () => caricaObiettiviCliente(profilo0!.id),
+  });
+
+  const nessunObiettivo = deveSceglierne && miei.isSuccess && miei.data.length === 0;
+
+  useEffect(() => {
+    if (nessunObiettivo) navigate({ to: "/obiettivi", replace: true });
+  }, [nessunObiettivo, navigate]);
+
   async function esci() {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
     navigate({ to: "/", replace: true });
   }
+
 
   if (isLoading) {
     return <Schermo titolo="Caricamento…" />;
