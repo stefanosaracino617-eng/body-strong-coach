@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
+import { formattaData } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/registrazioni")({
   head: () => ({
@@ -102,7 +103,7 @@ function Registrazioni() {
             <Riga etichetta="Telefono" valore={p.telefono ?? "—"} />
             <Riga
               etichetta="Data di nascita"
-              valore={p.data_nascita ? formattaData(p.data_nascita) : "—"}
+              valore={formattaData(p.data_nascita)}
             />
             <Riga etichetta="Sesso" valore={p.sesso ?? "—"} />
             <Riga etichetta="Privacy" valore={p.consenso_privacy ? "Consenso dato" : "Mancante"} />
@@ -143,11 +144,6 @@ function Riga({ etichetta, valore }: { etichetta: string; valore: string }) {
       <dd className="text-right text-foreground">{valore}</dd>
     </div>
   );
-}
-
-function formattaData(v: string) {
-  const [a, m, g] = v.split("-");
-  return `${g}/${m}/${a}`;
 }
 
 function Pagina({ titolo, children }: { titolo: string; children?: React.ReactNode }) {

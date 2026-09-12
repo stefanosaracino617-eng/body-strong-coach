@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { CampoData } from "@/components/CampoData";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -136,11 +137,10 @@ function PaginaAccesso() {
                 <Campo label="Nome" value={nome} onChange={setNome} required />
                 <Campo label="Cognome" value={cognome} onChange={setCognome} required />
                 <Campo label="Telefono" value={telefono} onChange={setTelefono} type="tel" />
-                <Campo
+                <CampoData
                   label="Data di nascita"
                   value={dataNascita}
                   onChange={setDataNascita}
-                  type="date"
                 />
                 <label className="flex flex-col gap-2">
                   <span className="text-base font-semibold text-accent">Sesso</span>
