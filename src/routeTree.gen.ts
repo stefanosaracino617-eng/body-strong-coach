@@ -13,6 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAccessiRouteImport } from './routes/_authenticated/accessi'
 import { Route as AuthenticatedAreaRouteImport } from './routes/_authenticated/area'
+import { Route as AuthenticatedCatalogoObiettiviRouteImport } from './routes/_authenticated/catalogo-obiettivi'
+import { Route as AuthenticatedClientiRouteImport } from './routes/_authenticated/clienti'
+import { Route as AuthenticatedObiettiviRouteImport } from './routes/_authenticated/obiettivi'
 import { Route as AuthenticatedRegistrazioniRouteImport } from './routes/_authenticated/registrazioni'
 
 const IndexRoute = IndexRouteImport.update({
@@ -34,6 +37,22 @@ const AuthenticatedAreaRoute = AuthenticatedAreaRouteImport.update({
   path: '/area',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCatalogoObiettiviRoute =
+  AuthenticatedCatalogoObiettiviRouteImport.update({
+    id: '/catalogo-obiettivi',
+    path: '/catalogo-obiettivi',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientiRoute = AuthenticatedClientiRouteImport.update({
+  id: '/clienti',
+  path: '/clienti',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedObiettiviRoute = AuthenticatedObiettiviRouteImport.update({
+  id: '/obiettivi',
+  path: '/obiettivi',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedRegistrazioniRoute =
   AuthenticatedRegistrazioniRouteImport.update({
     id: '/registrazioni',
@@ -45,12 +64,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accessi': typeof AuthenticatedAccessiRoute
   '/area': typeof AuthenticatedAreaRoute
+  '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
+  '/clienti': typeof AuthenticatedClientiRoute
+  '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accessi': typeof AuthenticatedAccessiRoute
   '/area': typeof AuthenticatedAreaRoute
+  '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
+  '/clienti': typeof AuthenticatedClientiRoute
+  '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
 }
 export interface FileRoutesById {
@@ -59,19 +84,39 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/accessi': typeof AuthenticatedAccessiRoute
   '/_authenticated/area': typeof AuthenticatedAreaRoute
+  '/_authenticated/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
+  '/_authenticated/clienti': typeof AuthenticatedClientiRoute
+  '/_authenticated/obiettivi': typeof AuthenticatedObiettiviRoute
   '/_authenticated/registrazioni': typeof AuthenticatedRegistrazioniRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/accessi' | '/area' | '/registrazioni'
+  fullPaths:
+    | '/'
+    | '/accessi'
+    | '/area'
+    | '/catalogo-obiettivi'
+    | '/clienti'
+    | '/obiettivi'
+    | '/registrazioni'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/accessi' | '/area' | '/registrazioni'
+  to:
+    | '/'
+    | '/accessi'
+    | '/area'
+    | '/catalogo-obiettivi'
+    | '/clienti'
+    | '/obiettivi'
+    | '/registrazioni'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_authenticated/accessi'
     | '/_authenticated/area'
+    | '/_authenticated/catalogo-obiettivi'
+    | '/_authenticated/clienti'
+    | '/_authenticated/obiettivi'
     | '/_authenticated/registrazioni'
   fileRoutesById: FileRoutesById
 }
@@ -110,6 +155,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAreaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/catalogo-obiettivi': {
+      id: '/_authenticated/catalogo-obiettivi'
+      path: '/catalogo-obiettivi'
+      fullPath: '/catalogo-obiettivi'
+      preLoaderRoute: typeof AuthenticatedCatalogoObiettiviRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clienti': {
+      id: '/_authenticated/clienti'
+      path: '/clienti'
+      fullPath: '/clienti'
+      preLoaderRoute: typeof AuthenticatedClientiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/obiettivi': {
+      id: '/_authenticated/obiettivi'
+      path: '/obiettivi'
+      fullPath: '/obiettivi'
+      preLoaderRoute: typeof AuthenticatedObiettiviRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/registrazioni': {
       id: '/_authenticated/registrazioni'
       path: '/registrazioni'
@@ -123,12 +189,18 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccessiRoute: typeof AuthenticatedAccessiRoute
   AuthenticatedAreaRoute: typeof AuthenticatedAreaRoute
+  AuthenticatedCatalogoObiettiviRoute: typeof AuthenticatedCatalogoObiettiviRoute
+  AuthenticatedClientiRoute: typeof AuthenticatedClientiRoute
+  AuthenticatedObiettiviRoute: typeof AuthenticatedObiettiviRoute
   AuthenticatedRegistrazioniRoute: typeof AuthenticatedRegistrazioniRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccessiRoute: AuthenticatedAccessiRoute,
   AuthenticatedAreaRoute: AuthenticatedAreaRoute,
+  AuthenticatedCatalogoObiettiviRoute: AuthenticatedCatalogoObiettiviRoute,
+  AuthenticatedClientiRoute: AuthenticatedClientiRoute,
+  AuthenticatedObiettiviRoute: AuthenticatedObiettiviRoute,
   AuthenticatedRegistrazioniRoute: AuthenticatedRegistrazioniRoute,
 }
 

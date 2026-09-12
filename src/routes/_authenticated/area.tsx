@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp } from "@/lib/profilo";
+import { caricaObiettiviCliente } from "@/lib/obiettivi";
 
 export const Route = createFileRoute("/_authenticated/area")({
   head: () => ({
@@ -29,12 +31,28 @@ function Area() {
     queryFn: caricaSessioneApp,
   });
 
+  const profilo0 = data?.profilo;
+  const deveSceglierne = !!profilo0 && !data?.isGestore && profilo0.stato === "approvato";
+
+  const miei = useQuery({
+    queryKey: ["obiettivi-cliente", profilo0?.id],
+    enabled: deveSceglierne,
+    queryFn: () => caricaObiettiviCliente(profilo0!.id),
+  });
+
+  const nessunObiettivo = deveSceglierne && miei.isSuccess && miei.data.length === 0;
+
+  useEffect(() => {
+    if (nessunObiettivo) navigate({ to: "/obiettivi", replace: true });
+  }, [nessunObiettivo, navigate]);
+
   async function esci() {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
     navigate({ to: "/", replace: true });
   }
+
 
   if (isLoading) {
     return <Schermo titolo="Caricamento…" />;
@@ -58,6 +76,12 @@ function Area() {
         <p className="text-base text-muted-foreground">Pannello del gestore.</p>
         <Link to="/registrazioni" className="btn-primary mt-2">
           Registrazioni da approvare
+        </Link>
+        <Link to="/clienti" className="btn-secondary w-full">
+          Clienti
+        </Link>
+        <Link to="/catalogo-obiettivi" className="btn-secondary w-full">
+          Catalogo obiettivi
         </Link>
         <Link to="/accessi" className="btn-secondary w-full">
           Gestione accessi
@@ -98,6 +122,9 @@ function Area() {
       <p className="text-base text-muted-foreground">
         La tua scheda di allenamento sarà disponibile qui appena il gestore l&apos;avrà preparata.
       </p>
+      <Link to="/obiettivi" className="btn-secondary w-full">
+        I miei obiettivi ({miei.data?.length ?? 0})
+      </Link>
     </Schermo>
   );
 }
