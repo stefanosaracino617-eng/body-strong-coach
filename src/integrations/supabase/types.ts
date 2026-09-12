@@ -46,6 +46,54 @@ export type Database = {
           },
         ]
       }
+      esercizi: {
+        Row: {
+          attivo: boolean
+          attrezzatura: string | null
+          created_at: string
+          descrizione_esecuzione: string | null
+          errori_comuni: string | null
+          gruppo_muscolare: Database["public"]["Enums"]["gruppo_muscolare"]
+          id: string
+          immagine_url: string | null
+          nome: string
+          ordine: number
+          tipo: Database["public"]["Enums"]["tipo_esercizio"]
+          unita_misura: Database["public"]["Enums"]["unita_misura_esercizio"]
+          updated_at: string
+        }
+        Insert: {
+          attivo?: boolean
+          attrezzatura?: string | null
+          created_at?: string
+          descrizione_esecuzione?: string | null
+          errori_comuni?: string | null
+          gruppo_muscolare: Database["public"]["Enums"]["gruppo_muscolare"]
+          id?: string
+          immagine_url?: string | null
+          nome: string
+          ordine: number
+          tipo?: Database["public"]["Enums"]["tipo_esercizio"]
+          unita_misura?: Database["public"]["Enums"]["unita_misura_esercizio"]
+          updated_at?: string
+        }
+        Update: {
+          attivo?: boolean
+          attrezzatura?: string | null
+          created_at?: string
+          descrizione_esecuzione?: string | null
+          errori_comuni?: string | null
+          gruppo_muscolare?: Database["public"]["Enums"]["gruppo_muscolare"]
+          id?: string
+          immagine_url?: string | null
+          nome?: string
+          ordine?: number
+          tipo?: Database["public"]["Enums"]["tipo_esercizio"]
+          unita_misura?: Database["public"]["Enums"]["unita_misura_esercizio"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       obiettivi: {
         Row: {
           attivo: boolean
@@ -153,9 +201,21 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      gruppo_muscolare:
+        | "cardio"
+        | "pettorali"
+        | "spalle e trapezio"
+        | "bicipiti e brachiale"
+        | "tricipiti"
+        | "dorsali"
+        | "gambe e glutei"
+        | "polpacci"
+        | "addominali"
       ruolo_app: "gestore" | "cliente"
       sesso_tipo: "maschio" | "femmina" | "altro"
       stato_profilo: "in_attesa" | "approvato" | "sospeso"
+      tipo_esercizio: "forza" | "cardio"
+      unita_misura_esercizio: "serie_ripetizioni" | "minuti"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -283,9 +343,22 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      gruppo_muscolare: [
+        "cardio",
+        "pettorali",
+        "spalle e trapezio",
+        "bicipiti e brachiale",
+        "tricipiti",
+        "dorsali",
+        "gambe e glutei",
+        "polpacci",
+        "addominali",
+      ],
       ruolo_app: ["gestore", "cliente"],
       sesso_tipo: ["maschio", "femmina", "altro"],
       stato_profilo: ["in_attesa", "approvato", "sospeso"],
+      tipo_esercizio: ["forza", "cardio"],
+      unita_misura_esercizio: ["serie_ripetizioni", "minuti"],
     },
   },
 } as const

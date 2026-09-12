@@ -83,6 +83,9 @@ function Area() {
         <Link to="/catalogo-obiettivi" className="btn-secondary w-full">
           Catalogo obiettivi
         </Link>
+        <Link to="/esercizi" className="btn-secondary w-full">
+          Catalogo esercizi
+        </Link>
         <Link to="/accessi" className="btn-secondary w-full">
           Gestione accessi
         </Link>
