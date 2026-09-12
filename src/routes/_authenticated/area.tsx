@@ -59,6 +59,9 @@ function Area() {
         <Link to="/registrazioni" className="btn-primary mt-2">
           Registrazioni da approvare
         </Link>
+        <Link to="/accessi" className="btn-secondary w-full">
+          Gestione accessi
+        </Link>
       </Schermo>
     );
   }
