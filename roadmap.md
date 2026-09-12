@@ -2,5 +2,5 @@
 
 - [x] Profili, ruoli e RLS
 - [x] Registrazione, attesa approvazione, pannello gestore
-- [ ] Localizzazione italiana: date gg/mm/aaaa ovunque, lang=it, calendari da lunedi
-- [ ] Impostare stefanosaracino617@gmail.com come gestore (dopo registrazione)
+- [x] Localizzazione italiana: date gg/mm/aaaa, lingua italiana, calendari da lunedi
+- [x] Account gestore automatico per stefanosaracino617@gmail.com alla registrazione
