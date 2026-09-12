@@ -363,7 +363,7 @@ function PaginaEsercizi() {
             <div className="immagine-esercizio">
               <img
                 src={immagini.data[e.immagine_url]}
-                alt={`Esecione dell'esercizio ${e.nome}`}
+                alt={`Esecuzione dell'esercizio ${e.nome}`}
                 loading="lazy"
               />
             </div>
