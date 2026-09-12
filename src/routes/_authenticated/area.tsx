@@ -122,6 +122,9 @@ function Area() {
       <p className="text-base text-muted-foreground">
         La tua scheda di allenamento sarà disponibile qui appena il gestore l&apos;avrà preparata.
       </p>
+      <Link to="/obiettivi" className="btn-secondary w-full">
+        I miei obiettivi ({miei.data?.length ?? 0})
+      </Link>
     </Schermo>
   );
 }
