@@ -360,12 +360,13 @@ function PaginaEsercizi() {
       {filtrati.map((e) => (
         <article key={e.id} className="card-surface flex flex-col gap-2 p-6">
           {e.immagine_url && immagini.data?.[e.immagine_url] && (
-            <img
-              src={immagini.data[e.immagine_url]}
-              alt={`Esecuzione dell'esercizio ${e.nome}`}
-              loading="lazy"
-              className="w-full rounded-[10px]"
-            />
+            <div className="immagine-esercizio">
+              <img
+                src={immagini.data[e.immagine_url]}
+                alt={`Esecione dell'esercizio ${e.nome}`}
+                loading="lazy"
+              />
+            </div>
           )}
           <h2 className="text-lg">
             {String(e.ordine).padStart(3, "0")} · {e.nome}
