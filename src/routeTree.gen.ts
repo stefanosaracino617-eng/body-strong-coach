@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAccessiRouteImport } from './routes/_authenticated/accessi'
 import { Route as AuthenticatedAreaRouteImport } from './routes/_authenticated/area'
+import { Route as AuthenticatedObiettiviRouteImport } from './routes/_authenticated/obiettivi'
 import { Route as AuthenticatedRegistrazioniRouteImport } from './routes/_authenticated/registrazioni'
 
 const IndexRoute = IndexRouteImport.update({
@@ -34,6 +35,11 @@ const AuthenticatedAreaRoute = AuthenticatedAreaRouteImport.update({
   path: '/area',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedObiettiviRoute = AuthenticatedObiettiviRouteImport.update({
+  id: '/obiettivi',
+  path: '/obiettivi',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedRegistrazioniRoute =
   AuthenticatedRegistrazioniRouteImport.update({
     id: '/registrazioni',
@@ -45,12 +51,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accessi': typeof AuthenticatedAccessiRoute
   '/area': typeof AuthenticatedAreaRoute
+  '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accessi': typeof AuthenticatedAccessiRoute
   '/area': typeof AuthenticatedAreaRoute
+  '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
 }
 export interface FileRoutesById {
@@ -59,19 +67,21 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/accessi': typeof AuthenticatedAccessiRoute
   '/_authenticated/area': typeof AuthenticatedAreaRoute
+  '/_authenticated/obiettivi': typeof AuthenticatedObiettiviRoute
   '/_authenticated/registrazioni': typeof AuthenticatedRegistrazioniRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/accessi' | '/area' | '/registrazioni'
+  fullPaths: '/' | '/accessi' | '/area' | '/obiettivi' | '/registrazioni'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/accessi' | '/area' | '/registrazioni'
+  to: '/' | '/accessi' | '/area' | '/obiettivi' | '/registrazioni'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_authenticated/accessi'
     | '/_authenticated/area'
+    | '/_authenticated/obiettivi'
     | '/_authenticated/registrazioni'
   fileRoutesById: FileRoutesById
 }
@@ -110,6 +120,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAreaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/obiettivi': {
+      id: '/_authenticated/obiettivi'
+      path: '/obiettivi'
+      fullPath: '/obiettivi'
+      preLoaderRoute: typeof AuthenticatedObiettiviRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/registrazioni': {
       id: '/_authenticated/registrazioni'
       path: '/registrazioni'
@@ -123,12 +140,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccessiRoute: typeof AuthenticatedAccessiRoute
   AuthenticatedAreaRoute: typeof AuthenticatedAreaRoute
+  AuthenticatedObiettiviRoute: typeof AuthenticatedObiettiviRoute
   AuthenticatedRegistrazioniRoute: typeof AuthenticatedRegistrazioniRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccessiRoute: AuthenticatedAccessiRoute,
   AuthenticatedAreaRoute: AuthenticatedAreaRoute,
+  AuthenticatedObiettiviRoute: AuthenticatedObiettiviRoute,
   AuthenticatedRegistrazioniRoute: AuthenticatedRegistrazioniRoute,
 }
 
