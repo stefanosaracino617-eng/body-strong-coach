@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
 import { formattaData } from "@/lib/date";
+import { avvisoErrore, avvisoOk } from "@/lib/avvisi";
+import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 
 export const Route = createFileRoute("/_authenticated/registrazioni")({
   head: () => ({
