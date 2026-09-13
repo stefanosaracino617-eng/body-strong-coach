@@ -58,9 +58,9 @@ function PaginaAllenamento() {
   const clienteId = sessioneApp.data?.profilo.id;
 
   const scheda = useQuery({
-    queryKey: ["mia-scheda-attiva", clienteId],
+    queryKey: ["scheda-allenamento", clienteId],
     enabled: !!clienteId,
-    queryFn: () => caricaSchedaClienteAttiva(clienteId!),
+    queryFn: () => caricaSchedaPerAllenamento(clienteId!),
   });
 
   const righe = useQuery({
