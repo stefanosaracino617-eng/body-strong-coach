@@ -83,10 +83,12 @@ function SessioneCliente({
   etichetta,
   righe,
   immagini,
+  conAvvio = false,
 }: {
   etichetta: string;
   righe: SchedaEsercizio[];
   immagini: Record<string, string>;
+  conAvvio?: boolean;
 }) {
   const [aperta, setAperta] = useState(false);
   return (
