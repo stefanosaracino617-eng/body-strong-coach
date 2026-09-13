@@ -6,6 +6,7 @@ import { formattaData, isoAData } from "@/lib/date";
 import {
   caricaEserciziScheda,
   nomeRiga,
+  percorsiImmagini,
   unitaRiga,
   type Scheda,
   type SchedaEsercizio,
@@ -24,9 +25,7 @@ export function VistaSchedaCliente({ scheda }: { scheda: Scheda }) {
     queryKey: ["scheda-esercizi", scheda.id],
     queryFn: () => caricaEserciziScheda(scheda.id),
   });
-  const percorsi = (righe.data ?? [])
-    .map((riga) => riga.esercizi?.immagine_url)
-    .filter((percorso): percorso is string => Boolean(percorso));
+  const percorsi = percorsiImmagini(righe.data ?? []);
   const immagini = useQuery({
     queryKey: ["immagini-scheda", scheda.id, percorsi.join("|")],
     enabled: percorsi.length > 0,
