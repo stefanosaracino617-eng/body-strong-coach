@@ -137,8 +137,11 @@ function Area() {
     <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci} contenutoLibero>
       {scheda.isLoading && <p className="text-lg text-muted-foreground">Caricamento scheda…</p>}
       {!scheda.isLoading && !scheda.data && (
-        <div className="card-surface p-6">
-          <p className="text-xl font-semibold">La tua scheda è in preparazione</p>
+        <div className="card-surface flex flex-col items-center gap-2 p-6 text-center">
+          <p className="text-xl font-semibold">La tua scheda di allenamento è scaduta.</p>
+          <p className="text-base text-muted-foreground">
+            Rivolgiti all&apos;istruttore per il rinnovo.
+          </p>
         </div>
       )}
       {scheda.data && <VistaSchedaCliente scheda={scheda.data} conAvvio />}
