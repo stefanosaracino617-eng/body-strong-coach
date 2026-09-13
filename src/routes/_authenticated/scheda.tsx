@@ -182,7 +182,7 @@ function DatiScheda({
 
   const salva = useMutation({
     mutationFn: async () => {
-      if (!scadenza) throw new Error("La data di scadenza è obbligatoria.");
+      verificaDateScheda(inizio || new Date().toISOString().slice(0, 10), scadenza);
       const valori = {
         titolo: titolo.trim() || "Scheda di allenamento",
         data_inizio: inizio || new Date().toISOString().slice(0, 10),
