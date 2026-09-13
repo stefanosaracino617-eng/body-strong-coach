@@ -346,13 +346,6 @@ function intestazioneMese(chiave: string): string {
   return testo.charAt(0).toUpperCase() + testo.slice(1);
 }
 
-function parseRipetizioni(testo: string | null): number {
-  if (!testo) return 0;
-  const numeri = testo.match(/\d+/g);
-  if (!numeri || numeri.length === 0) return 0;
-  return Number(numeri[0]);
-}
-
 function durataMinuti(inizioIso: string, fineIso: string): number {
   const inizio = new Date(inizioIso).getTime();
   const fine = new Date(fineIso).getTime();
@@ -366,29 +359,3 @@ function formattaDurata(minuti: number): string {
   return resto === 0 ? `${ore} h` : `${ore} h ${resto} min`;
 }
 
-function isCardio(e: EsercizioDettaglio): boolean {
-  return e.scheda_esercizi?.esercizi?.unita_misura === "minuti";
-}
-
-function tuttiCardio(esercizi: EsercizioDettaglio[]): boolean {
-  if (esercizi.length === 0) return false;
-  return esercizi.every((e) => isCardio(e));
-}
-
-function pesoTotale(esercizi: EsercizioDettaglio[]): number {
-  let totale = 0;
-  for (const e of esercizi) {
-    if (!e.completato || isCardio(e)) continue;
-    const peso = e.peso_kg ?? 0;
-    const reps = parseRipetizioni(e.ripetizioni_effettive);
-    const serie = e.scheda_esercizi?.serie ?? 0;
-    totale += peso * reps * serie;
-  }
-  return Math.round(totale);
-}
-
-function minutiTotali(esercizi: EsercizioDettaglio[]): number {
-  return esercizi
-    .filter((e) => e.completato && isCardio(e))
-    .reduce((s, e) => s + (e.durata_minuti ?? 0), 0);
-}
