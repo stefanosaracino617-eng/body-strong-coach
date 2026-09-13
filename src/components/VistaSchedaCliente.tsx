@@ -119,8 +119,8 @@ function SessioneCliente({
 }
 
 function EsercizioCliente({ riga, immagini }: { riga: SchedaEsercizio; immagini: Record<string, string> }) {
-  const immagineCatalogo = riga.esercizi?.immagine_url;
-  const immagine = immagineCatalogo ? immagini[immagineCatalogo] : riga.immagine_libera_url;
+  const percorso = riga.esercizi?.immagine_url ?? riga.immagine_libera_url;
+  const immagine = percorso ? (immagini[percorso] ?? percorso) : null;
   const descrizione = riga.esercizi?.descrizione_esecuzione ?? riga.descrizione_libera;
   const errori = riga.esercizi?.errori_comuni;
   const aMinuti = unitaRiga(riga) === "minuti";
