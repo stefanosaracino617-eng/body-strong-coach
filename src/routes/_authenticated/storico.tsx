@@ -243,7 +243,9 @@ function gruppaPerMese(
 }
 
 function intestazioneMese(chiave: string): string {
-  const [a, m] = chiave.split("-").map(Number);
+  const [aStr, mStr] = chiave.split("-");
+  const a = Number(aStr);
+  const m = Number(mStr);
   const d = new Date(a, m - 1, 1);
   const testo = d.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
   return testo.charAt(0).toUpperCase() + testo.slice(1);
