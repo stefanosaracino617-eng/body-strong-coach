@@ -100,6 +100,7 @@ export async function caricaSchedaClienteAttiva(clienteId: string): Promise<Sche
     .select("*")
     .eq("cliente_id", clienteId)
     .eq("stato", "attiva")
+    .lte("data_inizio", oggiRoma())
     .gte("data_scadenza", oggiRoma())
     .maybeSingle();
   if (error) throw error;
@@ -155,6 +156,7 @@ export async function caricaScadenzePerClienti(
     .select("cliente_id, data_scadenza")
     .in("cliente_id", clientiId)
     .eq("stato", "attiva")
+    .lte("data_inizio", oggiRoma())
     .gte("data_scadenza", oggiRoma());
   if (error) throw error;
   const mappa: Record<string, string> = {};
