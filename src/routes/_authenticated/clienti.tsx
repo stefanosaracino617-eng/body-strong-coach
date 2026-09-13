@@ -85,6 +85,7 @@ function Clienti() {
                 <Riga etichetta="Stato" valore={etichettaStato[p.stato]} />
               </dl>
               <ObiettiviCliente clienteId={p.id} />
+              <AllenamentiCliente clienteId={p.id} />
               <Link
                 to="/scheda"
                 search={{ cliente: p.id }}
