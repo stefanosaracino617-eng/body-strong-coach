@@ -73,7 +73,11 @@ function Area() {
 
 
   if (isLoading) {
-    return <Schermo titolo="Caricamento…" />;
+    return (
+      <Schermo titolo="La mia area" contenutoLibero>
+        <CaricamentoCard quante={2} />
+      </Schermo>
+    );
   }
 
   if (!data) {
