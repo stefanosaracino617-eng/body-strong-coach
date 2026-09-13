@@ -201,9 +201,14 @@ function DatiScheda({
         if (error) throw error;
       }
     },
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Salvataggio non riuscito."),
+    onError: (e) => {
+      const testo = e instanceof Error ? e.message : "Salvataggio non riuscito.";
+      onErrore(testo);
+      avvisoErrore(testo);
+    },
     onSuccess: () => {
       onErrore(null);
+      avvisoOk("Scheda salvata.");
       onFatto();
     },
   });
