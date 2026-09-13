@@ -124,6 +124,43 @@ export async function caricaStorico(clienteId: string): Promise<Allenamento[]> {
   return (data ?? []) as Allenamento[];
 }
 
+export type EsercizioDettaglio = {
+  id: string;
+  completato: boolean;
+  peso_kg: number | null;
+  ripetizioni_effettive: string | null;
+  durata_minuti: number | null;
+  note: string | null;
+  scheda_esercizi: {
+    esercizio_id: string | null;
+    nome_libero: string | null;
+    serie: number | null;
+    ordine: number;
+    esercizi: { nome: string; unita_misura: string } | null;
+  } | null;
+};
+
+export type AllenamentoConDettaglio = Allenamento & {
+  schede?: { titolo: string } | null;
+  allenamento_esercizi: EsercizioDettaglio[];
+};
+
+/** Storico completo con righe esercizi e titolo scheda, per la vista dettaglio del cliente. */
+export async function caricaStoricoDettagliato(
+  clienteId: string,
+): Promise<AllenamentoConDettaglio[]> {
+  const { data, error } = await supabase
+    .from("allenamenti")
+    .select(
+      "*, schede(titolo), allenamento_esercizi(id, completato, peso_kg, ripetizioni_effettive, durata_minuti, note, scheda_esercizi(esercizio_id, nome_libero, serie, ordine, esercizi(nome, unita_misura)))",
+    )
+    .eq("cliente_id", clienteId)
+    .order("data", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as AllenamentoConDettaglio[];
+}
+
 export type RiepilogoCliente = {
   ultimo: string | null;
   ultimi30: number;
