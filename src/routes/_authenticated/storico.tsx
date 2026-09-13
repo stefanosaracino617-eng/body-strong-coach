@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Check, Minus } from "lucide-react";
+import { Check, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { caricaSessioneApp } from "@/lib/profilo";
 import {
   caricaStoricoDettagliato,
+  chiaveEsercizio,
   type AllenamentoConDettaglio,
   type EsercizioDettaglio,
 } from "@/lib/allenamenti";
@@ -45,7 +46,13 @@ function Storico() {
   const corrente = selezionato ? conclusi.find((a) => a.id === selezionato) : null;
 
   if (corrente) {
-    return <DettaglioAllenamento allenamento={corrente} onChiudi={() => setSelezionato(null)} />;
+    return (
+      <DettaglioAllenamento
+        allenamento={corrente}
+        storico={conclusi}
+        onChiudi={() => setSelezionato(null)}
+      />
+    );
   }
 
   const gruppi = gruppaPerMese(conclusi);
