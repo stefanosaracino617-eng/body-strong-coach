@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Check, Minus, TrendingDown, TrendingUp } from "lucide-react";
