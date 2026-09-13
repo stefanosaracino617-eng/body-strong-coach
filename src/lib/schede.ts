@@ -67,20 +67,73 @@ export async function caricaEserciziScheda(schedaId: string): Promise<SchedaEser
 
 /** Scheda del cliente ancora valida oggi. Le schede scadute restano nello storico del gestore. */
 export async function caricaSchedaClienteAttiva(clienteId: string): Promise<Scheda | null> {
-  const oggi = new Date();
-  const anno = oggi.getFullYear();
-  const mese = String(oggi.getMonth() + 1).padStart(2, "0");
-  const giorno = String(oggi.getDate()).padStart(2, "0");
-  const dataOggi = `${anno}-${mese}-${giorno}`;
   const { data, error } = await supabase
     .from("schede")
     .select("*")
     .eq("cliente_id", clienteId)
     .eq("stato", "attiva")
-    .gte("data_scadenza", dataOggi)
+    .gte("data_scadenza", oggiRoma())
     .maybeSingle();
   if (error) throw error;
   return (data as Scheda | null) ?? null;
+}
+
+/**
+ * Scheda da usare durante un allenamento: se il cliente ha un allenamento ancora aperto
+ * lo può concludere anche se nel frattempo la scheda è stata archiviata o è scaduta.
+ */
+export async function caricaSchedaPerAllenamento(clienteId: string): Promise<Scheda | null> {
+  const attiva = await caricaSchedaClienteAttiva(clienteId);
+  if (attiva) return attiva;
+
+  const { data: aperto, error: erroreAperto } = await supabase
+    .from("allenamenti")
+    .select("scheda_id")
+    .eq("cliente_id", clienteId)
+    .is("completato_at", null)
+    .not("scheda_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (erroreAperto) throw erroreAperto;
+  const schedaId = (aperto as { scheda_id: string | null } | null)?.scheda_id;
+  if (!schedaId) return null;
+
+  const { data, error } = await supabase
+    .from("schede")
+    .select("*")
+    .eq("id", schedaId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Scheda | null) ?? null;
+}
+
+/** Archivia subito una scheda: nulla viene cancellato, il cliente smette solo di vederla. */
+export async function archiviaScheda(schedaId: string): Promise<void> {
+  const { error } = await supabase
+    .from("schede")
+    .update({ stato: "archiviata" as const, archiviata_at: new Date().toISOString() })
+    .eq("id", schedaId);
+  if (error) throw error;
+}
+
+/** Schede attive e non scadute dei clienti indicati: serve all'elenco clienti del gestore. */
+export async function caricaScadenzePerClienti(
+  clientiId: string[],
+): Promise<Record<string, string>> {
+  if (clientiId.length === 0) return {};
+  const { data, error } = await supabase
+    .from("schede")
+    .select("cliente_id, data_scadenza")
+    .in("cliente_id", clientiId)
+    .eq("stato", "attiva")
+    .gte("data_scadenza", oggiRoma());
+  if (error) throw error;
+  const mappa: Record<string, string> = {};
+  for (const r of (data ?? []) as { cliente_id: string; data_scadenza: string }[]) {
+    mappa[r.cliente_id] = r.data_scadenza;
+  }
+  return mappa;
 }
 
 /** Tutte le schede del cliente, dalla più recente: serve al gestore per lo storico e la duplicazione. */
