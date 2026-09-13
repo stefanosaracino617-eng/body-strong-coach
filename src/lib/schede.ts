@@ -42,7 +42,24 @@ export type SchedaEsercizio = {
   } | null;
 };
 
-/** Scheda attiva del cliente, se esiste. */
+/** Una scheda è realmente attiva solo se lo stato è attiva E non è ancora scaduta. */
+export function schedaScaduta(scheda: { data_scadenza: string }): boolean {
+  return scheda.data_scadenza < oggiRoma();
+}
+
+export function schedaRealmenteAttiva(scheda: { stato: StatoScheda; data_scadenza: string }): boolean {
+  return scheda.stato === "attiva" && !schedaScaduta(scheda);
+}
+
+/** Verifica le date della scheda: la scadenza deve essere successiva all'inizio. */
+export function verificaDateScheda(dataInizio: string, dataScadenza: string): void {
+  if (!dataScadenza) throw new Error("La data di scadenza è obbligatoria.");
+  if (dataInizio && dataScadenza <= dataInizio) {
+    throw new Error("La data di scadenza deve essere successiva alla data di inizio.");
+  }
+}
+
+/** Scheda con stato attiva (anche se scaduta): serve al gestore. */
 export async function caricaSchedaAttiva(clienteId: string): Promise<Scheda | null> {
   const { data, error } = await supabase
     .from("schede")
@@ -193,6 +210,7 @@ export async function duplicaScheda(
   dataScadenza: string,
   titolo?: string,
 ): Promise<string> {
+  verificaDateScheda(dataInizio, dataScadenza);
   const { data, error } = await supabase
     .from("schede")
     .insert({
