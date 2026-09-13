@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { BUCKET_IMMAGINI, type Esercizio, type UnitaMisura } from "@/lib/esercizi";
+import { oggiRoma } from "@/lib/date";
 
 export type StatoScheda = "attiva" | "archiviata";
 

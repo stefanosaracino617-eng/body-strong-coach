@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { caricaSessioneApp } from "@/lib/profilo";
-import { caricaEserciziScheda, caricaSchedaClienteAttiva, nomeRiga, unitaRiga, type SchedaEsercizio } from "@/lib/schede";
+import { caricaEserciziScheda, caricaSchedaPerAllenamento, nomeRiga, unitaRiga, type SchedaEsercizio } from "@/lib/schede";
 import {
   apriAllenamento,
   caricaRigheAllenamento,
