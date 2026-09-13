@@ -26,7 +26,6 @@ export const Route = createFileRoute("/_authenticated/registrazioni")({
 
 function Registrazioni() {
   const queryClient = useQueryClient();
-  const [errore, setErrore] = useState<string | null>(null);
 
   const sessione = useQuery({ queryKey: ["sessione-app"], queryFn: caricaSessioneApp });
 
@@ -51,16 +50,23 @@ function Registrazioni() {
         .update({ stato: approva ? "approvato" : "sospeso" })
         .eq("id", id);
       if (error) throw error;
+      return approva;
     },
-    onError: (e) => setErrore(e instanceof Error ? e.message : "Operazione non riuscita."),
-    onSuccess: () => {
-      setErrore(null);
+    onError: () => avvisoErrore("Operazione non riuscita. Riprova."),
+    onSuccess: (approva) => {
+      avvisoOk(approva ? "Cliente approvato." : "Registrazione rifiutata.");
       queryClient.invalidateQueries({ queryKey: ["registrazioni-in-attesa"] });
+      queryClient.invalidateQueries({ queryKey: ["numeri-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["clienti-approvati"] });
     },
   });
 
   if (sessione.isLoading) {
-    return <Pagina titolo="Caricamento…" />;
+    return (
+      <Pagina titolo="Registrazioni in attesa">
+        <CaricamentoCard />
+      </Pagina>
+    );
   }
 
   if (!sessione.data?.isGestore) {
@@ -80,18 +86,12 @@ function Registrazioni() {
 
   return (
     <Pagina titolo="Registrazioni in attesa">
-      {errore && (
-        <p className="rounded-[10px] border border-destructive px-3 py-3 text-base text-destructive">
-          {errore}
-        </p>
-      )}
+      {inAttesa.isLoading && <CaricamentoCard />}
 
-      {inAttesa.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {inAttesa.isError && <BloccoErrore onRiprova={() => inAttesa.refetch()} />}
 
-      {!inAttesa.isLoading && elenco.length === 0 && (
-        <div className="card-surface p-6 text-base text-muted-foreground">
-          Nessuna registrazione in attesa.
-        </div>
+      {inAttesa.isSuccess && elenco.length === 0 && (
+        <StatoVuoto testo="Nessun cliente in attesa di approvazione." />
       )}
 
       {elenco.map((p) => (
