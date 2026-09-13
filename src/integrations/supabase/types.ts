@@ -193,6 +193,117 @@ export type Database = {
         }
         Relationships: []
       }
+      scheda_esercizi: {
+        Row: {
+          carico_indicativo: string | null
+          created_at: string
+          descrizione_libera: string | null
+          durata_minuti: number | null
+          esercizio_id: string | null
+          id: string
+          immagine_libera_url: string | null
+          nome_libero: string | null
+          note: string | null
+          ordine: number
+          recupero_secondi: number | null
+          ripetizioni: string | null
+          scheda_id: string
+          serie: number | null
+          sessione: string
+          updated_at: string
+        }
+        Insert: {
+          carico_indicativo?: string | null
+          created_at?: string
+          descrizione_libera?: string | null
+          durata_minuti?: number | null
+          esercizio_id?: string | null
+          id?: string
+          immagine_libera_url?: string | null
+          nome_libero?: string | null
+          note?: string | null
+          ordine?: number
+          recupero_secondi?: number | null
+          ripetizioni?: string | null
+          scheda_id: string
+          serie?: number | null
+          sessione?: string
+          updated_at?: string
+        }
+        Update: {
+          carico_indicativo?: string | null
+          created_at?: string
+          descrizione_libera?: string | null
+          durata_minuti?: number | null
+          esercizio_id?: string | null
+          id?: string
+          immagine_libera_url?: string | null
+          nome_libero?: string | null
+          note?: string | null
+          ordine?: number
+          recupero_secondi?: number | null
+          ripetizioni?: string | null
+          scheda_id?: string
+          serie?: number | null
+          sessione?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheda_esercizi_esercizio_id_fkey"
+            columns: ["esercizio_id"]
+            isOneToOne: false
+            referencedRelation: "esercizi"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheda_esercizi_scheda_id_fkey"
+            columns: ["scheda_id"]
+            isOneToOne: false
+            referencedRelation: "schede"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schede: {
+        Row: {
+          archiviata_at: string | null
+          cliente_id: string
+          created_at: string
+          data_inizio: string
+          data_scadenza: string
+          id: string
+          note_gestore: string | null
+          stato: Database["public"]["Enums"]["stato_scheda"]
+          titolo: string
+          updated_at: string
+        }
+        Insert: {
+          archiviata_at?: string | null
+          cliente_id: string
+          created_at?: string
+          data_inizio?: string
+          data_scadenza: string
+          id?: string
+          note_gestore?: string | null
+          stato?: Database["public"]["Enums"]["stato_scheda"]
+          titolo?: string
+          updated_at?: string
+        }
+        Update: {
+          archiviata_at?: string | null
+          cliente_id?: string
+          created_at?: string
+          data_inizio?: string
+          data_scadenza?: string
+          id?: string
+          note_gestore?: string | null
+          stato?: Database["public"]["Enums"]["stato_scheda"]
+          titolo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -214,6 +325,7 @@ export type Database = {
       ruolo_app: "gestore" | "cliente"
       sesso_tipo: "maschio" | "femmina" | "altro"
       stato_profilo: "in_attesa" | "approvato" | "sospeso"
+      stato_scheda: "attiva" | "archiviata"
       tipo_esercizio: "forza" | "cardio"
       unita_misura_esercizio: "serie_ripetizioni" | "minuti"
     }
@@ -357,6 +469,7 @@ export const Constants = {
       ruolo_app: ["gestore", "cliente"],
       sesso_tipo: ["maschio", "femmina", "altro"],
       stato_profilo: ["in_attesa", "approvato", "sospeso"],
+      stato_scheda: ["attiva", "archiviata"],
       tipo_esercizio: ["forza", "cardio"],
       unita_misura_esercizio: ["serie_ripetizioni", "minuti"],
     },
