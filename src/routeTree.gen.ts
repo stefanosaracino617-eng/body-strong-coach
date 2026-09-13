@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAccessiRouteImport } from './routes/_authenticated/accessi'
+import { Route as AuthenticatedAllenamentoRouteImport } from './routes/_authenticated/allenamento'
 import { Route as AuthenticatedAreaRouteImport } from './routes/_authenticated/area'
 import { Route as AuthenticatedCatalogoObiettiviRouteImport } from './routes/_authenticated/catalogo-obiettivi'
 import { Route as AuthenticatedClientiRouteImport } from './routes/_authenticated/clienti'
@@ -19,6 +20,7 @@ import { Route as AuthenticatedEserciziRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedObiettiviRouteImport } from './routes/_authenticated/obiettivi'
 import { Route as AuthenticatedRegistrazioniRouteImport } from './routes/_authenticated/registrazioni'
 import { Route as AuthenticatedSchedaRouteImport } from './routes/_authenticated/scheda'
+import { Route as AuthenticatedStoricoRouteImport } from './routes/_authenticated/storico'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,6 +36,12 @@ const AuthenticatedAccessiRoute = AuthenticatedAccessiRouteImport.update({
   path: '/accessi',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAllenamentoRoute =
+  AuthenticatedAllenamentoRouteImport.update({
+    id: '/allenamento',
+    path: '/allenamento',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAreaRoute = AuthenticatedAreaRouteImport.update({
   id: '/area',
   path: '/area',
@@ -71,10 +79,16 @@ const AuthenticatedSchedaRoute = AuthenticatedSchedaRouteImport.update({
   path: '/scheda',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedStoricoRoute = AuthenticatedStoricoRouteImport.update({
+  id: '/storico',
+  path: '/storico',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accessi': typeof AuthenticatedAccessiRoute
+  '/allenamento': typeof AuthenticatedAllenamentoRoute
   '/area': typeof AuthenticatedAreaRoute
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
   '/clienti': typeof AuthenticatedClientiRoute
@@ -82,10 +96,12 @@ export interface FileRoutesByFullPath {
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
   '/scheda': typeof AuthenticatedSchedaRoute
+  '/storico': typeof AuthenticatedStoricoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accessi': typeof AuthenticatedAccessiRoute
+  '/allenamento': typeof AuthenticatedAllenamentoRoute
   '/area': typeof AuthenticatedAreaRoute
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
   '/clienti': typeof AuthenticatedClientiRoute
@@ -93,12 +109,14 @@ export interface FileRoutesByTo {
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
   '/scheda': typeof AuthenticatedSchedaRoute
+  '/storico': typeof AuthenticatedStoricoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/accessi': typeof AuthenticatedAccessiRoute
+  '/_authenticated/allenamento': typeof AuthenticatedAllenamentoRoute
   '/_authenticated/area': typeof AuthenticatedAreaRoute
   '/_authenticated/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
   '/_authenticated/clienti': typeof AuthenticatedClientiRoute
@@ -106,12 +124,14 @@ export interface FileRoutesById {
   '/_authenticated/obiettivi': typeof AuthenticatedObiettiviRoute
   '/_authenticated/registrazioni': typeof AuthenticatedRegistrazioniRoute
   '/_authenticated/scheda': typeof AuthenticatedSchedaRoute
+  '/_authenticated/storico': typeof AuthenticatedStoricoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/accessi'
+    | '/allenamento'
     | '/area'
     | '/catalogo-obiettivi'
     | '/clienti'
@@ -119,10 +139,12 @@ export interface FileRouteTypes {
     | '/obiettivi'
     | '/registrazioni'
     | '/scheda'
+    | '/storico'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/accessi'
+    | '/allenamento'
     | '/area'
     | '/catalogo-obiettivi'
     | '/clienti'
@@ -130,11 +152,13 @@ export interface FileRouteTypes {
     | '/obiettivi'
     | '/registrazioni'
     | '/scheda'
+    | '/storico'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_authenticated/accessi'
+    | '/_authenticated/allenamento'
     | '/_authenticated/area'
     | '/_authenticated/catalogo-obiettivi'
     | '/_authenticated/clienti'
@@ -142,6 +166,7 @@ export interface FileRouteTypes {
     | '/_authenticated/obiettivi'
     | '/_authenticated/registrazioni'
     | '/_authenticated/scheda'
+    | '/_authenticated/storico'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -170,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: '/accessi'
       fullPath: '/accessi'
       preLoaderRoute: typeof AuthenticatedAccessiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/allenamento': {
+      id: '/_authenticated/allenamento'
+      path: '/allenamento'
+      fullPath: '/allenamento'
+      preLoaderRoute: typeof AuthenticatedAllenamentoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/area': {
@@ -221,11 +253,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSchedaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/storico': {
+      id: '/_authenticated/storico'
+      path: '/storico'
+      fullPath: '/storico'
+      preLoaderRoute: typeof AuthenticatedStoricoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccessiRoute: typeof AuthenticatedAccessiRoute
+  AuthenticatedAllenamentoRoute: typeof AuthenticatedAllenamentoRoute
   AuthenticatedAreaRoute: typeof AuthenticatedAreaRoute
   AuthenticatedCatalogoObiettiviRoute: typeof AuthenticatedCatalogoObiettiviRoute
   AuthenticatedClientiRoute: typeof AuthenticatedClientiRoute
@@ -233,10 +273,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedObiettiviRoute: typeof AuthenticatedObiettiviRoute
   AuthenticatedRegistrazioniRoute: typeof AuthenticatedRegistrazioniRoute
   AuthenticatedSchedaRoute: typeof AuthenticatedSchedaRoute
+  AuthenticatedStoricoRoute: typeof AuthenticatedStoricoRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccessiRoute: AuthenticatedAccessiRoute,
+  AuthenticatedAllenamentoRoute: AuthenticatedAllenamentoRoute,
   AuthenticatedAreaRoute: AuthenticatedAreaRoute,
   AuthenticatedCatalogoObiettiviRoute: AuthenticatedCatalogoObiettiviRoute,
   AuthenticatedClientiRoute: AuthenticatedClientiRoute,
@@ -244,6 +286,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedObiettiviRoute: AuthenticatedObiettiviRoute,
   AuthenticatedRegistrazioniRoute: AuthenticatedRegistrazioniRoute,
   AuthenticatedSchedaRoute: AuthenticatedSchedaRoute,
+  AuthenticatedStoricoRoute: AuthenticatedStoricoRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

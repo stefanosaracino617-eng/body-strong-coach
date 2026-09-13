@@ -14,6 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
+      allenamenti: {
+        Row: {
+          cliente_id: string
+          completato_at: string | null
+          created_at: string
+          data: string
+          id: string
+          note_cliente: string | null
+          scheda_id: string | null
+          sessione: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          completato_at?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          note_cliente?: string | null
+          scheda_id?: string | null
+          sessione?: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          completato_at?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          note_cliente?: string | null
+          scheda_id?: string | null
+          sessione?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allenamenti_scheda_id_fkey"
+            columns: ["scheda_id"]
+            isOneToOne: false
+            referencedRelation: "schede"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      allenamento_esercizi: {
+        Row: {
+          allenamento_id: string
+          completato: boolean
+          created_at: string
+          durata_minuti: number | null
+          id: string
+          note: string | null
+          peso_kg: number | null
+          ripetizioni_effettive: string | null
+          scheda_esercizio_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          allenamento_id: string
+          completato?: boolean
+          created_at?: string
+          durata_minuti?: number | null
+          id?: string
+          note?: string | null
+          peso_kg?: number | null
+          ripetizioni_effettive?: string | null
+          scheda_esercizio_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allenamento_id?: string
+          completato?: boolean
+          created_at?: string
+          durata_minuti?: number | null
+          id?: string
+          note?: string | null
+          peso_kg?: number | null
+          ripetizioni_effettive?: string | null
+          scheda_esercizio_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allenamento_esercizi_allenamento_id_fkey"
+            columns: ["allenamento_id"]
+            isOneToOne: false
+            referencedRelation: "allenamenti"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "allenamento_esercizi_scheda_esercizio_id_fkey"
+            columns: ["scheda_esercizio_id"]
+            isOneToOne: false
+            referencedRelation: "scheda_esercizi"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cliente_obiettivi: {
         Row: {
           cliente_id: string

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { urlImmagini } from "@/lib/esercizi";
@@ -20,7 +21,7 @@ export function giorniAllaScadenza(dataScadenza: string): number {
   return Math.max(0, Math.ceil((scadenza.getTime() - oggi.getTime()) / 86_400_000));
 }
 
-export function VistaSchedaCliente({ scheda }: { scheda: Scheda }) {
+export function VistaSchedaCliente({ scheda, conAvvio = false }: { scheda: Scheda; conAvvio?: boolean }) {
   const righe = useQuery({
     queryKey: ["scheda-esercizi", scheda.id],
     queryFn: () => caricaEserciziScheda(scheda.id),
@@ -72,6 +73,7 @@ export function VistaSchedaCliente({ scheda }: { scheda: Scheda }) {
           etichetta={etichetta}
           righe={esercizi}
           immagini={immagini.data ?? {}}
+          conAvvio={conAvvio}
         />
       ))}
     </div>
@@ -82,10 +84,12 @@ function SessioneCliente({
   etichetta,
   righe,
   immagini,
+  conAvvio = false,
 }: {
   etichetta: string;
   righe: SchedaEsercizio[];
   immagini: Record<string, string>;
+  conAvvio?: boolean;
 }) {
   const [aperta, setAperta] = useState(false);
   return (
@@ -109,6 +113,11 @@ function SessioneCliente({
       </button>
       {aperta && (
         <div className="flex flex-col gap-6 border-t border-border p-5">
+          {conAvvio && (
+            <Link to="/allenamento" search={{ sessione: etichetta }} className="btn-primary text-center">
+              Avvia allenamento
+            </Link>
+          )}
           {righe.map((riga) => (
             <EsercizioCliente key={riga.id} riga={riga} immagini={immagini} />
           ))}

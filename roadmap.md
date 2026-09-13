@@ -10,3 +10,4 @@
 - [x] Vista cliente della scheda e sessioni richiudibili nell'editor gestore
 - [x] Editor: esercizio libero fuori catalogo, riordino degli esercizi nella sessione, duplicazione scheda; archiviazione automatica della scheda precedente applicata anche a livello di database
 - [x] Storico schede archiviate nel dettaglio cliente: periodo, data di archiviazione, dettaglio in sola lettura e duplicazione preselezionata
+- [x] Allenamenti: registrazione per sessione con precompilazione dall'ultimo valore, termina allenamento, storico cliente, riepilogo e andamento carico per il gestore
