@@ -1040,9 +1040,14 @@ function DuplicaScheda({
       if (!inizio || !scadenza) throw new Error("Indica la nuova data di inizio e di scadenza.");
       await duplicaScheda(origine, inizio, scadenza);
     },
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Duplicazione non riuscita."),
+    onError: (e) => {
+      const testo = e instanceof Error ? e.message : "Duplicazione non riuscita.";
+      onErrore(testo);
+      avvisoErrore(testo);
+    },
     onSuccess: () => {
       onErrore(null);
+      avvisoOk("Scheda duplicata.");
       setAperta(false);
       setInizio("");
       setScadenza("");
