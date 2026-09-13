@@ -36,6 +36,8 @@ export type SchedaEsercizio = {
     gruppo_muscolare: string;
     unita_misura: UnitaMisura;
     immagine_url: string | null;
+    descrizione_esecuzione: string | null;
+    errori_comuni: string | null;
   } | null;
 };
 
@@ -54,11 +56,31 @@ export async function caricaSchedaAttiva(clienteId: string): Promise<Scheda | nu
 export async function caricaEserciziScheda(schedaId: string): Promise<SchedaEsercizio[]> {
   const { data, error } = await supabase
     .from("scheda_esercizi")
-    .select("*, esercizi(nome, gruppo_muscolare, unita_misura, immagine_url)")
+    .select(
+      "*, esercizi(nome, gruppo_muscolare, unita_misura, immagine_url, descrizione_esecuzione, errori_comuni)",
+    )
     .eq("scheda_id", schedaId)
     .order("ordine", { ascending: true });
   if (error) throw error;
   return (data ?? []) as unknown as SchedaEsercizio[];
+}
+
+/** Scheda del cliente ancora valida oggi. Le schede scadute restano nello storico del gestore. */
+export async function caricaSchedaClienteAttiva(clienteId: string): Promise<Scheda | null> {
+  const oggi = new Date();
+  const anno = oggi.getFullYear();
+  const mese = String(oggi.getMonth() + 1).padStart(2, "0");
+  const giorno = String(oggi.getDate()).padStart(2, "0");
+  const dataOggi = `${anno}-${mese}-${giorno}`;
+  const { data, error } = await supabase
+    .from("schede")
+    .select("*")
+    .eq("cliente_id", clienteId)
+    .eq("stato", "attiva")
+    .gte("data_scadenza", dataOggi)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Scheda | null) ?? null;
 }
 
 /** Unità di misura effettiva della riga: dal catalogo, altrimenti serie e ripetizioni. */
