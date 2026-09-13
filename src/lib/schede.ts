@@ -42,13 +42,23 @@ export type SchedaEsercizio = {
   } | null;
 };
 
-/** Una scheda è realmente attiva solo se lo stato è attiva E non è ancora scaduta. */
+/**
+ * Regola unica di scheda attiva: stato attiva E inizio già arrivato E scadenza non passata.
+ */
 export function schedaScaduta(scheda: { data_scadenza: string }): boolean {
   return scheda.data_scadenza < oggiRoma();
 }
 
-export function schedaRealmenteAttiva(scheda: { stato: StatoScheda; data_scadenza: string }): boolean {
-  return scheda.stato === "attiva" && !schedaScaduta(scheda);
+export function schedaProgrammata(scheda: { stato: StatoScheda; data_inizio: string }): boolean {
+  return scheda.stato === "attiva" && scheda.data_inizio > oggiRoma();
+}
+
+export function schedaRealmenteAttiva(scheda: {
+  stato: StatoScheda;
+  data_inizio: string;
+  data_scadenza: string;
+}): boolean {
+  return scheda.stato === "attiva" && !schedaScaduta(scheda) && !schedaProgrammata(scheda);
 }
 
 /** Verifica le date della scheda: la scadenza deve essere successiva all'inizio. */
@@ -90,6 +100,7 @@ export async function caricaSchedaClienteAttiva(clienteId: string): Promise<Sche
     .select("*")
     .eq("cliente_id", clienteId)
     .eq("stato", "attiva")
+    .lte("data_inizio", oggiRoma())
     .gte("data_scadenza", oggiRoma())
     .maybeSingle();
   if (error) throw error;
@@ -145,6 +156,7 @@ export async function caricaScadenzePerClienti(
     .select("cliente_id, data_scadenza")
     .in("cliente_id", clientiId)
     .eq("stato", "attiva")
+    .lte("data_inizio", oggiRoma())
     .gte("data_scadenza", oggiRoma());
   if (error) throw error;
   const mappa: Record<string, string> = {};

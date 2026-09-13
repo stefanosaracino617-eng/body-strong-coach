@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { giorniAllaScadenza, oggiRoma } from "@/lib/date";
+import { caricaIdGestori, soloClienti, soloDiClienti } from "@/lib/clienti";
 
 export type NumeriDashboard = {
   inAttesa: number;
@@ -17,17 +18,20 @@ export async function caricaNumeriDashboard(): Promise<NumeriDashboard> {
   settimanaFa.setUTCDate(settimanaFa.getUTCDate() - 6);
   const daData = settimanaFa.toISOString().slice(0, 10);
 
+  const gestori = await caricaIdGestori();
+
   const [attesa, approvati, schede, allenamenti, esercizi] = await Promise.all([
-    supabase.from("profili").select("id", { count: "exact", head: true }).eq("stato", "in_attesa"),
+    supabase.from("profili").select("id").eq("stato", "in_attesa"),
     supabase.from("profili").select("id").eq("stato", "approvato"),
     supabase
       .from("schede")
       .select("cliente_id, data_scadenza")
       .eq("stato", "attiva")
+      .lte("data_inizio", oggi)
       .gte("data_scadenza", oggi),
     supabase
       .from("allenamenti")
-      .select("id", { count: "exact", head: true })
+      .select("id, cliente_id")
       .not("completato_at", "is", null)
       .gte("data", daData),
     supabase.from("esercizi").select("id", { count: "exact", head: true }).eq("attivo", true),
@@ -37,7 +41,15 @@ export async function caricaNumeriDashboard(): Promise<NumeriDashboard> {
     if (r.error) throw r.error;
   }
 
-  const idApprovati = ((approvati.data ?? []) as { id: string }[]).map((p) => p.id);
+  const idApprovati = soloClienti((approvati.data ?? []) as { id: string }[], gestori).map(
+    (p) => p.id,
+  );
+  const inAttesaClienti = soloClienti((attesa.data ?? []) as { id: string }[], gestori).length;
+  const allenamentiClienti = soloDiClienti(
+    (allenamenti.data ?? []) as { id: string; cliente_id: string }[],
+    gestori,
+    (a) => a.cliente_id,
+  ).length;
   const righeSchede = (schede.data ?? []) as { cliente_id: string; data_scadenza: string }[];
   const scadenzePerCliente = new Map<string, string>();
   for (const r of righeSchede) scadenzePerCliente.set(r.cliente_id, r.data_scadenza);
@@ -54,11 +66,11 @@ export async function caricaNumeriDashboard(): Promise<NumeriDashboard> {
   }
 
   return {
-    inAttesa: attesa.count ?? 0,
+    inAttesa: inAttesaClienti,
     clientiAttivi: idApprovati.length,
     inScadenza,
     senzaScheda,
-    allenamenti7: allenamenti.count ?? 0,
+    allenamenti7: allenamentiClienti,
     eserciziAttivi: esercizi.count ?? 0,
   };
 }
@@ -86,12 +98,12 @@ export async function caricaAllenamentiRecenti(): Promise<AllenamentoRecente[]> 
     .order("completato_at", { ascending: false });
   if (error) throw error;
 
-  const righe = (data ?? []) as {
-    id: string;
-    cliente_id: string;
-    sessione: string;
-    data: string;
-  }[];
+  const gestori = await caricaIdGestori();
+  const righe = soloDiClienti(
+    (data ?? []) as { id: string; cliente_id: string; sessione: string; data: string }[],
+    gestori,
+    (r) => r.cliente_id,
+  );
   if (righe.length === 0) return [];
 
   const { data: profili, error: erroreProfili } = await supabase

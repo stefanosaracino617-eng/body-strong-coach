@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
 import { formattaData } from "@/lib/date";
+import { caricaIdGestori, soloClienti } from "@/lib/clienti";
 import { avvisoErrore, avvisoOk } from "@/lib/avvisi";
 import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 
@@ -33,13 +34,16 @@ function Registrazioni() {
     queryKey: ["registrazioni-in-attesa"],
     enabled: sessione.data?.isGestore === true,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profili")
-        .select("*")
-        .eq("stato", "in_attesa")
-        .order("created_at", { ascending: true });
+      const [gestori, { data, error }] = await Promise.all([
+        caricaIdGestori(),
+        supabase
+          .from("profili")
+          .select("*")
+          .eq("stato", "in_attesa")
+          .order("created_at", { ascending: true }),
+      ]);
       if (error) throw error;
-      return data as Profilo[];
+      return soloClienti((data ?? []) as Profilo[], gestori);
     },
   });
 
