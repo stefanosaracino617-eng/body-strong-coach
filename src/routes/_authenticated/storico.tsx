@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Check, Minus } from "lucide-react";
+import { Check, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { caricaSessioneApp } from "@/lib/profilo";
 import {
   caricaStoricoDettagliato,
+  chiaveEsercizio,
   type AllenamentoConDettaglio,
   type EsercizioDettaglio,
 } from "@/lib/allenamenti";
@@ -45,7 +46,13 @@ function Storico() {
   const corrente = selezionato ? conclusi.find((a) => a.id === selezionato) : null;
 
   if (corrente) {
-    return <DettaglioAllenamento allenamento={corrente} onChiudi={() => setSelezionato(null)} />;
+    return (
+      <DettaglioAllenamento
+        allenamento={corrente}
+        storico={conclusi}
+        onChiudi={() => setSelezionato(null)}
+      />
+    );
   }
 
   const gruppi = gruppaPerMese(conclusi);
@@ -99,9 +106,6 @@ function CardAllenamento({
   const svoltiCount = esercizi.filter((e) => e.completato).length;
   const totale = esercizi.length;
   const durata = durataMinuti(allenamento.created_at, allenamento.completato_at!);
-  const soliCardio = tuttiCardio(esercizi);
-  const peso = pesoTotale(esercizi);
-  const minuti = minutiTotali(esercizi);
 
   return (
     <button
@@ -118,12 +122,7 @@ function CardAllenamento({
         <p className="text-foreground">
           {svoltiCount} di {totale} esercizi
         </p>
-        <p className="text-foreground">Durata: {formattaDurata(durata)}</p>
-        {soliCardio ? (
-          <p className="text-foreground">Minuti totali: {minuti}</p>
-        ) : (
-          <p className="text-foreground">Peso totale: {peso} kg</p>
-        )}
+        <DurataRiga minuti={durata} />
       </div>
       {allenamento.note_cliente && (
         <p className="mt-1 whitespace-pre-line text-base text-muted-foreground">
@@ -136,9 +135,11 @@ function CardAllenamento({
 
 function DettaglioAllenamento({
   allenamento,
+  storico,
   onChiudi,
 }: {
   allenamento: AllenamentoConDettaglio;
+  storico: AllenamentoConDettaglio[];
   onChiudi: () => void;
 }) {
   const esercizi = (allenamento.allenamento_esercizi ?? [])
@@ -160,7 +161,7 @@ function DettaglioAllenamento({
         <section className="card-surface flex flex-col gap-2 p-5">
           <RigaDettaglio etichetta="Inizio" valore={formattaDataOra(allenamento.created_at)} />
           <RigaDettaglio etichetta="Fine" valore={formattaDataOra(allenamento.completato_at)} />
-          <RigaDettaglio etichetta="Durata" valore={formattaDurata(durata)} />
+          <RigaDettaglio etichetta="Durata" valore={testoDurata(durata)} />
         </section>
 
         <h2 className="text-lg text-accent">Esercizi</h2>
@@ -170,7 +171,11 @@ function DettaglioAllenamento({
           </p>
         )}
         {esercizi.map((e) => (
-          <EsercizioDettaglioRiga key={e.id} esercizio={e} />
+          <EsercizioDettaglioRiga
+            key={e.id}
+            esercizio={e}
+            confronto={confrontoPrecedente(e, allenamento, storico)}
+          />
         ))}
 
         {allenamento.note_cliente && (
@@ -188,7 +193,13 @@ function DettaglioAllenamento({
   );
 }
 
-function EsercizioDettaglioRiga({ esercizio }: { esercizio: EsercizioDettaglio }) {
+function EsercizioDettaglioRiga({
+  esercizio,
+  confronto,
+}: {
+  esercizio: EsercizioDettaglio;
+  confronto: Confronto | null;
+}) {
   const nome =
     esercizio.scheda_esercizi?.esercizi?.nome ??
     esercizio.scheda_esercizi?.nome_libero ??
@@ -205,17 +216,101 @@ function EsercizioDettaglioRiga({ esercizio }: { esercizio: EsercizioDettaglio }
       <div className="flex flex-1 flex-col gap-1">
         <h3 className="text-lg">{nome}</h3>
         {esercizio.completato ? (
-          <p className="text-base text-muted-foreground">
-            {cardio
-              ? `${esercizio.durata_minuti ?? "—"} min`
-              : `${esercizio.peso_kg ?? "—"} kg · ${esercizio.ripetizioni_effettive ?? "—"} rip.`}
-          </p>
+          <>
+            <p className="text-base text-muted-foreground">
+              {cardio
+                ? `${esercizio.durata_minuti ?? "—"} min`
+                : `${esercizio.peso_kg ?? "—"} kg · ${esercizio.ripetizioni_effettive ?? "—"} rip.`}
+            </p>
+            {confronto && <RigaConfronto confronto={confronto} />}
+          </>
         ) : (
           <p className="text-base text-muted-foreground">non svolto</p>
         )}
       </div>
     </article>
   );
+}
+
+type Confronto =
+  | { tipo: "aumento"; differenza: number; data: string; cardio: boolean }
+  | { tipo: "calo"; differenza: number; data: string; cardio: boolean }
+  | { tipo: "uguale"; data: string }
+  | { tipo: "prima" };
+
+function RigaConfronto({ confronto }: { confronto: Confronto }) {
+  const unita = "cardio" in confronto && confronto.cardio ? " min" : " kg";
+  if (confronto.tipo === "prima") {
+    return <p className="text-base text-muted-foreground">prima volta</p>;
+  }
+  if (confronto.tipo === "uguale") {
+    return (
+      <p className="text-base text-muted-foreground">come il {formattaData(confronto.data)}</p>
+    );
+  }
+  const segno = confronto.tipo === "aumento" ? "+" : "−";
+  const testo = `${segno}${formattaNumero(confronto.differenza)}${unita} rispetto al ${formattaData(confronto.data)}`;
+  return (
+    <p
+      className={`flex items-center gap-1 text-base ${
+        confronto.tipo === "aumento" ? "text-success" : "text-warning"
+      }`}
+    >
+      {confronto.tipo === "aumento" ? (
+        <TrendingUp className="h-5 w-5 shrink-0" />
+      ) : (
+        <TrendingDown className="h-5 w-5 shrink-0" />
+      )}
+      {testo}
+    </p>
+  );
+}
+
+/** Cerca l'ultimo allenamento precedente in cui lo stesso esercizio risulta svolto. */
+function confrontoPrecedente(
+  esercizio: EsercizioDettaglio,
+  corrente: AllenamentoConDettaglio,
+  storico: AllenamentoConDettaglio[],
+): Confronto | null {
+  const se = esercizio.scheda_esercizi;
+  if (!se) return null;
+  const cardio = se.esercizi?.unita_misura === "minuti";
+  const chiave = chiaveEsercizio({ esercizio_id: se.esercizio_id, nome_libero: se.nome_libero });
+  const valoreCorrente = cardio ? esercizio.durata_minuti : esercizio.peso_kg;
+  if (valoreCorrente === null) return null;
+
+  for (const a of storico) {
+    if (a.id === corrente.id) continue;
+    if (a.created_at >= corrente.created_at) continue;
+    for (const r of a.allenamento_esercizi ?? []) {
+      const rs = r.scheda_esercizi;
+      if (!rs || !r.completato) continue;
+      if (chiaveEsercizio({ esercizio_id: rs.esercizio_id, nome_libero: rs.nome_libero }) !== chiave)
+        continue;
+      const valorePrecedente = cardio ? r.durata_minuti : r.peso_kg;
+      if (valorePrecedente === null) return { tipo: "prima" };
+      const diff = Math.round((valoreCorrente - valorePrecedente) * 100) / 100;
+      if (diff > 0) return { tipo: "aumento", differenza: diff, data: a.data, cardio };
+      if (diff < 0) return { tipo: "calo", differenza: -diff, data: a.data, cardio };
+      return { tipo: "uguale", data: a.data };
+    }
+  }
+  return { tipo: "prima" };
+}
+
+function DurataRiga({ minuti }: { minuti: number }) {
+  if (minuti > 240) {
+    return <p className="text-muted-foreground">durata non registrata</p>;
+  }
+  return <p className="text-foreground">Durata: {formattaDurata(minuti)}</p>;
+}
+
+function testoDurata(minuti: number): string {
+  return minuti > 240 ? "durata non registrata" : formattaDurata(minuti);
+}
+
+function formattaNumero(n: number): string {
+  return n.toLocaleString("it-IT", { maximumFractionDigits: 2 });
 }
 
 function RigaDettaglio({ etichetta, valore }: { etichetta: string; valore: string }) {
@@ -251,13 +346,6 @@ function intestazioneMese(chiave: string): string {
   return testo.charAt(0).toUpperCase() + testo.slice(1);
 }
 
-function parseRipetizioni(testo: string | null): number {
-  if (!testo) return 0;
-  const numeri = testo.match(/\d+/g);
-  if (!numeri || numeri.length === 0) return 0;
-  return Number(numeri[0]);
-}
-
 function durataMinuti(inizioIso: string, fineIso: string): number {
   const inizio = new Date(inizioIso).getTime();
   const fine = new Date(fineIso).getTime();
@@ -271,29 +359,3 @@ function formattaDurata(minuti: number): string {
   return resto === 0 ? `${ore} h` : `${ore} h ${resto} min`;
 }
 
-function isCardio(e: EsercizioDettaglio): boolean {
-  return e.scheda_esercizi?.esercizi?.unita_misura === "minuti";
-}
-
-function tuttiCardio(esercizi: EsercizioDettaglio[]): boolean {
-  if (esercizi.length === 0) return false;
-  return esercizi.every((e) => isCardio(e));
-}
-
-function pesoTotale(esercizi: EsercizioDettaglio[]): number {
-  let totale = 0;
-  for (const e of esercizi) {
-    if (!e.completato || isCardio(e)) continue;
-    const peso = e.peso_kg ?? 0;
-    const reps = parseRipetizioni(e.ripetizioni_effettive);
-    const serie = e.scheda_esercizi?.serie ?? 0;
-    totale += peso * reps * serie;
-  }
-  return Math.round(totale);
-}
-
-function minutiTotali(esercizi: EsercizioDettaglio[]): number {
-  return esercizi
-    .filter((e) => e.completato && isCardio(e))
-    .reduce((s, e) => s + (e.durata_minuti ?? 0), 0);
-}
