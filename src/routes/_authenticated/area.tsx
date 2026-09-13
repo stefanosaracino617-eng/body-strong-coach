@@ -6,6 +6,8 @@ import { caricaSessioneApp } from "@/lib/profilo";
 import { caricaObiettiviCliente } from "@/lib/obiettivi";
 import { caricaSchedaClienteAttiva } from "@/lib/schede";
 import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
+import { DashboardGestore } from "@/components/DashboardGestore";
+import { BloccoErrore, CaricamentoCard } from "@/components/Stati";
 
 export const Route = createFileRoute("/_authenticated/area")({
   head: () => ({
