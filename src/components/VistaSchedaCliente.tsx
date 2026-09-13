@@ -65,6 +65,7 @@ export function VistaSchedaCliente({ scheda, conAvvio = false }: { scheda: Sched
       </section>
 
       {righe.isLoading && <CaricamentoCard quante={2} />}
+      {righe.isError && <BloccoErrore onRiprova={() => righe.refetch()} />}
       {!righe.isLoading && sessioni.length === 0 && (
         <p className="card-surface p-6 text-lg text-muted-foreground">La scheda non contiene ancora esercizi.</p>
       )}

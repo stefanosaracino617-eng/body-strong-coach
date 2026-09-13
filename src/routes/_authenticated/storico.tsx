@@ -64,6 +64,7 @@ function Storico() {
         <h1 className="text-2xl">Storico allenamenti</h1>
 
         {storico.isLoading && <CaricamentoCard quante={2} />}
+        {storico.isError && <BloccoErrore onRiprova={() => storico.refetch()} />}
 
         {!storico.isLoading && conclusi.length === 0 && (
           <div className="flex min-h-[40vh] flex-col items-center justify-center text-center">

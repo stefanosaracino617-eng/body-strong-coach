@@ -107,6 +107,7 @@ function Accessi() {
       )}
 
       {elenco.isLoading && <CaricamentoCard />}
+      {elenco.isError && <BloccoErrore onRiprova={() => elenco.refetch()} />}
 
       {!elenco.isLoading && voci.length === 0 && (
         <div className="card-surface p-6 text-base text-muted-foreground">

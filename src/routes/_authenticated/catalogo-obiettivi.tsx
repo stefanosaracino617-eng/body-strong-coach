@@ -171,6 +171,10 @@ function Catalogo() {
       )}
 
       {catalogo.isLoading && <CaricamentoCard />}
+      {catalogo.isError && <BloccoErrore onRiprova={() => catalogo.refetch()} />}
+      {catalogo.isSuccess && (catalogo.data ?? []).length === 0 && (
+        <StatoVuoto testo="Nessun obiettivo in catalogo. Aggiungine uno qui sopra." />
+      )}
 
       {voci.map((o) => (
         <article key={o.id} className="card-surface flex flex-col gap-2 p-6">

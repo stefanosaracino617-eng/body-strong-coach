@@ -354,6 +354,7 @@ function PaginaEsercizi() {
       )}
 
       {elenco.isLoading && <CaricamentoCard />}
+      {elenco.isError && <BloccoErrore onRiprova={() => elenco.refetch()} />}
       {!elenco.isLoading && filtrati.length === 0 && (
         <p className="text-base text-muted-foreground">Nessun esercizio trovato.</p>
       )}
