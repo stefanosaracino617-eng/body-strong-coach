@@ -12,3 +12,4 @@
 - [x] Storico schede archiviate nel dettaglio cliente: periodo, data di archiviazione, dettaglio in sola lettura e duplicazione preselezionata
 - [x] Allenamenti: registrazione per sessione con precompilazione dall'ultimo valore, termina allenamento, storico cliente, riepilogo e andamento carico per il gestore
 - [x] Archiviazione automatica delle schede scadute: funzione giornaliera con registro, esclusione anche in lettura, messaggio di scheda scaduta al cliente, "Archivia ora" e avviso di scadenza per il gestore
+- [x] Dashboard gestore con sei riquadri in tempo reale, stati di caricamento/errore/vuoto in tutte le pagine, avvisi verdi e rossi dopo le azioni
