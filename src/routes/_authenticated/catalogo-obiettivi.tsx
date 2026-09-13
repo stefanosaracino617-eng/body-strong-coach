@@ -93,7 +93,7 @@ function Catalogo() {
     },
   });
 
-  if (sessione.isLoading) return <Pagina titolo="Caricamento…" />;
+  if (sessione.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
   if (!sessione.data?.isGestore) {
     return (
@@ -169,7 +169,7 @@ function Catalogo() {
         </button>
       )}
 
-      {catalogo.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {catalogo.isLoading && <CaricamentoCard />}
 
       {voci.map((o) => (
         <article key={o.id} className="card-surface flex flex-col gap-2 p-6">

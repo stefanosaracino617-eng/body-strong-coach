@@ -170,7 +170,7 @@ function PaginaAllenamento() {
     }
   }
 
-  if (sessioneApp.isLoading || scheda.isLoading) return <Pagina titolo="Caricamento…" />;
+  if (sessioneApp.isLoading || scheda.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
   if (!scheda.data) {
     return (

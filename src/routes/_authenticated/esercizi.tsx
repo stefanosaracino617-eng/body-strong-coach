@@ -182,7 +182,7 @@ function PaginaEsercizi() {
     );
   }, [esercizi, ricerca, filtro]);
 
-  if (sessione.isLoading) return <Pagina titolo="Caricamento…" />;
+  if (sessione.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
   if (!gestore) {
     return (
@@ -352,7 +352,7 @@ function PaginaEsercizi() {
         </button>
       )}
 
-      {elenco.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {elenco.isLoading && <CaricamentoCard />}
       {!elenco.isLoading && filtrati.length === 0 && (
         <p className="text-base text-muted-foreground">Nessun esercizio trovato.</p>
       )}

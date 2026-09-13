@@ -87,7 +87,7 @@ function PaginaScheda() {
     queryFn: () => caricaSchedaAttiva(cliente),
   });
 
-  if (sessione.isLoading) return <Pagina titolo="Caricamento…" />;
+  if (sessione.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
   if (!gestore) {
     return (
@@ -123,7 +123,7 @@ function PaginaScheda() {
         </p>
       )}
 
-      {scheda.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {scheda.isLoading && <CaricamentoCard />}
 
       {!scheda.isLoading && !scheda.data && (
         <DatiScheda
@@ -374,7 +374,7 @@ function Sessioni({ scheda, onErrore }: { scheda: Scheda; onErrore: (m: string |
         </button>
       </div>
 
-      {righe.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {righe.isLoading && <CaricamentoCard />}
 
       {sessioni.length === 0 && !righe.isLoading && (
         <p className="text-base text-muted-foreground">Nessuna sessione: aggiungine una.</p>
@@ -589,7 +589,7 @@ function SessioneScheda({
             </select>
           </label>
 
-          {catalogo.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+          {catalogo.isLoading && <CaricamentoCard />}
           {!catalogo.isLoading && disponibili.length === 0 && (
             <p className="text-base text-muted-foreground">Nessun esercizio trovato.</p>
           )}
@@ -1071,7 +1071,7 @@ function DuplicaScheda({
         archivio e resta consultabile nello storico.
       </p>
 
-      {schede.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {schede.isLoading && <CaricamentoCard />}
       {!schede.isLoading && elenco.length === 0 && (
         <p className="text-base text-muted-foreground">Il cliente non ha ancora schede da copiare.</p>
       )}

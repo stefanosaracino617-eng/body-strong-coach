@@ -63,7 +63,7 @@ export function VistaSchedaCliente({ scheda, conAvvio = false }: { scheda: Sched
         )}
       </section>
 
-      {righe.isLoading && <p className="text-lg text-muted-foreground">Caricamento scheda…</p>}
+      {righe.isLoading && <CaricamentoCard quante={2} />}
       {!righe.isLoading && sessioni.length === 0 && (
         <p className="card-surface p-6 text-lg text-muted-foreground">La scheda non contiene ancora esercizi.</p>
       )}

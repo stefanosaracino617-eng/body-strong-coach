@@ -71,7 +71,7 @@ function ObiettiviCliente() {
   });
 
   if (sessione.isLoading || catalogo.isLoading || selezione.isLoading) {
-    return <Pagina titolo="Caricamento…" />;
+    return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
   }
 
   const primaVolta = (selezione.data ?? []).length === 0;
