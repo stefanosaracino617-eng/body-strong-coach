@@ -42,13 +42,23 @@ export type SchedaEsercizio = {
   } | null;
 };
 
-/** Una scheda è realmente attiva solo se lo stato è attiva E non è ancora scaduta. */
+/**
+ * Regola unica di scheda attiva: stato attiva E inizio già arrivato E scadenza non passata.
+ */
 export function schedaScaduta(scheda: { data_scadenza: string }): boolean {
   return scheda.data_scadenza < oggiRoma();
 }
 
-export function schedaRealmenteAttiva(scheda: { stato: StatoScheda; data_scadenza: string }): boolean {
-  return scheda.stato === "attiva" && !schedaScaduta(scheda);
+export function schedaProgrammata(scheda: { stato: StatoScheda; data_inizio: string }): boolean {
+  return scheda.stato === "attiva" && scheda.data_inizio > oggiRoma();
+}
+
+export function schedaRealmenteAttiva(scheda: {
+  stato: StatoScheda;
+  data_inizio: string;
+  data_scadenza: string;
+}): boolean {
+  return scheda.stato === "attiva" && !schedaScaduta(scheda) && !schedaProgrammata(scheda);
 }
 
 /** Verifica le date della scheda: la scadenza deve essere successiva all'inizio. */
