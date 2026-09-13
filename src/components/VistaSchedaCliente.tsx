@@ -45,12 +45,14 @@ export function VistaSchedaCliente({ scheda }: { scheda: Scheda }) {
 
   const giorni = giorniAllaScadenza(scheda.data_scadenza);
   const testoGiorni = giorni === 0 ? "Scade oggi" : `${giorni} ${giorni === 1 ? "giorno" : "giorni"} rimanenti`;
+  const coloreScadenza =
+    giorni <= 3 ? "text-destructive" : giorni <= 14 ? "text-warning" : "text-muted-foreground";
 
   return (
     <div className="flex flex-col gap-6">
       <section className="card-surface flex flex-col gap-3 p-6">
         <h2 className="text-2xl">{scheda.titolo}</h2>
-        <p className="text-lg font-semibold text-warning">
+        <p className={`text-lg font-semibold ${coloreScadenza}`}>
           Scadenza: {formattaData(scheda.data_scadenza)} · {testoGiorni}
         </p>
         {scheda.note_gestore && (
