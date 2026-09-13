@@ -123,6 +123,14 @@ function EsercizioCliente({ riga, immagini }: { riga: SchedaEsercizio; immagini:
   const descrizione = riga.esercizi?.descrizione_esecuzione ?? riga.descrizione_libera;
   const errori = riga.esercizi?.errori_comuni;
   const aMinuti = unitaRiga(riga) === "minuti";
+  const haPrescrizione = aMinuti
+    ? riga.durata_minuti !== null
+    : riga.serie !== null || Boolean(riga.ripetizioni);
+  const haParametri =
+    haPrescrizione ||
+    riga.recupero_secondi !== null ||
+    Boolean(riga.carico_indicativo) ||
+    Boolean(riga.note);
 
   return (
     <article className="border-b border-border pb-6 last:border-b-0 last:pb-0">
@@ -139,21 +147,25 @@ function EsercizioCliente({ riga, immagini }: { riga: SchedaEsercizio; immagini:
           <p className="mt-1 whitespace-pre-line text-lg leading-relaxed">{errori}</p>
         </div>
       )}
-      <dl className="mt-5 flex flex-col gap-3 border-t border-border pt-4 text-lg">
-        {aMinuti ? (
-          riga.durata_minuti !== null && <Parametro etichetta="Durata" valore={`${riga.durata_minuti} minuti`} />
-        ) : (
-          (riga.serie !== null || riga.ripetizioni) && (
-            <Parametro
-              etichetta="Serie × ripetizioni"
-              valore={[riga.serie, riga.ripetizioni].filter((valore) => valore !== null && valore !== "").join(" × ")}
-            />
-          )
-        )}
-        {riga.recupero_secondi !== null && <Parametro etichetta="Recupero" valore={`${riga.recupero_secondi} secondi`} />}
-        {riga.carico_indicativo && <Parametro etichetta="Carico indicativo" valore={riga.carico_indicativo} />}
-        {riga.note && <Parametro etichetta="Note del gestore" valore={riga.note} />}
-      </dl>
+      {haParametri && (
+        <dl className="mt-5 flex flex-col gap-3 border-t border-border pt-4 text-lg">
+          {aMinuti ? (
+            riga.durata_minuti !== null && <Parametro etichetta="Durata" valore={`${riga.durata_minuti} minuti`} />
+          ) : (
+            haPrescrizione && (
+              <Parametro
+                etichetta="Serie × ripetizioni"
+                valore={[riga.serie, riga.ripetizioni]
+                  .filter((valore) => valore !== null && valore !== "")
+                  .join(" × ")}
+              />
+            )
+          )}
+          {riga.recupero_secondi !== null && <Parametro etichetta="Recupero" valore={`${riga.recupero_secondi} secondi`} />}
+          {riga.carico_indicativo && <Parametro etichetta="Carico indicativo" valore={riga.carico_indicativo} />}
+          {riga.note && <Parametro etichetta="Note del gestore" valore={riga.note} />}
+        </dl>
+      )}
     </article>
   );
 }
