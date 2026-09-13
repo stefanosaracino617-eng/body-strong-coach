@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Esercizio, UnitaMisura } from "@/lib/esercizi";
+import { BUCKET_IMMAGINI, type Esercizio, type UnitaMisura } from "@/lib/esercizi";
 
 export type StatoScheda = "attiva" | "archiviata";
 
@@ -81,6 +81,100 @@ export async function caricaSchedaClienteAttiva(clienteId: string): Promise<Sche
     .maybeSingle();
   if (error) throw error;
   return (data as Scheda | null) ?? null;
+}
+
+/** Tutte le schede del cliente, dalla più recente: serve al gestore per lo storico e la duplicazione. */
+export async function caricaSchedeCliente(clienteId: string): Promise<Scheda[]> {
+  const { data, error } = await supabase
+    .from("schede")
+    .select("*")
+    .eq("cliente_id", clienteId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as Scheda[];
+}
+
+/** Percorsi immagine (catalogo e liberi) presenti nelle righe della scheda. */
+export function percorsiImmagini(righe: SchedaEsercizio[]): string[] {
+  const percorsi: string[] = [];
+  for (const riga of righe) {
+    if (riga.esercizi?.immagine_url) percorsi.push(riga.esercizi.immagine_url);
+    if (riga.immagine_libera_url) percorsi.push(riga.immagine_libera_url);
+  }
+  return Array.from(new Set(percorsi));
+}
+
+/** Carica nel deposito privato l'immagine di un esercizio libero e restituisce il percorso salvato. */
+export async function caricaImmagineLibera(schedaId: string, file: File): Promise<string> {
+  const nomePulito = file.name.replace(/[^A-Za-z0-9._-]+/g, "-");
+  const percorso = `libere/${schedaId}/${Date.now()}-${nomePulito}`;
+  const { error } = await supabase.storage
+    .from(BUCKET_IMMAGINI)
+    .upload(percorso, file, file.type ? { upsert: true, contentType: file.type } : { upsert: true });
+  if (error) throw error;
+  return percorso;
+}
+
+/** Salva subito il nuovo ordine degli esercizi di una sessione, riusando le posizioni esistenti. */
+export async function salvaOrdine(righe: { id: string; ordine: number }[]): Promise<void> {
+  const posizioni = righe.map((r) => r.ordine).sort((a, b) => a - b);
+  for (const [indice, riga] of righe.entries()) {
+    const nuovo = posizioni[indice]!;
+    if (nuovo === riga.ordine) continue;
+    const { error } = await supabase
+      .from("scheda_esercizi")
+      .update({ ordine: nuovo })
+      .eq("id", riga.id);
+    if (error) throw error;
+  }
+}
+
+/**
+ * Duplica una scheda per lo stesso cliente con nuove date.
+ * La scheda precedente viene archiviata automaticamente dal database.
+ */
+export async function duplicaScheda(
+  origine: Scheda,
+  dataInizio: string,
+  dataScadenza: string,
+  titolo?: string,
+): Promise<string> {
+  const { data, error } = await supabase
+    .from("schede")
+    .insert({
+      cliente_id: origine.cliente_id,
+      titolo: (titolo ?? "").trim() || origine.titolo,
+      data_inizio: dataInizio,
+      data_scadenza: dataScadenza,
+      stato: "attiva" as const,
+      note_gestore: origine.note_gestore,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  const nuovaId = (data as { id: string }).id;
+
+  const righe = await caricaEserciziScheda(origine.id);
+  if (righe.length > 0) {
+    const copie = righe.map((r) => ({
+      scheda_id: nuovaId,
+      esercizio_id: r.esercizio_id,
+      nome_libero: r.nome_libero,
+      descrizione_libera: r.descrizione_libera,
+      immagine_libera_url: r.immagine_libera_url,
+      sessione: r.sessione,
+      ordine: r.ordine,
+      serie: r.serie,
+      ripetizioni: r.ripetizioni,
+      durata_minuti: r.durata_minuti,
+      recupero_secondi: r.recupero_secondi,
+      carico_indicativo: r.carico_indicativo,
+      note: r.note,
+    }));
+    const { error: erroreRighe } = await supabase.from("scheda_esercizi").insert(copie);
+    if (erroreRighe) throw erroreRighe;
+  }
+  return nuovaId;
 }
 
 /** Unità di misura effettiva della riga: dal catalogo, altrimenti serie e ripetizioni. */

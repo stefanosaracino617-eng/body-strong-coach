@@ -6,6 +6,7 @@ import { formattaData, isoAData } from "@/lib/date";
 import {
   caricaEserciziScheda,
   nomeRiga,
+  percorsiImmagini,
   unitaRiga,
   type Scheda,
   type SchedaEsercizio,
@@ -24,9 +25,7 @@ export function VistaSchedaCliente({ scheda }: { scheda: Scheda }) {
     queryKey: ["scheda-esercizi", scheda.id],
     queryFn: () => caricaEserciziScheda(scheda.id),
   });
-  const percorsi = (righe.data ?? [])
-    .map((riga) => riga.esercizi?.immagine_url)
-    .filter((percorso): percorso is string => Boolean(percorso));
+  const percorsi = percorsiImmagini(righe.data ?? []);
   const immagini = useQuery({
     queryKey: ["immagini-scheda", scheda.id, percorsi.join("|")],
     enabled: percorsi.length > 0,
@@ -120,8 +119,8 @@ function SessioneCliente({
 }
 
 function EsercizioCliente({ riga, immagini }: { riga: SchedaEsercizio; immagini: Record<string, string> }) {
-  const immagineCatalogo = riga.esercizi?.immagine_url;
-  const immagine = immagineCatalogo ? immagini[immagineCatalogo] : riga.immagine_libera_url;
+  const percorso = riga.esercizi?.immagine_url ?? riga.immagine_libera_url;
+  const immagine = percorso ? (immagini[percorso] ?? percorso) : null;
   const descrizione = riga.esercizi?.descrizione_esecuzione ?? riga.descrizione_libera;
   const errori = riga.esercizi?.errori_comuni;
   const aMinuti = unitaRiga(riga) === "minuti";
