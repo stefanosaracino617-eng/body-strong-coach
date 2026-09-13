@@ -62,6 +62,7 @@ function PaginaScheda() {
   const { cliente } = Route.useSearch();
   const queryClient = useQueryClient();
   const [errore, setErrore] = useState<string | null>(null);
+  const [duplicaDa, setDuplicaDa] = useState<string | null>(null);
 
   const sessione = useQuery({ queryKey: ["sessione-app"], queryFn: caricaSessioneApp });
   const gestore = sessione.data?.isGestore === true;
@@ -141,8 +142,12 @@ function PaginaScheda() {
         </>
       )}
 
+      <SchedeArchiviate clienteId={cliente} onDuplica={(id) => setDuplicaDa(id)} />
+
       <DuplicaScheda
         clienteId={cliente}
+        apriCon={duplicaDa}
+        onAperturaGestita={() => setDuplicaDa(null)}
         onErrore={setErrore}
         onDuplicata={() => {
           queryClient.invalidateQueries({ queryKey: ["scheda-attiva", cliente] });
