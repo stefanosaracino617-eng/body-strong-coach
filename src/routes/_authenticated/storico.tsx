@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Check, Minus, TrendingDown, TrendingUp } from "lucide-react";
@@ -62,7 +63,8 @@ function Storico() {
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
         <h1 className="text-2xl">Storico allenamenti</h1>
 
-        {storico.isLoading && <p className="text-lg text-muted-foreground">Caricamento…</p>}
+        {storico.isLoading && <CaricamentoCard quante={2} />}
+        {storico.isError && <BloccoErrore onRiprova={() => storico.refetch()} />}
 
         {!storico.isLoading && conclusi.length === 0 && (
           <div className="flex min-h-[40vh] flex-col items-center justify-center text-center">

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -93,7 +94,7 @@ function Catalogo() {
     },
   });
 
-  if (sessione.isLoading) return <Pagina titolo="Caricamento…" />;
+  if (sessione.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
   if (!sessione.data?.isGestore) {
     return (
@@ -169,7 +170,11 @@ function Catalogo() {
         </button>
       )}
 
-      {catalogo.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {catalogo.isLoading && <CaricamentoCard />}
+      {catalogo.isError && <BloccoErrore onRiprova={() => catalogo.refetch()} />}
+      {catalogo.isSuccess && (catalogo.data ?? []).length === 0 && (
+        <StatoVuoto testo="Nessun obiettivo in catalogo. Aggiungine uno qui sopra." />
+      )}
 
       {voci.map((o) => (
         <article key={o.id} className="card-surface flex flex-col gap-2 p-6">

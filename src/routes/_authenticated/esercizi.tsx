@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -182,7 +183,7 @@ function PaginaEsercizi() {
     );
   }, [esercizi, ricerca, filtro]);
 
-  if (sessione.isLoading) return <Pagina titolo="Caricamento…" />;
+  if (sessione.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
   if (!gestore) {
     return (
@@ -352,7 +353,8 @@ function PaginaEsercizi() {
         </button>
       )}
 
-      {elenco.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {elenco.isLoading && <CaricamentoCard />}
+      {elenco.isError && <BloccoErrore onRiprova={() => elenco.refetch()} />}
       {!elenco.isLoading && filtrati.length === 0 && (
         <p className="text-base text-muted-foreground">Nessun esercizio trovato.</p>
       )}

@@ -6,6 +6,8 @@ import { caricaSessioneApp } from "@/lib/profilo";
 import { caricaObiettiviCliente } from "@/lib/obiettivi";
 import { caricaSchedaClienteAttiva } from "@/lib/schede";
 import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
+import { DashboardGestore } from "@/components/DashboardGestore";
+import { BloccoErrore, CaricamentoCard } from "@/components/Stati";
 
 export const Route = createFileRoute("/_authenticated/area")({
   head: () => ({
@@ -71,7 +73,11 @@ function Area() {
 
 
   if (isLoading) {
-    return <Schermo titolo="Caricamento…" />;
+    return (
+      <Schermo titolo="La mia area" contenutoLibero>
+        <CaricamentoCard quante={2} />
+      </Schermo>
+    );
   }
 
   if (!data) {
@@ -88,19 +94,10 @@ function Area() {
 
   if (isGestore) {
     return (
-      <Schermo titolo={`Ciao ${profilo.nome || "gestore"}`} esci={esci}>
-        <p className="text-base text-muted-foreground">Pannello del gestore.</p>
-        <Link to="/registrazioni" className="btn-primary mt-2">
-          Registrazioni da approvare
-        </Link>
-        <Link to="/clienti" className="btn-secondary w-full">
-          Clienti
-        </Link>
+      <Schermo titolo={`Ciao ${profilo.nome || "gestore"}`} esci={esci} contenutoLibero>
+        <DashboardGestore />
         <Link to="/catalogo-obiettivi" className="btn-secondary w-full">
           Catalogo obiettivi
-        </Link>
-        <Link to="/esercizi" className="btn-secondary w-full">
-          Catalogo esercizi
         </Link>
         <Link to="/accessi" className="btn-secondary w-full">
           Gestione accessi
@@ -135,8 +132,9 @@ function Area() {
 
   return (
     <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci} contenutoLibero>
-      {scheda.isLoading && <p className="text-lg text-muted-foreground">Caricamento scheda…</p>}
-      {!scheda.isLoading && !scheda.data && (
+      {scheda.isLoading && <CaricamentoCard quante={2} />}
+      {scheda.isError && <BloccoErrore onRiprova={() => scheda.refetch()} />}
+      {!scheda.isLoading && !scheda.isError && !scheda.data && (
         <div className="card-surface flex flex-col items-center gap-2 p-6 text-center">
           <p className="text-xl font-semibold">La tua scheda di allenamento è scaduta.</p>
           <p className="text-base text-muted-foreground">

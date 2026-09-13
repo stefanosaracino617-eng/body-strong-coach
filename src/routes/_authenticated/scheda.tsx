@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { CaricamentoCard } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, GripVertical } from "lucide-react";
@@ -8,6 +9,7 @@ import { CampoData } from "@/components/CampoData";
 import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
 import { formattaData } from "@/lib/date";
 import { GRUPPI_MUSCOLARI, caricaEsercizi, type GruppoMuscolare } from "@/lib/esercizi";
+import { avvisoErrore, avvisoOk } from "@/lib/avvisi";
 import {
   archiviaScheda,
   caricaEserciziScheda,
@@ -86,7 +88,7 @@ function PaginaScheda() {
     queryFn: () => caricaSchedaAttiva(cliente),
   });
 
-  if (sessione.isLoading) return <Pagina titolo="Caricamento…" />;
+  if (sessione.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
   if (!gestore) {
     return (
@@ -105,7 +107,7 @@ function PaginaScheda() {
     return (
       <Pagina titolo="Scheda">
         <p className="text-base text-muted-foreground">Scegli un cliente dall&apos;elenco.</p>
-        <Link to="/clienti" className="btn-primary">
+        <Link to="/clienti" search={{ filtro: "tutti" as const }} className="btn-primary">
           Vai ai clienti
         </Link>
       </Pagina>
@@ -122,7 +124,7 @@ function PaginaScheda() {
         </p>
       )}
 
-      {scheda.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {scheda.isLoading && <CaricamentoCard />}
 
       {!scheda.isLoading && !scheda.data && (
         <DatiScheda
@@ -159,7 +161,7 @@ function PaginaScheda() {
       />
 
 
-      <Link to="/clienti" className="btn-secondary w-full">
+      <Link to="/clienti" search={{ filtro: "tutti" as const }} className="btn-secondary w-full">
         Torna ai clienti
       </Link>
     </Pagina>
@@ -201,9 +203,14 @@ function DatiScheda({
         if (error) throw error;
       }
     },
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Salvataggio non riuscito."),
+    onError: (e) => {
+      const testo = e instanceof Error ? e.message : "Salvataggio non riuscito.";
+      onErrore(testo);
+      avvisoErrore(testo);
+    },
     onSuccess: () => {
       onErrore(null);
+      avvisoOk("Scheda salvata.");
       onFatto();
     },
   });
@@ -275,11 +282,17 @@ function ArchiviaOra({
 
   const archivia = useMutation({
     mutationFn: () => archiviaScheda(scheda.id),
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Archiviazione non riuscita."),
+    onError: (e) => {
+      const testo = e instanceof Error ? e.message : "Archiviazione non riuscita.";
+      onErrore(testo);
+      avvisoErrore(testo);
+    },
     onSuccess: () => {
       onErrore(null);
+      avvisoOk("Scheda archiviata.");
       setConferma(false);
       queryClient.invalidateQueries({ queryKey: ["schede-cliente", scheda.cliente_id] });
+      queryClient.invalidateQueries({ queryKey: ["numeri-dashboard"] });
       onFatto();
     },
   });
@@ -362,7 +375,7 @@ function Sessioni({ scheda, onErrore }: { scheda: Scheda; onErrore: (m: string |
         </button>
       </div>
 
-      {righe.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {righe.isLoading && <CaricamentoCard />}
 
       {sessioni.length === 0 && !righe.isLoading && (
         <p className="text-base text-muted-foreground">Nessuna sessione: aggiungine una.</p>
@@ -577,7 +590,7 @@ function SessioneScheda({
             </select>
           </label>
 
-          {catalogo.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+          {catalogo.isLoading && <CaricamentoCard />}
           {!catalogo.isLoading && disponibili.length === 0 && (
             <p className="text-base text-muted-foreground">Nessun esercizio trovato.</p>
           )}
@@ -1028,9 +1041,14 @@ function DuplicaScheda({
       if (!inizio || !scadenza) throw new Error("Indica la nuova data di inizio e di scadenza.");
       await duplicaScheda(origine, inizio, scadenza);
     },
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Duplicazione non riuscita."),
+    onError: (e) => {
+      const testo = e instanceof Error ? e.message : "Duplicazione non riuscita.";
+      onErrore(testo);
+      avvisoErrore(testo);
+    },
     onSuccess: () => {
       onErrore(null);
+      avvisoOk("Scheda duplicata.");
       setAperta(false);
       setInizio("");
       setScadenza("");
@@ -1054,7 +1072,7 @@ function DuplicaScheda({
         archivio e resta consultabile nello storico.
       </p>
 
-      {schede.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {schede.isLoading && <CaricamentoCard />}
       {!schede.isLoading && elenco.length === 0 && (
         <p className="text-base text-muted-foreground">Il cliente non ha ancora schede da copiare.</p>
       )}

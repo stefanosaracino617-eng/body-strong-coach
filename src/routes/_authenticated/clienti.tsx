@@ -6,8 +6,30 @@ import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
 import { formattaData, giorniAllaScadenza } from "@/lib/date";
 import { caricaScadenzePerClienti } from "@/lib/schede";
 import { andamentoCarico, riepilogoCliente } from "@/lib/allenamenti";
+import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
+
+type Filtro = "tutti" | "in-scadenza" | "senza-scheda";
+
+const etichettaFiltro: Record<Filtro, string> = {
+  tutti: "Clienti",
+  "in-scadenza": "Schede in scadenza",
+  "senza-scheda": "Clienti senza scheda attiva",
+};
+
+const vuotoFiltro: Record<Filtro, string> = {
+  tutti: "Nessun cliente approvato.",
+  "in-scadenza": "Nessuna scheda in scadenza nei prossimi 14 giorni.",
+  "senza-scheda": "Tutti i clienti hanno una scheda attiva.",
+};
 
 export const Route = createFileRoute("/_authenticated/clienti")({
+  validateSearch: (search: Record<string, unknown>): { filtro: Filtro } => {
+    const valore = search["filtro"];
+    return {
+      filtro:
+        valore === "in-scadenza" || valore === "senza-scheda" ? valore : ("tutti" as Filtro),
+    };
+  },
   head: () => ({
     meta: [
       { title: "Clienti | Body Strong Fitness Club" },
@@ -28,6 +50,7 @@ export const Route = createFileRoute("/_authenticated/clienti")({
 });
 
 function Clienti() {
+  const { filtro } = Route.useSearch();
   const [aperto, setAperto] = useState<string | null>(null);
   const sessione = useQuery({ queryKey: ["sessione-app"], queryFn: caricaSessioneApp });
 
@@ -51,7 +74,13 @@ function Clienti() {
     queryFn: () => caricaScadenzePerClienti((elenco.data ?? []).map((p) => p.id)),
   });
 
-  if (sessione.isLoading) return <Pagina titolo="Caricamento…" />;
+  if (sessione.isLoading) {
+    return (
+      <Pagina titolo={etichettaFiltro[filtro]}>
+        <CaricamentoCard />
+      </Pagina>
+    );
+  }
 
   if (!sessione.data?.isGestore) {
     return (
@@ -66,24 +95,41 @@ function Clienti() {
     );
   }
 
-  const voci = elenco.data ?? [];
+  const caricamento = elenco.isLoading || (scadenze.isLoading && filtro !== "tutti");
+  const errore = elenco.isError || scadenze.isError;
+
+  const tutti = elenco.data ?? [];
+  const mappaScadenze = scadenze.data ?? {};
+  const voci = tutti.filter((p) => {
+    const scadenza = mappaScadenze[p.id];
+    if (filtro === "senza-scheda") return !scadenza;
+    if (filtro === "in-scadenza") return !!scadenza && giorniAllaScadenza(scadenza) <= 14;
+    return true;
+  });
 
   return (
-    <Pagina titolo="Clienti">
-      {elenco.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+    <Pagina titolo={etichettaFiltro[filtro]}>
+      {caricamento && <CaricamentoCard />}
 
-      {!elenco.isLoading && voci.length === 0 && (
-        <div className="card-surface p-6 text-base text-muted-foreground">
-          Nessun cliente approvato.
-        </div>
+      {!caricamento && errore && (
+        <BloccoErrore
+          onRiprova={() => {
+            elenco.refetch();
+            scadenze.refetch();
+          }}
+        />
       )}
 
-      {voci.map((p) => (
+      {!caricamento && !errore && voci.length === 0 && <StatoVuoto testo={vuotoFiltro[filtro]} />}
+
+      {!caricamento &&
+        !errore &&
+        voci.map((p) => (
         <article key={p.id} className="card-surface flex flex-col gap-3 p-6">
           <h2 className="text-lg">
             {p.nome} {p.cognome}
           </h2>
-          <ScadenzaScheda scadenza={scadenze.data?.[p.id] ?? null} />
+          <ScadenzaScheda scadenza={mappaScadenze[p.id] ?? null} />
           {aperto === p.id ? (
             <>
               <dl className="flex flex-col gap-2 text-base text-muted-foreground">
@@ -112,7 +158,7 @@ function Clienti() {
             </button>
           )}
         </article>
-      ))}
+        ))}
 
       <Link to="/area" className="btn-secondary w-full">
         Torna alla mia area
@@ -151,7 +197,7 @@ function ObiettiviCliente({ clienteId }: { clienteId: string }) {
   return (
     <section className="rounded-[10px] border border-[#58ADEC] p-4">
       <h3 className="text-base font-semibold text-accent">Obiettivi selezionati</h3>
-      {q.isLoading && <p className="mt-2 text-base text-muted-foreground">Caricamento…</p>}
+      {q.isLoading && <CaricamentoCard />}
       {!q.isLoading && voci.length === 0 && (
         <p className="mt-2 text-base text-muted-foreground">
           Il cliente non ha ancora scelto i propri obiettivi.
@@ -182,7 +228,7 @@ function AllenamentiCliente({ clienteId }: { clienteId: string }) {
   return (
     <section className="rounded-[10px] border border-[#58ADEC] p-4">
       <h3 className="text-base font-semibold text-accent">Allenamenti</h3>
-      {riepilogo.isLoading && <p className="mt-2 text-base text-muted-foreground">Caricamento…</p>}
+      {riepilogo.isLoading && <CaricamentoCard />}
       {riepilogo.data && (
         <dl className="mt-2 flex flex-col gap-2 text-base">
           <Riga etichetta="Ultimo allenamento" valore={formattaData(riepilogo.data.ultimo)} />

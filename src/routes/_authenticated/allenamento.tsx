@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { caricaSessioneApp } from "@/lib/profilo";
@@ -170,7 +171,7 @@ function PaginaAllenamento() {
     }
   }
 
-  if (sessioneApp.isLoading || scheda.isLoading) return <Pagina titolo="Caricamento…" />;
+  if (sessioneApp.isLoading || scheda.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
   if (!scheda.data) {
     return (

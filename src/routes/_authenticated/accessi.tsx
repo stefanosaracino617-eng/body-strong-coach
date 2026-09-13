@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,7 +76,7 @@ function Accessi() {
     },
   });
 
-  if (sessione.isLoading) return <Pagina titolo="Caricamento…" />;
+  if (sessione.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
   if (!sessione.data?.isGestore) {
     return (
@@ -105,7 +106,8 @@ function Accessi() {
         </p>
       )}
 
-      {elenco.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {elenco.isLoading && <CaricamentoCard />}
+      {elenco.isError && <BloccoErrore onRiprova={() => elenco.refetch()} />}
 
       {!elenco.isLoading && voci.length === 0 && (
         <div className="card-surface p-6 text-base text-muted-foreground">
