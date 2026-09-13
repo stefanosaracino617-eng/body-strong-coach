@@ -8,9 +8,9 @@ import { CampoData } from "@/components/CampoData";
 import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
 import { formattaData } from "@/lib/date";
 import { GRUPPI_MUSCOLARI, caricaEsercizi, type GruppoMuscolare } from "@/lib/esercizi";
+import { avvisoErrore, avvisoOk } from "@/lib/avvisi";
 import {
   archiviaScheda,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   caricaEserciziScheda,
   caricaImmagineLibera,
   caricaSchedaAttiva,
