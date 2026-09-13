@@ -16,7 +16,7 @@ import { dataAIso } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/allenamento")({
   validateSearch: (search: Record<string, unknown>) => ({
-    sessione: typeof search.sessione === "string" ? search.sessione : "",
+    sessione: typeof search["sessione"] === "string" ? (search["sessione"] as string) : "",
   }),
   head: () => ({
     meta: [
