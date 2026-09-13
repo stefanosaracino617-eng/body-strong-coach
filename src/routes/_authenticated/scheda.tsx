@@ -1,16 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, ChevronDown, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, type Profilo } from "@/lib/profilo";
 import { CampoData } from "@/components/CampoData";
 import { GRUPPI_MUSCOLARI, caricaEsercizi, type GruppoMuscolare } from "@/lib/esercizi";
 import {
   caricaEserciziScheda,
+  caricaImmagineLibera,
   caricaSchedaAttiva,
+  caricaSchedeCliente,
+  duplicaScheda,
   nomeRiga,
   numeroOppureNull,
+  salvaOrdine,
   testoOppureNull,
   unitaRiga,
   valoriIniziali,
