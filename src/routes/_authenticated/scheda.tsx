@@ -855,12 +855,71 @@ function RigaEsercizio({
   );
 }
 
+function SchedeArchiviate({
+  clienteId,
+  onDuplica,
+}: {
+  clienteId: string;
+  onDuplica: (id: string) => void;
+}) {
+  const [apertaId, setApertaId] = useState<string | null>(null);
+
+  const schede = useQuery({
+    queryKey: ["schede-cliente", clienteId],
+    queryFn: () => caricaSchedeCliente(clienteId),
+  });
+
+  const archiviate = (schede.data ?? []).filter((s) => s.stato === "archiviata");
+
+  if (schede.isLoading || archiviate.length === 0) return null;
+
+  return (
+    <section className="flex flex-col gap-4">
+      <h2 className="text-lg">Schede archiviate</h2>
+      {archiviate.map((s) => (
+        <article key={s.id} className="card-surface overflow-hidden">
+          <button
+            type="button"
+            className="flex min-h-16 w-full items-center justify-between gap-4 p-5 text-left"
+            aria-expanded={apertaId === s.id}
+            onClick={() => setApertaId((valore) => (valore === s.id ? null : s.id))}
+          >
+            <span>
+              <span className="block font-display text-lg font-bold">{s.titolo}</span>
+              <span className="mt-1 block text-base text-muted-foreground">
+                {formattaData(s.data_inizio)} → {formattaData(s.data_scadenza)}
+                {s.archiviata_at ? ` · archiviata il ${formattaData(s.archiviata_at)}` : ""}
+              </span>
+            </span>
+            <ChevronDown
+              aria-hidden="true"
+              className={`h-7 w-7 shrink-0 text-accent transition-transform ${apertaId === s.id ? "rotate-180" : ""}`}
+            />
+          </button>
+          {apertaId === s.id && (
+            <div className="flex flex-col gap-4 border-t border-border p-5">
+              <VistaSchedaCliente scheda={s} />
+              <button type="button" className="btn-primary" onClick={() => onDuplica(s.id)}>
+                Duplica questa scheda
+              </button>
+            </div>
+          )}
+        </article>
+      ))}
+    </section>
+  );
+}
+
 function DuplicaScheda({
   clienteId,
+  apriCon,
+  onAperturaGestita,
   onErrore,
   onDuplicata,
 }: {
   clienteId: string;
+  apriCon: string | null;
+  onAperturaGestita: () => void;
   onErrore: (m: string | null) => void;
   onDuplicata: () => void;
 }) {
@@ -868,6 +927,15 @@ function DuplicaScheda({
   const [origineId, setOrigineId] = useState("");
   const [inizio, setInizio] = useState("");
   const [scadenza, setScadenza] = useState("");
+
+  useEffect(() => {
+    if (apriCon) {
+      setOrigineId(apriCon);
+      setAperta(true);
+      onAperturaGestita();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apriCon]);
 
   const schede = useQuery({
     queryKey: ["schede-cliente", clienteId],
