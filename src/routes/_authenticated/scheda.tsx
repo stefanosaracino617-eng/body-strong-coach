@@ -139,6 +139,16 @@ function PaginaScheda() {
         </>
       )}
 
+      <DuplicaScheda
+        clienteId={cliente}
+        onErrore={setErrore}
+        onDuplicata={() => {
+          queryClient.invalidateQueries({ queryKey: ["scheda-attiva", cliente] });
+          queryClient.invalidateQueries({ queryKey: ["schede-cliente", cliente] });
+        }}
+      />
+
+
       <Link to="/clienti" className="btn-secondary w-full">
         Torna ai clienti
       </Link>
