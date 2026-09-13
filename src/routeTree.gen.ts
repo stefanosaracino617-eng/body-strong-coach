@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAccessiRouteImport } from './routes/_authenticated/accessi'
+import { Route as AuthenticatedAllenamentiRecentiRouteImport } from './routes/_authenticated/allenamenti-recenti'
 import { Route as AuthenticatedAllenamentoRouteImport } from './routes/_authenticated/allenamento'
 import { Route as AuthenticatedAreaRouteImport } from './routes/_authenticated/area'
 import { Route as AuthenticatedCatalogoObiettiviRouteImport } from './routes/_authenticated/catalogo-obiettivi'
@@ -36,6 +37,12 @@ const AuthenticatedAccessiRoute = AuthenticatedAccessiRouteImport.update({
   path: '/accessi',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAllenamentiRecentiRoute =
+  AuthenticatedAllenamentiRecentiRouteImport.update({
+    id: '/allenamenti-recenti',
+    path: '/allenamenti-recenti',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAllenamentoRoute =
   AuthenticatedAllenamentoRouteImport.update({
     id: '/allenamento',
@@ -88,6 +95,7 @@ const AuthenticatedStoricoRoute = AuthenticatedStoricoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accessi': typeof AuthenticatedAccessiRoute
+  '/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/allenamento': typeof AuthenticatedAllenamentoRoute
   '/area': typeof AuthenticatedAreaRoute
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
@@ -101,6 +109,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accessi': typeof AuthenticatedAccessiRoute
+  '/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/allenamento': typeof AuthenticatedAllenamentoRoute
   '/area': typeof AuthenticatedAreaRoute
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
@@ -116,6 +125,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/accessi': typeof AuthenticatedAccessiRoute
+  '/_authenticated/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/_authenticated/allenamento': typeof AuthenticatedAllenamentoRoute
   '/_authenticated/area': typeof AuthenticatedAreaRoute
   '/_authenticated/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/accessi'
+    | '/allenamenti-recenti'
     | '/allenamento'
     | '/area'
     | '/catalogo-obiettivi'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/accessi'
+    | '/allenamenti-recenti'
     | '/allenamento'
     | '/area'
     | '/catalogo-obiettivi'
@@ -158,6 +170,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/_authenticated/accessi'
+    | '/_authenticated/allenamenti-recenti'
     | '/_authenticated/allenamento'
     | '/_authenticated/area'
     | '/_authenticated/catalogo-obiettivi'
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/accessi'
       fullPath: '/accessi'
       preLoaderRoute: typeof AuthenticatedAccessiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/allenamenti-recenti': {
+      id: '/_authenticated/allenamenti-recenti'
+      path: '/allenamenti-recenti'
+      fullPath: '/allenamenti-recenti'
+      preLoaderRoute: typeof AuthenticatedAllenamentiRecentiRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/allenamento': {
@@ -265,6 +285,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccessiRoute: typeof AuthenticatedAccessiRoute
+  AuthenticatedAllenamentiRecentiRoute: typeof AuthenticatedAllenamentiRecentiRoute
   AuthenticatedAllenamentoRoute: typeof AuthenticatedAllenamentoRoute
   AuthenticatedAreaRoute: typeof AuthenticatedAreaRoute
   AuthenticatedCatalogoObiettiviRoute: typeof AuthenticatedCatalogoObiettiviRoute
@@ -278,6 +299,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccessiRoute: AuthenticatedAccessiRoute,
+  AuthenticatedAllenamentiRecentiRoute: AuthenticatedAllenamentiRecentiRoute,
   AuthenticatedAllenamentoRoute: AuthenticatedAllenamentoRoute,
   AuthenticatedAreaRoute: AuthenticatedAreaRoute,
   AuthenticatedCatalogoObiettiviRoute: AuthenticatedCatalogoObiettiviRoute,
