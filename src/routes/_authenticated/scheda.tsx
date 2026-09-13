@@ -9,6 +9,7 @@ import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
 import { formattaData } from "@/lib/date";
 import { GRUPPI_MUSCOLARI, caricaEsercizi, type GruppoMuscolare } from "@/lib/esercizi";
 import {
+  archiviaScheda,
   caricaEserciziScheda,
   caricaImmagineLibera,
   caricaSchedaAttiva,
@@ -235,7 +236,61 @@ function DatiScheda({
       >
         {scheda ? "Salva dati scheda" : "Crea scheda"}
       </button>
+      {scheda && scheda.stato === "attiva" && (
+        <ArchiviaOra scheda={scheda} onErrore={onErrore} onFatto={onFatto} />
+      )}
     </section>
+  );
+}
+
+function ArchiviaOra({
+  scheda,
+  onErrore,
+  onFatto,
+}: {
+  scheda: Scheda;
+  onErrore: (m: string | null) => void;
+  onFatto: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [conferma, setConferma] = useState(false);
+
+  const archivia = useMutation({
+    mutationFn: () => archiviaScheda(scheda.id),
+    onError: (e) => onErrore(e instanceof Error ? e.message : "Archiviazione non riuscita."),
+    onSuccess: () => {
+      onErrore(null);
+      setConferma(false);
+      queryClient.invalidateQueries({ queryKey: ["schede-cliente", scheda.cliente_id] });
+      onFatto();
+    },
+  });
+
+  if (!conferma) {
+    return (
+      <button type="button" className="btn-secondary" onClick={() => setConferma(true)}>
+        Archivia ora
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 rounded-[10px] border border-[#F2A93B] p-4">
+      <p className="text-base text-warning">
+        Vuoi archiviare questa scheda? Il cliente non la vedrà più.
+      </p>
+      <button
+        type="button"
+        className="btn-primary"
+        disabled={archivia.isPending}
+        onClick={() => archivia.mutate()}
+      >
+        Sì, archivia
+      </button>
+      <button type="button" className="btn-secondary" onClick={() => setConferma(false)}>
+        Annulla
+      </button>
+    </div>
   );
 }
 
