@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, ChevronDown, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, type Profilo } from "@/lib/profilo";
 import { CampoData } from "@/components/CampoData";
+import { formattaData } from "@/lib/date";
 import { GRUPPI_MUSCOLARI, caricaEsercizi, type GruppoMuscolare } from "@/lib/esercizi";
 import {
   caricaEserciziScheda,
@@ -845,5 +846,102 @@ function RigaEsercizio({
         Rimuovi
       </button>
     </div>
+  );
+}
+
+function DuplicaScheda({
+  clienteId,
+  onErrore,
+  onDuplicata,
+}: {
+  clienteId: string;
+  onErrore: (m: string | null) => void;
+  onDuplicata: () => void;
+}) {
+  const [aperta, setAperta] = useState(false);
+  const [origineId, setOrigineId] = useState("");
+  const [inizio, setInizio] = useState("");
+  const [scadenza, setScadenza] = useState("");
+
+  const schede = useQuery({
+    queryKey: ["schede-cliente", clienteId],
+    enabled: aperta,
+    queryFn: () => caricaSchedeCliente(clienteId),
+  });
+
+  const elenco = schede.data ?? [];
+
+  const duplica = useMutation({
+    mutationFn: async () => {
+      const origine = elenco.find((s) => s.id === origineId) ?? elenco[0];
+      if (!origine) throw new Error("Nessuna scheda da duplicare.");
+      if (!inizio || !scadenza) throw new Error("Indica la nuova data di inizio e di scadenza.");
+      await duplicaScheda(origine, inizio, scadenza);
+    },
+    onError: (e) => onErrore(e instanceof Error ? e.message : "Duplicazione non riuscita."),
+    onSuccess: () => {
+      onErrore(null);
+      setAperta(false);
+      setInizio("");
+      setScadenza("");
+      onDuplicata();
+    },
+  });
+
+  if (!aperta) {
+    return (
+      <button type="button" className="btn-secondary w-full" onClick={() => setAperta(true)}>
+        Duplica scheda
+      </button>
+    );
+  }
+
+  return (
+    <section className="card-surface flex flex-col gap-4 p-6">
+      <h2 className="text-lg">Duplica scheda</h2>
+      <p className="text-base text-muted-foreground">
+        La copia diventa la scheda attiva del cliente: la precedente passa automaticamente in
+        archivio e resta consultabile nello storico.
+      </p>
+
+      {schede.isLoading && <p className="text-base text-muted-foreground">Caricamento…</p>}
+      {!schede.isLoading && elenco.length === 0 && (
+        <p className="text-base text-muted-foreground">Il cliente non ha ancora schede da copiare.</p>
+      )}
+
+      {elenco.length > 0 && (
+        <>
+          <label className="flex flex-col gap-2 text-base">
+            <span className="text-accent">Scheda da copiare</span>
+            <select
+              className="field"
+              value={origineId || elenco[0]!.id}
+              onChange={(e) => setOrigineId(e.target.value)}
+            >
+              {elenco.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.titolo} · {formattaData(s.data_inizio)} → {formattaData(s.data_scadenza)}
+                  {s.stato === "archiviata" ? " (archiviata)" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <CampoData label="Nuova data di inizio" value={inizio} onChange={setInizio} required />
+          <CampoData label="Nuova data di scadenza" value={scadenza} onChange={setScadenza} required />
+          <button
+            type="button"
+            className="btn-primary"
+            disabled={duplica.isPending}
+            onClick={() => duplica.mutate()}
+          >
+            Crea la copia
+          </button>
+        </>
+      )}
+
+      <button type="button" className="btn-secondary w-full" onClick={() => setAperta(false)}>
+        Annulla
+      </button>
+    </section>
   );
 }
