@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, ChevronDown, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, type Profilo } from "@/lib/profilo";
 import { CampoData } from "@/components/CampoData";
+import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
 import { formattaData } from "@/lib/date";
 import { GRUPPI_MUSCOLARI, caricaEsercizi, type GruppoMuscolare } from "@/lib/esercizi";
 import {
