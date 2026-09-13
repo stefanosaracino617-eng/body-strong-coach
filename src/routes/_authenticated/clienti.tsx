@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
-import { formattaData } from "@/lib/date";
+import { formattaData, giorniAllaScadenza } from "@/lib/date";
+import { caricaScadenzePerClienti } from "@/lib/schede";
 import { andamentoCarico, riepilogoCliente } from "@/lib/allenamenti";
 
 export const Route = createFileRoute("/_authenticated/clienti")({
@@ -118,6 +119,16 @@ function Clienti() {
       </Link>
     </Pagina>
   );
+}
+
+function ScadenzaScheda({ scadenza }: { scadenza: string | null }) {
+  if (!scadenza) {
+    return <p className="text-base text-destructive">Nessuna scheda attiva</p>;
+  }
+  const giorni = giorniAllaScadenza(scadenza);
+  const colore =
+    giorni <= 3 ? "text-destructive" : giorni <= 14 ? "text-warning" : "text-muted-foreground";
+  return <p className={`text-base ${colore}`}>Scadenza scheda: {formattaData(scadenza)}</p>;
 }
 
 function ObiettiviCliente({ clienteId }: { clienteId: string }) {
