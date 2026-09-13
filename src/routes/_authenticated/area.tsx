@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp } from "@/lib/profilo";
 import { caricaObiettiviCliente } from "@/lib/obiettivi";
+import { caricaSchedaClienteAttiva } from "@/lib/schede";
+import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
 
 export const Route = createFileRoute("/_authenticated/area")({
   head: () => ({
@@ -18,6 +20,8 @@ export const Route = createFileRoute("/_authenticated/area")({
         property: "og:description",
         content: "Area personale dei soci della palestra Body Strong Fitness Club.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Area,
@@ -37,7 +41,19 @@ function Area() {
   const miei = useQuery({
     queryKey: ["obiettivi-cliente", profilo0?.id],
     enabled: deveSceglierne,
-    queryFn: () => caricaObiettiviCliente(profilo0!.id),
+    queryFn: () => {
+      if (!profilo0) return Promise.resolve([]);
+      return caricaObiettiviCliente(profilo0.id);
+    },
+  });
+
+  const scheda = useQuery({
+    queryKey: ["mia-scheda-attiva", profilo0?.id],
+    enabled: deveSceglierne,
+    queryFn: () => {
+      if (!profilo0) return Promise.resolve(null);
+      return caricaSchedaClienteAttiva(profilo0.id);
+    },
   });
 
   const nessunObiettivo = deveSceglierne && miei.isSuccess && miei.data.length === 0;
@@ -118,13 +134,14 @@ function Area() {
   }
 
   return (
-    <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci}>
-      <div className="rounded-[10px] border border-[#2FBF71] px-3 py-3 text-base text-success">
-        Account approvato
-      </div>
-      <p className="text-base text-muted-foreground">
-        La tua scheda di allenamento sarà disponibile qui appena il gestore l&apos;avrà preparata.
-      </p>
+    <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci} contenutoLibero>
+      {scheda.isLoading && <p className="text-lg text-muted-foreground">Caricamento scheda…</p>}
+      {!scheda.isLoading && !scheda.data && (
+        <div className="card-surface p-6">
+          <p className="text-xl font-semibold">La tua scheda è in preparazione</p>
+        </div>
+      )}
+      {scheda.data && <VistaSchedaCliente scheda={scheda.data} />}
       <Link to="/obiettivi" className="btn-secondary w-full">
         I miei obiettivi ({miei.data?.length ?? 0})
       </Link>
@@ -136,16 +153,20 @@ function Schermo({
   titolo,
   children,
   esci,
+  contenutoLibero = false,
 }: {
   titolo: string;
   children?: React.ReactNode;
   esci?: () => void;
+  contenutoLibero?: boolean;
 }) {
   return (
     <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-md flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
         <h1 className="text-2xl">{titolo}</h1>
-        <div className="card-surface flex flex-col gap-4 p-6">{children}</div>
+        <div className={contenutoLibero ? "flex flex-col gap-4" : "card-surface flex flex-col gap-4 p-6"}>
+          {children}
+        </div>
         {esci && (
           <button type="button" className="btn-secondary w-full" onClick={esci}>
             Esci

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, type Profilo } from "@/lib/profilo";
 import { CampoData } from "@/components/CampoData";
@@ -303,6 +304,7 @@ function SessioneScheda({
   onErrore: (m: string | null) => void;
   onAggiornato: () => void;
 }) {
+  const [aperta, setAperta] = useState(false);
   const [apriCatalogo, setApriCatalogo] = useState(false);
   const [ricerca, setRicerca] = useState("");
   const [filtro, setFiltro] = useState<"" | GruppoMuscolare>("");
@@ -346,23 +348,41 @@ function SessioneScheda({
   });
 
   return (
-    <article className="card-surface flex flex-col gap-4 p-6">
-      <h3 className="text-lg">{etichetta}</h3>
+    <article className="card-surface overflow-hidden">
+      <button
+        type="button"
+        className="flex min-h-16 w-full items-center justify-between gap-4 p-5 text-left"
+        aria-expanded={aperta}
+        onClick={() => setAperta((valore) => !valore)}
+      >
+        <span>
+          <span className="block font-display text-lg font-bold">{etichetta}</span>
+          <span className="mt-1 block text-base text-muted-foreground">
+            {righe.length} {righe.length === 1 ? "esercizio" : "esercizi"}
+          </span>
+        </span>
+        <ChevronDown
+          aria-hidden="true"
+          className={`h-7 w-7 shrink-0 text-accent transition-transform ${aperta ? "rotate-180" : ""}`}
+        />
+      </button>
 
-      {righe.length === 0 && (
-        <p className="text-base text-muted-foreground">Nessun esercizio in questa sessione.</p>
-      )}
+      {aperta && (
+        <div className="flex flex-col gap-4 border-t border-border p-6">
+          {righe.length === 0 && (
+            <p className="text-base text-muted-foreground">Nessun esercizio in questa sessione.</p>
+          )}
 
-      {righe.map((r) => (
-        <RigaEsercizio key={r.id} riga={r} onErrore={onErrore} onAggiornato={onAggiornato} />
-      ))}
+          {righe.map((r) => (
+            <RigaEsercizio key={r.id} riga={r} onErrore={onErrore} onAggiornato={onAggiornato} />
+          ))}
 
-      {!apriCatalogo ? (
-        <button type="button" className="btn-primary" onClick={() => setApriCatalogo(true)}>
-          Aggiungi esercizio dal catalogo
-        </button>
-      ) : (
-        <div className="flex flex-col gap-4 rounded-[10px] border border-border p-4">
+          {!apriCatalogo ? (
+            <button type="button" className="btn-primary" onClick={() => setApriCatalogo(true)}>
+              Aggiungi esercizio dal catalogo
+            </button>
+          ) : (
+            <div className="flex flex-col gap-4 rounded-[10px] border border-border p-4">
           <label className="flex flex-col gap-2 text-base">
             <span className="text-accent">Cerca per nome</span>
             <input
@@ -405,9 +425,11 @@ function SessioneScheda({
             </button>
           ))}
 
-          <button type="button" className="btn-secondary w-full" onClick={() => setApriCatalogo(false)}>
-            Chiudi catalogo
-          </button>
+              <button type="button" className="btn-secondary w-full" onClick={() => setApriCatalogo(false)}>
+                Chiudi catalogo
+              </button>
+            </div>
+          )}
         </div>
       )}
     </article>
