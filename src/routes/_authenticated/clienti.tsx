@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
 import { formattaData } from "@/lib/date";
+import { andamentoCarico, riepilogoCliente } from "@/lib/allenamenti";
 
 export const Route = createFileRoute("/_authenticated/clienti")({
   head: () => ({
@@ -143,6 +144,51 @@ function ObiettiviCliente({ clienteId }: { clienteId: string }) {
           <li key={v.obiettivi!.nome} className="text-base">
             {v.obiettivi!.nome}
             <span className="text-muted-foreground"> · scelto il {formattaData(v.data_selezione)}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function AllenamentiCliente({ clienteId }: { clienteId: string }) {
+  const riepilogo = useQuery({
+    queryKey: ["riepilogo-allenamenti", clienteId],
+    queryFn: () => riepilogoCliente(clienteId),
+  });
+  const carichi = useQuery({
+    queryKey: ["andamento-carico", clienteId],
+    queryFn: () => andamentoCarico(clienteId),
+  });
+
+  return (
+    <section className="rounded-[10px] border border-[#58ADEC] p-4">
+      <h3 className="text-base font-semibold text-accent">Allenamenti</h3>
+      {riepilogo.isLoading && <p className="mt-2 text-base text-muted-foreground">Caricamento…</p>}
+      {riepilogo.data && (
+        <dl className="mt-2 flex flex-col gap-2 text-base">
+          <Riga etichetta="Ultimo allenamento" valore={formattaData(riepilogo.data.ultimo)} />
+          <Riga etichetta="Ultimi 30 giorni" valore={String(riepilogo.data.ultimi30)} />
+        </dl>
+      )}
+
+      <h4 className="mt-4 text-base font-semibold text-accent">Andamento del carico</h4>
+      {!carichi.isLoading && (carichi.data ?? []).length === 0 && (
+        <p className="mt-2 text-base text-muted-foreground">Nessun dato registrato.</p>
+      )}
+      <ul className="mt-2 flex flex-col gap-3">
+        {(carichi.data ?? []).map((e) => (
+          <li key={e.chiave} className="text-base">
+            <span className="font-semibold">{e.nome}</span>
+            <span className="block text-muted-foreground">
+              {e.punti
+                .map((p) =>
+                  p.peso_kg !== null
+                    ? `${formattaData(p.data)}: ${p.peso_kg} kg`
+                    : `${formattaData(p.data)}: ${p.durata_minuti} min`,
+                )
+                .join(" · ")}
+            </span>
           </li>
         ))}
       </ul>
