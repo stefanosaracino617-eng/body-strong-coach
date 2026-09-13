@@ -85,6 +85,13 @@ function Clienti() {
                 <Riga etichetta="Stato" valore={etichettaStato[p.stato]} />
               </dl>
               <ObiettiviCliente clienteId={p.id} />
+              <Link
+                to="/scheda"
+                search={{ cliente: p.id }}
+                className="btn-primary text-center"
+              >
+                Scheda di allenamento
+              </Link>
               <button type="button" className="btn-secondary w-full" onClick={() => setAperto(null)}>
                 Chiudi dettaglio
               </button>

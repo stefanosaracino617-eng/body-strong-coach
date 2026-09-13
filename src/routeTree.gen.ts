@@ -18,6 +18,7 @@ import { Route as AuthenticatedClientiRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedEserciziRouteImport } from './routes/_authenticated/esercizi'
 import { Route as AuthenticatedObiettiviRouteImport } from './routes/_authenticated/obiettivi'
 import { Route as AuthenticatedRegistrazioniRouteImport } from './routes/_authenticated/registrazioni'
+import { Route as AuthenticatedSchedaRouteImport } from './routes/_authenticated/scheda'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -65,6 +66,11 @@ const AuthenticatedRegistrazioniRoute =
     path: '/registrazioni',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSchedaRoute = AuthenticatedSchedaRouteImport.update({
+  id: '/scheda',
+  path: '/scheda',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/esercizi': typeof AuthenticatedEserciziRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
+  '/scheda': typeof AuthenticatedSchedaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/esercizi': typeof AuthenticatedEserciziRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
+  '/scheda': typeof AuthenticatedSchedaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/_authenticated/esercizi': typeof AuthenticatedEserciziRoute
   '/_authenticated/obiettivi': typeof AuthenticatedObiettiviRoute
   '/_authenticated/registrazioni': typeof AuthenticatedRegistrazioniRoute
+  '/_authenticated/scheda': typeof AuthenticatedSchedaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/esercizi'
     | '/obiettivi'
     | '/registrazioni'
+    | '/scheda'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/esercizi'
     | '/obiettivi'
     | '/registrazioni'
+    | '/scheda'
   id:
     | '__root__'
     | '/'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/_authenticated/esercizi'
     | '/_authenticated/obiettivi'
     | '/_authenticated/registrazioni'
+    | '/_authenticated/scheda'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -202,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRegistrazioniRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/scheda': {
+      id: '/_authenticated/scheda'
+      path: '/scheda'
+      fullPath: '/scheda'
+      preLoaderRoute: typeof AuthenticatedSchedaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -213,6 +232,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEserciziRoute: typeof AuthenticatedEserciziRoute
   AuthenticatedObiettiviRoute: typeof AuthenticatedObiettiviRoute
   AuthenticatedRegistrazioniRoute: typeof AuthenticatedRegistrazioniRoute
+  AuthenticatedSchedaRoute: typeof AuthenticatedSchedaRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -223,6 +243,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEserciziRoute: AuthenticatedEserciziRoute,
   AuthenticatedObiettiviRoute: AuthenticatedObiettiviRoute,
   AuthenticatedRegistrazioniRoute: AuthenticatedRegistrazioniRoute,
+  AuthenticatedSchedaRoute: AuthenticatedSchedaRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
