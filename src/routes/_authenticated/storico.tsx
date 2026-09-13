@@ -106,9 +106,6 @@ function CardAllenamento({
   const svoltiCount = esercizi.filter((e) => e.completato).length;
   const totale = esercizi.length;
   const durata = durataMinuti(allenamento.created_at, allenamento.completato_at!);
-  const soliCardio = tuttiCardio(esercizi);
-  const peso = pesoTotale(esercizi);
-  const minuti = minutiTotali(esercizi);
 
   return (
     <button
@@ -125,12 +122,7 @@ function CardAllenamento({
         <p className="text-foreground">
           {svoltiCount} di {totale} esercizi
         </p>
-        <p className="text-foreground">Durata: {formattaDurata(durata)}</p>
-        {soliCardio ? (
-          <p className="text-foreground">Minuti totali: {minuti}</p>
-        ) : (
-          <p className="text-foreground">Peso totale: {peso} kg</p>
-        )}
+        <DurataRiga minuti={durata} />
       </div>
       {allenamento.note_cliente && (
         <p className="mt-1 whitespace-pre-line text-base text-muted-foreground">
@@ -143,9 +135,11 @@ function CardAllenamento({
 
 function DettaglioAllenamento({
   allenamento,
+  storico,
   onChiudi,
 }: {
   allenamento: AllenamentoConDettaglio;
+  storico: AllenamentoConDettaglio[];
   onChiudi: () => void;
 }) {
   const esercizi = (allenamento.allenamento_esercizi ?? [])
