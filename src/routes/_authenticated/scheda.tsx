@@ -10,6 +10,7 @@ import { formattaData } from "@/lib/date";
 import { GRUPPI_MUSCOLARI, caricaEsercizi, type GruppoMuscolare } from "@/lib/esercizi";
 import {
   archiviaScheda,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   caricaEserciziScheda,
   caricaImmagineLibera,
   caricaSchedaAttiva,
