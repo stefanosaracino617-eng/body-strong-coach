@@ -941,8 +941,11 @@ function SchedeArchiviate({
           >
             <span>
               <span className="block font-display text-lg font-bold">{s.titolo}</span>
+              <span className="mt-1 inline-block rounded-[10px] border border-border px-2 py-1 text-base text-muted-foreground">
+                Archiviata
+              </span>
               <span className="mt-1 block text-base text-muted-foreground">
-                {formattaData(s.data_inizio)} → {formattaData(s.data_scadenza)}
+                {formattaData(s.data_inizio)} → scadenza {formattaData(s.data_scadenza)}
                 {s.archiviata_at ? ` · archiviata il ${formattaData(s.archiviata_at)}` : ""}
               </span>
             </span>

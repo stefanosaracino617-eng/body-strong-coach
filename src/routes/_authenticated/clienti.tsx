@@ -76,6 +76,7 @@ function Clienti() {
           <h2 className="text-lg">
             {p.nome} {p.cognome}
           </h2>
+          <ScadenzaScheda scadenza={scadenze.data?.[p.id] ?? null} />
           {aperto === p.id ? (
             <>
               <dl className="flex flex-col gap-2 text-base text-muted-foreground">
