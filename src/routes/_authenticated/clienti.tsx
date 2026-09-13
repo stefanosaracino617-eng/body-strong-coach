@@ -24,7 +24,7 @@ const vuotoFiltro: Record<Filtro, string> = {
 
 export const Route = createFileRoute("/_authenticated/clienti")({
   validateSearch: (search: Record<string, unknown>): { filtro: Filtro } => {
-    const valore = search.filtro;
+    const valore = search["filtro"];
     return {
       filtro:
         valore === "in-scadenza" || valore === "senza-scheda" ? valore : ("tutti" as Filtro),
