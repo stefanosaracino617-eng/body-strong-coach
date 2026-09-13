@@ -105,7 +105,7 @@ function PaginaScheda() {
     return (
       <Pagina titolo="Scheda">
         <p className="text-base text-muted-foreground">Scegli un cliente dall&apos;elenco.</p>
-        <Link to="/clienti" className="btn-primary">
+        <Link to="/clienti" search={{ filtro: "tutti" as const }} className="btn-primary">
           Vai ai clienti
         </Link>
       </Pagina>
@@ -159,7 +159,7 @@ function PaginaScheda() {
       />
 
 
-      <Link to="/clienti" className="btn-secondary w-full">
+      <Link to="/clienti" search={{ filtro: "tutti" as const }} className="btn-secondary w-full">
         Torna ai clienti
       </Link>
     </Pagina>

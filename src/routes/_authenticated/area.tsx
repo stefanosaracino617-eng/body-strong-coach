@@ -88,19 +88,10 @@ function Area() {
 
   if (isGestore) {
     return (
-      <Schermo titolo={`Ciao ${profilo.nome || "gestore"}`} esci={esci}>
-        <p className="text-base text-muted-foreground">Pannello del gestore.</p>
-        <Link to="/registrazioni" className="btn-primary mt-2">
-          Registrazioni da approvare
-        </Link>
-        <Link to="/clienti" className="btn-secondary w-full">
-          Clienti
-        </Link>
+      <Schermo titolo={`Ciao ${profilo.nome || "gestore"}`} esci={esci} contenutoLibero>
+        <DashboardGestore />
         <Link to="/catalogo-obiettivi" className="btn-secondary w-full">
           Catalogo obiettivi
-        </Link>
-        <Link to="/esercizi" className="btn-secondary w-full">
-          Catalogo esercizi
         </Link>
         <Link to="/accessi" className="btn-secondary w-full">
           Gestione accessi
