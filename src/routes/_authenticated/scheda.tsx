@@ -281,11 +281,17 @@ function ArchiviaOra({
 
   const archivia = useMutation({
     mutationFn: () => archiviaScheda(scheda.id),
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Archiviazione non riuscita."),
+    onError: (e) => {
+      const testo = e instanceof Error ? e.message : "Archiviazione non riuscita.";
+      onErrore(testo);
+      avvisoErrore(testo);
+    },
     onSuccess: () => {
       onErrore(null);
+      avvisoOk("Scheda archiviata.");
       setConferma(false);
       queryClient.invalidateQueries({ queryKey: ["schede-cliente", scheda.cliente_id] });
+      queryClient.invalidateQueries({ queryKey: ["numeri-dashboard"] });
       onFatto();
     },
   });
