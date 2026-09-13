@@ -20,7 +20,7 @@ export function giorniAllaScadenza(dataScadenza: string): number {
   return Math.max(0, Math.ceil((scadenza.getTime() - oggi.getTime()) / 86_400_000));
 }
 
-export function VistaSchedaCliente({ scheda }: { scheda: Scheda }) {
+export function VistaSchedaCliente({ scheda, conAvvio = false }: { scheda: Scheda; conAvvio?: boolean }) {
   const righe = useQuery({
     queryKey: ["scheda-esercizi", scheda.id],
     queryFn: () => caricaEserciziScheda(scheda.id),
@@ -72,6 +72,7 @@ export function VistaSchedaCliente({ scheda }: { scheda: Scheda }) {
           etichetta={etichetta}
           righe={esercizi}
           immagini={immagini.data ?? {}}
+          conAvvio={conAvvio}
         />
       ))}
     </div>
