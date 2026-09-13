@@ -306,8 +306,17 @@ function SessioneScheda({
 }) {
   const [aperta, setAperta] = useState(false);
   const [apriCatalogo, setApriCatalogo] = useState(false);
+  const [apriLibero, setApriLibero] = useState(false);
   const [ricerca, setRicerca] = useState("");
   const [filtro, setFiltro] = useState<"" | GruppoMuscolare>("");
+  const [trascinato, setTrascinato] = useState<number | null>(null);
+  const [ordinate, setOrdinate] = useState<SchedaEsercizio[]>(righe);
+
+  const chiaveRighe = righe.map((r) => r.id).join("|");
+  useEffect(() => {
+    setOrdinate(righe);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chiaveRighe]);
 
   const catalogo = useQuery({
     queryKey: ["catalogo-esercizi"],
@@ -347,6 +356,25 @@ function SessioneScheda({
     },
   });
 
+  const riordina = useMutation({
+    mutationFn: (elenco: SchedaEsercizio[]) => salvaOrdine(elenco.map((r) => r.id)),
+    onError: (e) => onErrore(e instanceof Error ? e.message : "Riordino non riuscito."),
+    onSuccess: () => {
+      onErrore(null);
+      onAggiornato();
+    },
+  });
+
+  const spostaA = (da: number, a: number) => {
+    if (a < 0 || a >= ordinate.length || da === a) return;
+    const copia = [...ordinate];
+    const [voce] = copia.splice(da, 1);
+    if (!voce) return;
+    copia.splice(a, 0, voce);
+    setOrdinate(copia);
+    riordina.mutate(copia);
+  };
+
   return (
     <article className="card-surface overflow-hidden">
       <button
@@ -369,12 +397,59 @@ function SessioneScheda({
 
       {aperta && (
         <div className="flex flex-col gap-4 border-t border-border p-6">
-          {righe.length === 0 && (
+          {ordinate.length === 0 && (
             <p className="text-base text-muted-foreground">Nessun esercizio in questa sessione.</p>
           )}
 
-          {righe.map((r) => (
-            <RigaEsercizio key={r.id} riga={r} onErrore={onErrore} onAggiornato={onAggiornato} />
+          {ordinate.length > 1 && (
+            <p className="text-base text-muted-foreground">
+              Trascina un esercizio per cambiarne la posizione, oppure usa le frecce. Il nuovo ordine
+              viene salvato subito.
+            </p>
+          )}
+
+          {ordinate.map((r, indice) => (
+            <div
+              key={r.id}
+              draggable
+              onDragStart={() => setTrascinato(indice)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (trascinato !== null) spostaA(trascinato, indice);
+                setTrascinato(null);
+              }}
+              onDragEnd={() => setTrascinato(null)}
+              className={trascinato === indice ? "opacity-60" : undefined}
+            >
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 text-base text-muted-foreground">
+                  <GripVertical aria-hidden="true" className="h-6 w-6 text-accent" />
+                  Posizione {indice + 1}
+                </span>
+                <span className="flex gap-2">
+                  <button
+                    type="button"
+                    className="btn-secondary min-h-12 px-4"
+                    aria-label={`Sposta ${nomeRiga(r)} in su`}
+                    disabled={indice === 0 || riordina.isPending}
+                    onClick={() => spostaA(indice, indice - 1)}
+                  >
+                    <ArrowUp aria-hidden="true" className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary min-h-12 px-4"
+                    aria-label={`Sposta ${nomeRiga(r)} in giù`}
+                    disabled={indice === ordinate.length - 1 || riordina.isPending}
+                    onClick={() => spostaA(indice, indice + 1)}
+                  >
+                    <ArrowDown aria-hidden="true" className="h-5 w-5" />
+                  </button>
+                </span>
+              </div>
+              <RigaEsercizio riga={r} onErrore={onErrore} onAggiornato={onAggiornato} />
+            </div>
           ))}
 
           {!apriCatalogo ? (
@@ -430,9 +505,195 @@ function SessioneScheda({
               </button>
             </div>
           )}
+
+          {!apriLibero ? (
+            <button type="button" className="btn-secondary w-full" onClick={() => setApriLibero(true)}>
+              Aggiungi esercizio libero
+            </button>
+          ) : (
+            <EsercizioLibero
+              schedaId={schedaId}
+              etichetta={etichetta}
+              ordine={totaleRighe + 1}
+              onErrore={onErrore}
+              onChiudi={() => setApriLibero(false)}
+              onAggiunto={onAggiornato}
+            />
+          )}
         </div>
       )}
     </article>
+  );
+}
+
+function EsercizioLibero({
+  schedaId,
+  etichetta,
+  ordine,
+  onErrore,
+  onChiudi,
+  onAggiunto,
+}: {
+  schedaId: string;
+  etichetta: string;
+  ordine: number;
+  onErrore: (m: string | null) => void;
+  onChiudi: () => void;
+  onAggiunto: () => void;
+}) {
+  const [nome, setNome] = useState("");
+  const [descrizione, setDescrizione] = useState("");
+  const [aMinuti, setAMinuti] = useState(false);
+  const [serie, setSerie] = useState("3");
+  const [ripetizioni, setRipetizioni] = useState("8-10");
+  const [durata, setDurata] = useState("10");
+  const [recupero, setRecupero] = useState("");
+  const [carico, setCarico] = useState("");
+  const [note, setNote] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+
+  const crea = useMutation({
+    mutationFn: async () => {
+      const nomePulito = nome.trim();
+      if (!nomePulito) throw new Error("Il nome dell'esercizio libero è obbligatorio.");
+      const percorso = file ? await caricaImmagineLibera(schedaId, file) : null;
+      const prescrizione = aMinuti
+        ? { serie: null, ripetizioni: null, durata_minuti: numeroOppureNull(durata) }
+        : {
+            serie: numeroOppureNull(serie),
+            ripetizioni: testoOppureNull(ripetizioni),
+            durata_minuti: null,
+          };
+      const { error } = await supabase.from("scheda_esercizi").insert({
+        scheda_id: schedaId,
+        esercizio_id: null,
+        nome_libero: nomePulito,
+        descrizione_libera: testoOppureNull(descrizione),
+        immagine_libera_url: percorso,
+        sessione: etichetta,
+        ordine,
+        ...prescrizione,
+        recupero_secondi: numeroOppureNull(recupero),
+        carico_indicativo: testoOppureNull(carico),
+        note: testoOppureNull(note),
+      });
+      if (error) throw error;
+    },
+    onError: (e) => onErrore(e instanceof Error ? e.message : "Aggiunta non riuscita."),
+    onSuccess: () => {
+      onErrore(null);
+      onAggiunto();
+      onChiudi();
+    },
+  });
+
+  return (
+    <div className="flex flex-col gap-4 rounded-[10px] border border-border p-4">
+      <h3 className="text-lg">Esercizio libero fuori catalogo</h3>
+      <label className="flex flex-col gap-2 text-base">
+        <span className="text-accent">Nome</span>
+        <input
+          className="field"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          placeholder="Es. Affondi con manubri"
+        />
+      </label>
+      <label className="flex flex-col gap-2 text-base">
+        <span className="text-accent">Descrizione</span>
+        <textarea
+          className="field min-h-[96px]"
+          value={descrizione}
+          onChange={(e) => setDescrizione(e.target.value)}
+        />
+      </label>
+      <label className="flex flex-col gap-2 text-base">
+        <span className="text-accent">Immagine (facoltativa)</span>
+        <input
+          className="field"
+          type="file"
+          accept="image/*"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
+      </label>
+      <label className="flex flex-col gap-2 text-base">
+        <span className="text-accent">Misurazione</span>
+        <select
+          className="field"
+          value={aMinuti ? "minuti" : "serie_ripetizioni"}
+          onChange={(e) => setAMinuti(e.target.value === "minuti")}
+        >
+          <option value="serie_ripetizioni">Serie e ripetizioni</option>
+          <option value="minuti">Minuti</option>
+        </select>
+      </label>
+
+      {aMinuti ? (
+        <label className="flex flex-col gap-2 text-base">
+          <span className="text-accent">Durata (minuti)</span>
+          <input
+            className="field"
+            inputMode="numeric"
+            value={durata}
+            onChange={(e) => setDurata(e.target.value)}
+          />
+        </label>
+      ) : (
+        <>
+          <label className="flex flex-col gap-2 text-base">
+            <span className="text-accent">Serie</span>
+            <input
+              className="field"
+              inputMode="numeric"
+              value={serie}
+              onChange={(e) => setSerie(e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-base">
+            <span className="text-accent">Ripetizioni</span>
+            <input
+              className="field"
+              value={ripetizioni}
+              onChange={(e) => setRipetizioni(e.target.value)}
+            />
+          </label>
+        </>
+      )}
+
+      <label className="flex flex-col gap-2 text-base">
+        <span className="text-accent">Recupero (secondi)</span>
+        <input
+          className="field"
+          inputMode="numeric"
+          value={recupero}
+          onChange={(e) => setRecupero(e.target.value)}
+        />
+      </label>
+      <label className="flex flex-col gap-2 text-base">
+        <span className="text-accent">Carico indicativo</span>
+        <input className="field" value={carico} onChange={(e) => setCarico(e.target.value)} />
+      </label>
+      <label className="flex flex-col gap-2 text-base">
+        <span className="text-accent">Note</span>
+        <textarea
+          className="field min-h-[80px]"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </label>
+
+      <button
+        type="button"
+        className="btn-primary"
+        disabled={crea.isPending}
+        onClick={() => crea.mutate()}
+      >
+        Aggiungi esercizio libero
+      </button>
+      <button type="button" className="btn-secondary w-full" onClick={onChiudi}>
+        Annulla
+      </button>
+    </div>
   );
 }
 
