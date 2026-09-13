@@ -44,6 +44,12 @@ function Clienti() {
     },
   });
 
+  const scadenze = useQuery({
+    queryKey: ["scadenze-schede", (elenco.data ?? []).map((p) => p.id).join(",")],
+    enabled: (elenco.data ?? []).length > 0,
+    queryFn: () => caricaScadenzePerClienti((elenco.data ?? []).map((p) => p.id)),
+  });
+
   if (sessione.isLoading) return <Pagina titolo="Caricamento…" />;
 
   if (!sessione.data?.isGestore) {
