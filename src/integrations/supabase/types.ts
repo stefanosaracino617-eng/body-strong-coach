@@ -192,6 +192,30 @@ export type Database = {
         }
         Relationships: []
       }
+      log_archiviazione_schede: {
+        Row: {
+          created_at: string
+          errore: string | null
+          eseguita_at: string
+          id: string
+          schede_archiviate: number
+        }
+        Insert: {
+          created_at?: string
+          errore?: string | null
+          eseguita_at?: string
+          id?: string
+          schede_archiviate?: number
+        }
+        Update: {
+          created_at?: string
+          errore?: string | null
+          eseguita_at?: string
+          id?: string
+          schede_archiviate?: number
+        }
+        Relationships: []
+      }
       obiettivi: {
         Row: {
           attivo: boolean
@@ -407,7 +431,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      archivia_schede_scadute: { Args: never; Returns: number }
     }
     Enums: {
       gruppo_muscolare:

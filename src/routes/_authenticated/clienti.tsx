@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
-import { formattaData } from "@/lib/date";
+import { formattaData, giorniAllaScadenza } from "@/lib/date";
+import { caricaScadenzePerClienti } from "@/lib/schede";
 import { andamentoCarico, riepilogoCliente } from "@/lib/allenamenti";
 
 export const Route = createFileRoute("/_authenticated/clienti")({
@@ -44,6 +45,12 @@ function Clienti() {
     },
   });
 
+  const scadenze = useQuery({
+    queryKey: ["scadenze-schede", (elenco.data ?? []).map((p) => p.id).join(",")],
+    enabled: (elenco.data ?? []).length > 0,
+    queryFn: () => caricaScadenzePerClienti((elenco.data ?? []).map((p) => p.id)),
+  });
+
   if (sessione.isLoading) return <Pagina titolo="Caricamento…" />;
 
   if (!sessione.data?.isGestore) {
@@ -76,6 +83,7 @@ function Clienti() {
           <h2 className="text-lg">
             {p.nome} {p.cognome}
           </h2>
+          <ScadenzaScheda scadenza={scadenze.data?.[p.id] ?? null} />
           {aperto === p.id ? (
             <>
               <dl className="flex flex-col gap-2 text-base text-muted-foreground">
@@ -111,6 +119,16 @@ function Clienti() {
       </Link>
     </Pagina>
   );
+}
+
+function ScadenzaScheda({ scadenza }: { scadenza: string | null }) {
+  if (!scadenza) {
+    return <p className="text-base text-destructive">Nessuna scheda attiva</p>;
+  }
+  const giorni = giorniAllaScadenza(scadenza);
+  const colore =
+    giorni <= 3 ? "text-destructive" : giorni <= 14 ? "text-warning" : "text-muted-foreground";
+  return <p className={`text-base ${colore}`}>Scadenza scheda: {formattaData(scadenza)}</p>;
 }
 
 function ObiettiviCliente({ clienteId }: { clienteId: string }) {

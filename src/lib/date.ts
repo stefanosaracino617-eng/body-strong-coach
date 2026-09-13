@@ -56,6 +56,23 @@ export function dataAIso(d: Date): string {
   return `${a}-${m}-${g}`;
 }
 
+/** Data di oggi in Italia (fuso Europe/Rome) in formato ISO aaaa-mm-gg */
+export function oggiRoma(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Rome",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+/** Giorni che mancano alla data indicata, calcolati sul fuso italiano */
+export function giorniAllaScadenza(iso: string): number {
+  const oggi = new Date(`${oggiRoma()}T00:00:00Z`).getTime();
+  const fine = new Date(`${iso.slice(0, 10)}T00:00:00Z`).getTime();
+  return Math.round((fine - oggi) / 86400000);
+}
+
 /** ISO (aaaa-mm-gg) -> Date locale */
 export function isoAData(iso: string | null): Date | undefined {
   if (!iso) return undefined;
