@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
 import { formattaData, giorniAllaScadenza } from "@/lib/date";
 import { caricaScadenzePerClienti } from "@/lib/schede";
+import { caricaIdGestori, soloClienti } from "@/lib/clienti";
 import { andamentoCarico, riepilogoCliente } from "@/lib/allenamenti";
 import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 
@@ -58,13 +59,16 @@ function Clienti() {
     queryKey: ["clienti-approvati"],
     enabled: sessione.data?.isGestore === true,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profili")
-        .select("*")
-        .eq("stato", "approvato")
-        .order("cognome", { ascending: true });
+      const [gestori, { data, error }] = await Promise.all([
+        caricaIdGestori(),
+        supabase
+          .from("profili")
+          .select("*")
+          .eq("stato", "approvato")
+          .order("cognome", { ascending: true }),
+      ]);
       if (error) throw error;
-      return data as Profilo[];
+      return soloClienti((data ?? []) as Profilo[], gestori);
     },
   });
 

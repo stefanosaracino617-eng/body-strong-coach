@@ -21,6 +21,7 @@ import {
   numeroOppureNull,
   salvaOrdine,
   schedaScaduta,
+  schedaProgrammata,
   testoOppureNull,
   verificaDateScheda,
   unitaRiga,
@@ -220,7 +221,16 @@ function DatiScheda({
       <h2 className="text-lg">{scheda ? "Dati della scheda" : "Nuova scheda"}</h2>
       {scheda && scheda.stato === "attiva" && (
         <div className="flex flex-col gap-1">
-          {schedaScaduta(scheda) ? (
+          {schedaProgrammata(scheda) ? (
+            <>
+              <span className="inline-block w-fit rounded-[10px] border border-accent px-2 py-1 text-base text-accent">
+                Programmata - parte il {formattaData(scheda.data_inizio)}
+              </span>
+              <span className="text-base text-muted-foreground">
+                Il cliente la vedrà a partire da quella data.
+              </span>
+            </>
+          ) : schedaScaduta(scheda) ? (
             <>
               <span className="inline-block w-fit rounded-[10px] border border-destructive px-2 py-1 text-base text-destructive">
                 Scaduta - in attesa di archiviazione
