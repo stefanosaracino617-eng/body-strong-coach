@@ -214,7 +214,7 @@ function PaginaAllenamento() {
           <label className="flex flex-col gap-2">
             <span className="text-base text-accent">Note dell'allenamento</span>
             <textarea
-              className="campo min-h-24"
+              className="field min-h-[96px]"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Come è andata?"
@@ -277,7 +277,7 @@ function SchedaRiga({
         <label className="flex flex-col gap-2">
           <span className="text-base text-accent">Durata effettiva (minuti)</span>
           <input
-            className="campo"
+            className="field"
             inputMode="numeric"
             value={v.durata}
             disabled={!attivo}
@@ -289,7 +289,7 @@ function SchedaRiga({
           <label className="flex flex-col gap-2">
             <span className="text-base text-accent">Peso utilizzato (kg)</span>
             <input
-              className="campo"
+              className="field"
               inputMode="decimal"
               value={v.peso}
               disabled={!attivo}
@@ -299,7 +299,7 @@ function SchedaRiga({
           <label className="flex flex-col gap-2">
             <span className="text-base text-accent">Ripetizioni effettive</span>
             <input
-              className="campo"
+              className="field"
               value={v.ripetizioni}
               disabled={!attivo}
               onChange={(e) => onCambia({ ripetizioni: e.target.value })}
