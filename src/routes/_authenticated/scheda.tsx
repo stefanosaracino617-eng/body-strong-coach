@@ -211,6 +211,22 @@ function DatiScheda({
   return (
     <section className="card-surface flex flex-col gap-4 p-6">
       <h2 className="text-lg">{scheda ? "Dati della scheda" : "Nuova scheda"}</h2>
+      {scheda && scheda.stato === "attiva" && (
+        <div className="flex flex-col gap-1">
+          {schedaScaduta(scheda) ? (
+            <>
+              <span className="inline-block w-fit rounded-[10px] border border-destructive px-2 py-1 text-base text-destructive">
+                Scaduta - in attesa di archiviazione
+              </span>
+              <span className="text-base text-muted-foreground">Il cliente non la vede più.</span>
+            </>
+          ) : (
+            <span className="inline-block w-fit rounded-[10px] border border-border px-2 py-1 text-base text-muted-foreground">
+              Attiva
+            </span>
+          )}
+        </div>
+      )}
       <label className="flex flex-col gap-2 text-base">
         <span className="text-accent">Titolo</span>
         <input
