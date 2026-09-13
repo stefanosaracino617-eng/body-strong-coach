@@ -115,13 +115,16 @@ export async function caricaImmagineLibera(schedaId: string, file: File): Promis
   return percorso;
 }
 
-/** Salva subito il nuovo ordine degli esercizi di una sessione. */
-export async function salvaOrdine(idOrdinati: string[]): Promise<void> {
-  for (const [indice, id] of idOrdinati.entries()) {
+/** Salva subito il nuovo ordine degli esercizi di una sessione, riusando le posizioni esistenti. */
+export async function salvaOrdine(righe: { id: string; ordine: number }[]): Promise<void> {
+  const posizioni = righe.map((r) => r.ordine).sort((a, b) => a - b);
+  for (const [indice, riga] of righe.entries()) {
+    const nuovo = posizioni[indice]!;
+    if (nuovo === riga.ordine) continue;
     const { error } = await supabase
       .from("scheda_esercizi")
-      .update({ ordine: indice + 1 })
-      .eq("id", id);
+      .update({ ordine: nuovo })
+      .eq("id", riga.id);
     if (error) throw error;
   }
 }

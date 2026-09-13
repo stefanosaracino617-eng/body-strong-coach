@@ -372,7 +372,7 @@ function SessioneScheda({
   });
 
   const riordina = useMutation({
-    mutationFn: (elenco: SchedaEsercizio[]) => salvaOrdine(elenco.map((r) => r.id)),
+    mutationFn: (elenco: SchedaEsercizio[]) => salvaOrdine(elenco.map((r) => ({ id: r.id, ordine: r.ordine }))),
     onError: (e) => onErrore(e instanceof Error ? e.message : "Riordino non riuscito."),
     onSuccess: () => {
       onErrore(null);
