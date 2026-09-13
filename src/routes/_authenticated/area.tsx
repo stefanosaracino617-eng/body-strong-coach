@@ -20,6 +20,8 @@ export const Route = createFileRoute("/_authenticated/area")({
         property: "og:description",
         content: "Area personale dei soci della palestra Body Strong Fitness Club.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Area,
@@ -132,7 +134,7 @@ function Area() {
   }
 
   return (
-    <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci}>
+    <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci} contenutoLibero>
       {scheda.isLoading && <p className="text-lg text-muted-foreground">Caricamento scheda…</p>}
       {!scheda.isLoading && !scheda.data && (
         <div className="card-surface p-6">
@@ -151,16 +153,20 @@ function Schermo({
   titolo,
   children,
   esci,
+  contenutoLibero = false,
 }: {
   titolo: string;
   children?: React.ReactNode;
   esci?: () => void;
+  contenutoLibero?: boolean;
 }) {
   return (
     <main className="min-h-screen px-4 py-8">
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
         <h1 className="text-2xl">{titolo}</h1>
-        <div className="flex flex-col gap-4">{children}</div>
+        <div className={contenutoLibero ? "flex flex-col gap-4" : "card-surface flex flex-col gap-4 p-6"}>
+          {children}
+        </div>
         {esci && (
           <button type="button" className="btn-secondary w-full" onClick={esci}>
             Esci

@@ -7,4 +7,4 @@
 - [x] Obiettivi: catalogo gestore, selezione cliente, obiettivi nel dettaglio cliente
 - [x] Esercizi: tabella, importazione CSV/Excel, caricamento immagini multiplo, elenco gestore con ricerca e filtro, disattivazione al posto della cancellazione
 - [x] Schede: tabelle schede e scheda_esercizi, editor gestore con sessioni ed esercizi dal catalogo, RLS (gestore scrive, cliente sola lettura)
-- [ ] Vista cliente della scheda e sessioni richiudibili nell'editor gestore
+- [x] Vista cliente della scheda e sessioni richiudibili nell'editor gestore
