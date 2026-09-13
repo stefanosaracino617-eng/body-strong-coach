@@ -132,8 +132,9 @@ function Area() {
 
   return (
     <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci} contenutoLibero>
-      {scheda.isLoading && <p className="text-lg text-muted-foreground">Caricamento scheda…</p>}
-      {!scheda.isLoading && !scheda.data && (
+      {scheda.isLoading && <CaricamentoCard quante={2} />}
+      {scheda.isError && <BloccoErrore onRiprova={() => scheda.refetch()} />}
+      {!scheda.isLoading && !scheda.isError && !scheda.data && (
         <div className="card-surface flex flex-col items-center gap-2 p-6 text-center">
           <p className="text-xl font-semibold">La tua scheda di allenamento è scaduta.</p>
           <p className="text-base text-muted-foreground">
