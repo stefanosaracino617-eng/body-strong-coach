@@ -141,7 +141,10 @@ function Area() {
           <p className="text-xl font-semibold">La tua scheda è in preparazione</p>
         </div>
       )}
-      {scheda.data && <VistaSchedaCliente scheda={scheda.data} />}
+      {scheda.data && <VistaSchedaCliente scheda={scheda.data} conAvvio />}
+      <Link to="/storico" className="btn-secondary w-full">
+        Storico allenamenti
+      </Link>
       <Link to="/obiettivi" className="btn-secondary w-full">
         I miei obiettivi ({miei.data?.length ?? 0})
       </Link>

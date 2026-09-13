@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { urlImmagini } from "@/lib/esercizi";
@@ -112,6 +113,11 @@ function SessioneCliente({
       </button>
       {aperta && (
         <div className="flex flex-col gap-6 border-t border-border p-5">
+          {conAvvio && (
+            <Link to="/allenamento" search={{ sessione: etichetta }} className="btn-primary text-center">
+              Avvia allenamento
+            </Link>
+          )}
           {righe.map((riga) => (
             <EsercizioCliente key={riga.id} riga={riga} immagini={immagini} />
           ))}
