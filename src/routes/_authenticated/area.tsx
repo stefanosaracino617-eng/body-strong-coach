@@ -8,6 +8,10 @@ import { caricaSchedaClienteAttiva } from "@/lib/schede";
 import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
 import { DashboardGestore } from "@/components/DashboardGestore";
 import { BloccoErrore, CaricamentoCard } from "@/components/Stati";
+import { StrisciaInstalla } from "@/components/StrisciaInstalla";
+import { caricaRegole, regoleNonVuote } from "@/lib/regole";
+import { statoCertificato } from "@/lib/certificato";
+import { formattaData } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/area")({
   head: () => ({
