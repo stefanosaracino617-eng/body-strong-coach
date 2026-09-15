@@ -108,17 +108,18 @@ function gruppoValido(valore: unknown): GruppoMuscolare | null {
   return trovato ?? null;
 }
 
+/** Solo le colonne presenti nel file vengono valorizzate: le altre restano invariate. */
 export type RigaImportata = {
   nome: string;
   gruppo_muscolare: GruppoMuscolare;
-  attrezzatura: string | null;
-  tipo: TipoEsercizio;
-  unita_misura: UnitaMisura;
-  descrizione_esecuzione: string | null;
-  errori_comuni: string | null;
-  immagine_url: string | null;
-  attivo: boolean;
   ordine: number;
+  attrezzatura?: string | null;
+  tipo?: TipoEsercizio;
+  unita_misura?: UnitaMisura;
+  descrizione_esecuzione?: string | null;
+  errori_comuni?: string | null;
+  immagine_url?: string | null;
+  attivo?: boolean;
 };
 
 export type EsitoLettura = { righe: RigaImportata[]; errori: string[] };
