@@ -24,7 +24,7 @@ export function CaricamentoCard({ quante = 3 }: { quante?: number }) {
 }
 
 /** Segnaposto dei riquadri della dashboard. */
-export function CaricamentoRiquadri({ quanti = 6 }: { quanti?: number }) {
+export function CaricamentoRiquadri({ quanti = 7 }: { quanti?: number }) {
   return (
     <div className="grid grid-cols-2 gap-3" aria-hidden="true">
       {Array.from({ length: quanti }).map((_, i) => (
