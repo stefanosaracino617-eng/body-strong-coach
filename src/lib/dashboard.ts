@@ -7,6 +7,7 @@ export type NumeriDashboard = {
   clientiAttivi: number;
   inScadenza: number;
   senzaScheda: number;
+  certificati: number;
   allenamenti7: number;
   eserciziAttivi: number;
 };

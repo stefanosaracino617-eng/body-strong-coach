@@ -17,11 +17,13 @@ import { Route as AuthenticatedAllenamentiRecentiRouteImport } from './routes/_a
 import { Route as AuthenticatedAllenamentoRouteImport } from './routes/_authenticated/allenamento'
 import { Route as AuthenticatedAreaRouteImport } from './routes/_authenticated/area'
 import { Route as AuthenticatedCatalogoObiettiviRouteImport } from './routes/_authenticated/catalogo-obiettivi'
+import { Route as AuthenticatedCertificatiRouteImport } from './routes/_authenticated/certificati'
 import { Route as AuthenticatedClientiRouteImport } from './routes/_authenticated/clienti'
 import { Route as AuthenticatedEserciziRouteImport } from './routes/_authenticated/esercizi'
 import { Route as AuthenticatedInstallaRouteImport } from './routes/_authenticated/installa'
 import { Route as AuthenticatedObiettiviRouteImport } from './routes/_authenticated/obiettivi'
 import { Route as AuthenticatedRegistrazioniRouteImport } from './routes/_authenticated/registrazioni'
+import { Route as AuthenticatedRegoleRouteImport } from './routes/_authenticated/regole'
 import { Route as AuthenticatedSchedaRouteImport } from './routes/_authenticated/scheda'
 import { Route as AuthenticatedStoricoRouteImport } from './routes/_authenticated/storico'
 
@@ -67,6 +69,12 @@ const AuthenticatedCatalogoObiettiviRoute =
     path: '/catalogo-obiettivi',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCertificatiRoute =
+  AuthenticatedCertificatiRouteImport.update({
+    id: '/certificati',
+    path: '/certificati',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientiRoute = AuthenticatedClientiRouteImport.update({
   id: '/clienti',
   path: '/clienti',
@@ -93,6 +101,11 @@ const AuthenticatedRegistrazioniRoute =
     path: '/registrazioni',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRegoleRoute = AuthenticatedRegoleRouteImport.update({
+  id: '/regole',
+  path: '/regole',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSchedaRoute = AuthenticatedSchedaRouteImport.update({
   id: '/scheda',
   path: '/scheda',
@@ -112,11 +125,13 @@ export interface FileRoutesByFullPath {
   '/allenamento': typeof AuthenticatedAllenamentoRoute
   '/area': typeof AuthenticatedAreaRoute
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
+  '/certificati': typeof AuthenticatedCertificatiRoute
   '/clienti': typeof AuthenticatedClientiRoute
   '/esercizi': typeof AuthenticatedEserciziRoute
   '/installa': typeof AuthenticatedInstallaRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
+  '/regole': typeof AuthenticatedRegoleRoute
   '/scheda': typeof AuthenticatedSchedaRoute
   '/storico': typeof AuthenticatedStoricoRoute
 }
@@ -128,11 +143,13 @@ export interface FileRoutesByTo {
   '/allenamento': typeof AuthenticatedAllenamentoRoute
   '/area': typeof AuthenticatedAreaRoute
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
+  '/certificati': typeof AuthenticatedCertificatiRoute
   '/clienti': typeof AuthenticatedClientiRoute
   '/esercizi': typeof AuthenticatedEserciziRoute
   '/installa': typeof AuthenticatedInstallaRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
+  '/regole': typeof AuthenticatedRegoleRoute
   '/scheda': typeof AuthenticatedSchedaRoute
   '/storico': typeof AuthenticatedStoricoRoute
 }
@@ -146,11 +163,13 @@ export interface FileRoutesById {
   '/_authenticated/allenamento': typeof AuthenticatedAllenamentoRoute
   '/_authenticated/area': typeof AuthenticatedAreaRoute
   '/_authenticated/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
+  '/_authenticated/certificati': typeof AuthenticatedCertificatiRoute
   '/_authenticated/clienti': typeof AuthenticatedClientiRoute
   '/_authenticated/esercizi': typeof AuthenticatedEserciziRoute
   '/_authenticated/installa': typeof AuthenticatedInstallaRoute
   '/_authenticated/obiettivi': typeof AuthenticatedObiettiviRoute
   '/_authenticated/registrazioni': typeof AuthenticatedRegistrazioniRoute
+  '/_authenticated/regole': typeof AuthenticatedRegoleRoute
   '/_authenticated/scheda': typeof AuthenticatedSchedaRoute
   '/_authenticated/storico': typeof AuthenticatedStoricoRoute
 }
@@ -164,11 +183,13 @@ export interface FileRouteTypes {
     | '/allenamento'
     | '/area'
     | '/catalogo-obiettivi'
+    | '/certificati'
     | '/clienti'
     | '/esercizi'
     | '/installa'
     | '/obiettivi'
     | '/registrazioni'
+    | '/regole'
     | '/scheda'
     | '/storico'
   fileRoutesByTo: FileRoutesByTo
@@ -180,11 +201,13 @@ export interface FileRouteTypes {
     | '/allenamento'
     | '/area'
     | '/catalogo-obiettivi'
+    | '/certificati'
     | '/clienti'
     | '/esercizi'
     | '/installa'
     | '/obiettivi'
     | '/registrazioni'
+    | '/regole'
     | '/scheda'
     | '/storico'
   id:
@@ -197,11 +220,13 @@ export interface FileRouteTypes {
     | '/_authenticated/allenamento'
     | '/_authenticated/area'
     | '/_authenticated/catalogo-obiettivi'
+    | '/_authenticated/certificati'
     | '/_authenticated/clienti'
     | '/_authenticated/esercizi'
     | '/_authenticated/installa'
     | '/_authenticated/obiettivi'
     | '/_authenticated/registrazioni'
+    | '/_authenticated/regole'
     | '/_authenticated/scheda'
     | '/_authenticated/storico'
   fileRoutesById: FileRoutesById
@@ -270,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCatalogoObiettiviRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/certificati': {
+      id: '/_authenticated/certificati'
+      path: '/certificati'
+      fullPath: '/certificati'
+      preLoaderRoute: typeof AuthenticatedCertificatiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/clienti': {
       id: '/_authenticated/clienti'
       path: '/clienti'
@@ -305,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRegistrazioniRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/regole': {
+      id: '/_authenticated/regole'
+      path: '/regole'
+      fullPath: '/regole'
+      preLoaderRoute: typeof AuthenticatedRegoleRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/scheda': {
       id: '/_authenticated/scheda'
       path: '/scheda'
@@ -328,11 +367,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAllenamentoRoute: typeof AuthenticatedAllenamentoRoute
   AuthenticatedAreaRoute: typeof AuthenticatedAreaRoute
   AuthenticatedCatalogoObiettiviRoute: typeof AuthenticatedCatalogoObiettiviRoute
+  AuthenticatedCertificatiRoute: typeof AuthenticatedCertificatiRoute
   AuthenticatedClientiRoute: typeof AuthenticatedClientiRoute
   AuthenticatedEserciziRoute: typeof AuthenticatedEserciziRoute
   AuthenticatedInstallaRoute: typeof AuthenticatedInstallaRoute
   AuthenticatedObiettiviRoute: typeof AuthenticatedObiettiviRoute
   AuthenticatedRegistrazioniRoute: typeof AuthenticatedRegistrazioniRoute
+  AuthenticatedRegoleRoute: typeof AuthenticatedRegoleRoute
   AuthenticatedSchedaRoute: typeof AuthenticatedSchedaRoute
   AuthenticatedStoricoRoute: typeof AuthenticatedStoricoRoute
 }
@@ -343,11 +384,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAllenamentoRoute: AuthenticatedAllenamentoRoute,
   AuthenticatedAreaRoute: AuthenticatedAreaRoute,
   AuthenticatedCatalogoObiettiviRoute: AuthenticatedCatalogoObiettiviRoute,
+  AuthenticatedCertificatiRoute: AuthenticatedCertificatiRoute,
   AuthenticatedClientiRoute: AuthenticatedClientiRoute,
   AuthenticatedEserciziRoute: AuthenticatedEserciziRoute,
   AuthenticatedInstallaRoute: AuthenticatedInstallaRoute,
   AuthenticatedObiettiviRoute: AuthenticatedObiettiviRoute,
   AuthenticatedRegistrazioniRoute: AuthenticatedRegistrazioniRoute,
+  AuthenticatedRegoleRoute: AuthenticatedRegoleRoute,
   AuthenticatedSchedaRoute: AuthenticatedSchedaRoute,
   AuthenticatedStoricoRoute: AuthenticatedStoricoRoute,
 }
