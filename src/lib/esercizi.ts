@@ -108,17 +108,18 @@ function gruppoValido(valore: unknown): GruppoMuscolare | null {
   return trovato ?? null;
 }
 
+/** Solo le colonne presenti nel file vengono valorizzate: le altre restano invariate. */
 export type RigaImportata = {
   nome: string;
   gruppo_muscolare: GruppoMuscolare;
-  attrezzatura: string | null;
-  tipo: TipoEsercizio;
-  unita_misura: UnitaMisura;
-  descrizione_esecuzione: string | null;
-  errori_comuni: string | null;
-  immagine_url: string | null;
-  attivo: boolean;
   ordine: number;
+  attrezzatura?: string | null;
+  tipo?: TipoEsercizio;
+  unita_misura?: UnitaMisura;
+  descrizione_esecuzione?: string | null;
+  errori_comuni?: string | null;
+  immagine_url?: string | null;
+  attivo?: boolean;
 };
 
 export type EsitoLettura = { righe: RigaImportata[]; errori: string[] };
@@ -253,42 +254,49 @@ export async function leggiFileCatalogo(file: File): Promise<EsitoLettura> {
       return;
     }
 
-    const tipoTesto = String(riga["tipo"] ?? "").trim().toLowerCase();
-    const tipo: TipoEsercizio =
-      tipoTesto === "cardio" || (!tipoTesto && gruppo === "cardio") ? "cardio" : "forza";
-
-    const unitaTesto = normalizzaIntestazione(String(riga["unita_misura"] ?? ""));
-    const unita_misura: UnitaMisura =
-      unitaTesto === "minuti" || (!unitaTesto && tipo === "cardio") ? "minuti" : "serie_ripetizioni";
-
+    const presente = (campo: string) => intestazioni.includes(campo);
     const testo = (campo: string) => {
       const valore = String(riga[campo] ?? "").trim();
       return valore ? valore : null;
     };
 
-    righe.push({
+    const voce: RigaImportata = {
       nome,
       gruppo_muscolare: gruppo,
-      attrezzatura: testo("attrezzatura"),
-      tipo,
-      unita_misura,
-      descrizione_esecuzione: testo("descrizione_esecuzione"),
-      errori_comuni: testo("errori_comuni"),
-      immagine_url: testo("immagine_url"),
-      attivo: booleano(riga["attivo"]),
       ordine: Math.trunc(ordine),
-    });
+    };
+
+    if (presente("tipo")) {
+      const tipoTesto = String(riga["tipo"] ?? "").trim().toLowerCase();
+      voce.tipo = tipoTesto === "cardio" || (!tipoTesto && gruppo === "cardio") ? "cardio" : "forza";
+    }
+    if (presente("unita_misura")) {
+      const unitaTesto = normalizzaIntestazione(String(riga["unita_misura"] ?? ""));
+      const cardio = voce.tipo === "cardio" || gruppo === "cardio";
+      voce.unita_misura =
+        unitaTesto === "minuti" || (!unitaTesto && cardio) ? "minuti" : "serie_ripetizioni";
+    }
+    if (presente("attrezzatura")) voce.attrezzatura = testo("attrezzatura");
+    if (presente("descrizione_esecuzione")) voce.descrizione_esecuzione = testo("descrizione_esecuzione");
+    if (presente("errori_comuni")) voce.errori_comuni = testo("errori_comuni");
+    if (presente("immagine_url")) voce.immagine_url = testo("immagine_url");
+    if (presente("attivo")) voce.attivo = booleano(riga["attivo"]);
+
+    righe.push(voce);
   });
 
   return { righe, errori };
 }
 
-/** Salva le righe importate: aggiorna l'esercizio con lo stesso numero, altrimenti lo crea. */
+/**
+ * Salva le righe importate: aggiorna l'esercizio con lo stesso numero, altrimenti lo crea.
+ * Aggiorna solo le colonne presenti nel file: le altre restano invariate.
+ */
 export async function importaEsercizi(righe: RigaImportata[]): Promise<number> {
   if (righe.length === 0) return 0;
   const { error, data } = await supabase
     .from("esercizi")
-    .upsert(righe as never, { onConflict: "ordine" })
+    .upsert(righe as never, { onConflict: "ordine", defaultToNull: false })
     .select("id");
   if (error) throw error;
   return data?.length ?? righe.length;
