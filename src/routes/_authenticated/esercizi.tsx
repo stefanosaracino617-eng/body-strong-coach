@@ -77,6 +77,9 @@ function PaginaEsercizi() {
   const [nuovo, setNuovo] = useState(false);
   const [modulo, setModulo] = useState<Modulo>(vuoto);
   const [anteprima, setAnteprima] = useState<string[] | null>(null);
+  const [daImportare, setDaImportare] = useState<(EsitoLettura & { nomeFile: string }) | null>(
+    null,
+  );
 
   const sessione = useQuery({ queryKey: ["sessione-app"], queryFn: caricaSessioneApp });
   const gestore = sessione.data?.isGestore === true;
