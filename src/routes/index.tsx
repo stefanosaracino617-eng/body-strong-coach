@@ -39,6 +39,7 @@ function PaginaAccesso() {
   const [dataNascita, setDataNascita] = useState("");
   const [sesso, setSesso] = useState("");
   const [consenso, setConsenso] = useState(false);
+  const [consensoAvvertenze, setConsensoAvvertenze] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -53,6 +54,11 @@ function PaginaAccesso() {
 
     if (modalita === "registrazione" && !consenso) {
       setErrore("Devi accettare l'informativa sulla privacy per registrarti.");
+      return;
+    }
+
+    if (modalita === "registrazione" && !consensoAvvertenze) {
+      setErrore("Devi confermare di aver letto le avvertenze e di avere il certificato medico.");
       return;
     }
 
@@ -75,6 +81,7 @@ function PaginaAccesso() {
               data_nascita: dataNascita,
               sesso,
               consenso_privacy: true,
+              consenso_avvertenze: true,
             },
           },
         });
