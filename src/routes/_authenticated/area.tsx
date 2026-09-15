@@ -145,6 +145,7 @@ function Area() {
 
   return (
     <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci} contenutoLibero>
+      <AvvisoCertificato scadenza={profilo.certificato_scadenza} />
       {scheda.isLoading && <CaricamentoCard quante={2} />}
       {scheda.isError && <BloccoErrore onRiprova={() => scheda.refetch()} />}
       {!scheda.isLoading && !scheda.isError && !scheda.data && (
@@ -162,7 +163,45 @@ function Area() {
       <Link to="/obiettivi" className="btn-secondary w-full">
         I miei obiettivi ({miei.data?.length ?? 0})
       </Link>
+      {regoleVisibili && (
+        <Link to="/regole" className="btn-secondary w-full">
+          Regole della palestra
+        </Link>
+      )}
+      <Link to="/avvertenze" className="btn-secondary w-full">
+        Avvertenze
+      </Link>
+      <Link to="/installa" className="btn-secondary w-full">
+        Installa l&apos;app
+      </Link>
+      <StrisciaInstalla />
+      <div className="h-14" aria-hidden="true" />
     </Schermo>
+  );
+}
+
+/** Riquadro con la scadenza del certificato medico del cliente. */
+function AvvisoCertificato({ scadenza }: { scadenza: string | null }) {
+  if (!scadenza) return null;
+  const stato = statoCertificato(scadenza);
+  if (stato.stato === "valido") {
+    return (
+      <p className="text-base text-muted-foreground">
+        Certificato medico valido fino al {formattaData(scadenza)}.
+      </p>
+    );
+  }
+  const scaduto = stato.stato === "scaduto";
+  return (
+    <div
+      className={`rounded-[10px] border px-4 py-4 text-base ${
+        scaduto ? "border-destructive text-destructive" : "border-[#F2A93B] text-warning"
+      }`}
+    >
+      {scaduto
+        ? `Il tuo certificato medico è scaduto il ${formattaData(scadenza)}. Consegna il rinnovo in palestra.`
+        : `Il tuo certificato medico scade il ${formattaData(scadenza)}. Ricordati di consegnare il rinnovo in palestra.`}
+    </div>
   );
 }
 
