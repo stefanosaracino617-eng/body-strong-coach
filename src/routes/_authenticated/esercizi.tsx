@@ -300,8 +300,8 @@ function PaginaEsercizi() {
             </p>
             {daImportare.righe.slice(0, 3).map((r) => (
               <p key={r.ordine} className="text-base text-muted-foreground">
-                {String(r.ordine).padStart(3, "0")} · {r.nome} · {r.gruppo_muscolare} ·{" "}
-                {etichettaUnita[r.unita_misura]}
+                {String(r.ordine).padStart(3, "0")} · {r.nome} · {r.gruppo_muscolare}
+                {r.unita_misura ? ` · ${etichettaUnita[r.unita_misura]}` : ""}
               </p>
             ))}
             {daImportare.errori.slice(0, 5).map((m) => (
