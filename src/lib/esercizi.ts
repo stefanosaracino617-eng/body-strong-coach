@@ -123,15 +123,106 @@ export type RigaImportata = {
 
 export type EsitoLettura = { righe: RigaImportata[]; errori: string[] };
 
-/** Legge un file CSV o Excel e restituisce le righe valide più gli errori riga per riga. */
+export const MESSAGGIO_FORMATO_NON_SUPPORTATO =
+  "Formato non supportato. Da Excel scegli File, Salva con nome, e seleziona CSV.";
+
+/** Colonne indispensabili: senza una di queste l'importazione non parte. */
+const COLONNE_RICHIESTE: { campo: string; etichetta: string }[] = [
+  { campo: "ordine", etichetta: "numero" },
+  { campo: "nome", etichetta: "nome" },
+  { campo: "gruppo_muscolare", etichetta: "gruppo_muscolare" },
+];
+
+/** Decodifica il testo provando UTF-8 e, se fallisce, la codifica di Excel su Windows. */
+function decodificaTesto(buffer: ArrayBuffer): string {
+  let testo: string;
+  try {
+    testo = new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+  } catch {
+    testo = new TextDecoder("windows-1252").decode(buffer);
+  }
+  // Toglie l'eventuale carattere invisibile iniziale (BOM).
+  return testo.charCodeAt(0) === 0xfeff ? testo.slice(1) : testo;
+}
+
+/** Riconosce il separatore leggendo la prima riga (fuori dalle virgolette). */
+function separatore(testo: string): string {
+  let dentroVirgolette = false;
+  const conteggio: Record<string, number> = { ";": 0, ",": 0, "\t": 0 };
+  for (const carattere of testo) {
+    if (carattere === '"') dentroVirgolette = !dentroVirgolette;
+    else if (!dentroVirgolette && (carattere === "\n" || carattere === "\r")) break;
+    else if (!dentroVirgolette && carattere in conteggio) conteggio[carattere]! += 1;
+  }
+  const migliore = Object.entries(conteggio).sort((a, b) => b[1] - a[1])[0]!;
+  return migliore[1] > 0 ? migliore[0] : ";";
+}
+
+/** Parser CSV: gestisce virgolette, separatori e a capo dentro i campi. */
+function analizzaCsv(testo: string, sep: string): string[][] {
+  const righe: string[][] = [];
+  let riga: string[] = [];
+  let campo = "";
+  let dentroVirgolette = false;
+
+  for (let i = 0; i < testo.length; i += 1) {
+    const c = testo[i]!;
+    if (dentroVirgolette) {
+      if (c === '"') {
+        if (testo[i + 1] === '"') {
+          campo += '"';
+          i += 1;
+        } else dentroVirgolette = false;
+      } else campo += c;
+      continue;
+    }
+    if (c === '"') {
+      dentroVirgolette = true;
+    } else if (c === sep) {
+      riga.push(campo);
+      campo = "";
+    } else if (c === "\n" || c === "\r") {
+      if (c === "\r" && testo[i + 1] === "\n") i += 1;
+      riga.push(campo);
+      righe.push(riga);
+      riga = [];
+      campo = "";
+    } else campo += c;
+  }
+  if (campo !== "" || riga.length > 0) {
+    riga.push(campo);
+    righe.push(riga);
+  }
+  // Ignora le righe completamente vuote.
+  return righe.filter((r) => r.some((v) => v.trim() !== ""));
+}
+
+/** Legge un file CSV e restituisce le righe valide più gli errori riga per riga. */
 export async function leggiFileCatalogo(file: File): Promise<EsitoLettura> {
-  const XLSX = await import("xlsx");
-  const buffer = await file.arrayBuffer();
-  const libro = XLSX.read(buffer, { type: "array" });
-  const primoFoglio = libro.SheetNames[0];
-  if (!primoFoglio) return { righe: [], errori: ["Il file non contiene fogli di dati."] };
-  const grezze = XLSX.utils.sheet_to_json<Record<string, unknown>>(libro.Sheets[primoFoglio]!, {
-    defval: "",
+  const nome = file.name.toLowerCase();
+  if (nome.endsWith(".xlsx") || nome.endsWith(".xls")) {
+    throw new Error(MESSAGGIO_FORMATO_NON_SUPPORTATO);
+  }
+
+  const testo = decodificaTesto(await file.arrayBuffer());
+  const tabella = analizzaCsv(testo, separatore(testo));
+  if (tabella.length === 0) throw new Error("Il file non contiene dati.");
+
+  const intestazioni = tabella[0]!.map((c) => ALIAS[normalizzaIntestazione(c)] ?? "");
+  for (const richiesta of COLONNE_RICHIESTE) {
+    if (!intestazioni.includes(richiesta.campo)) {
+      throw new Error(
+        `Manca la colonna «${richiesta.etichetta}»: nessuna riga è stata importata.`,
+      );
+    }
+  }
+
+  const grezze = tabella.slice(1).map((valori) => {
+    const oggetto: Record<string, unknown> = {};
+    intestazioni.forEach((campo, indice) => {
+      if (campo) oggetto[campo] = valori[indice] ?? "";
+    });
+    return oggetto;
   });
 
   const righe: RigaImportata[] = [];
