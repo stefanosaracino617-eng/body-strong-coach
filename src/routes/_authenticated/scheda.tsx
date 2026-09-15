@@ -1,3 +1,4 @@
+import { statoCertificato } from "@/lib/certificato";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CaricamentoCard } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
