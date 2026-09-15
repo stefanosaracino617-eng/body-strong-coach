@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AvvertenzeRouteImport } from './routes/avvertenze'
 import { Route as AuthenticatedAccessiRouteImport } from './routes/_authenticated/accessi'
 import { Route as AuthenticatedAllenamentiRecentiRouteImport } from './routes/_authenticated/allenamenti-recenti'
 import { Route as AuthenticatedAllenamentoRouteImport } from './routes/_authenticated/allenamento'
@@ -18,6 +19,7 @@ import { Route as AuthenticatedAreaRouteImport } from './routes/_authenticated/a
 import { Route as AuthenticatedCatalogoObiettiviRouteImport } from './routes/_authenticated/catalogo-obiettivi'
 import { Route as AuthenticatedClientiRouteImport } from './routes/_authenticated/clienti'
 import { Route as AuthenticatedEserciziRouteImport } from './routes/_authenticated/esercizi'
+import { Route as AuthenticatedInstallaRouteImport } from './routes/_authenticated/installa'
 import { Route as AuthenticatedObiettiviRouteImport } from './routes/_authenticated/obiettivi'
 import { Route as AuthenticatedRegistrazioniRouteImport } from './routes/_authenticated/registrazioni'
 import { Route as AuthenticatedSchedaRouteImport } from './routes/_authenticated/scheda'
@@ -30,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AvvertenzeRoute = AvvertenzeRouteImport.update({
+  id: '/avvertenze',
+  path: '/avvertenze',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccessiRoute = AuthenticatedAccessiRouteImport.update({
@@ -70,6 +77,11 @@ const AuthenticatedEserciziRoute = AuthenticatedEserciziRouteImport.update({
   path: '/esercizi',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInstallaRoute = AuthenticatedInstallaRouteImport.update({
+  id: '/installa',
+  path: '/installa',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedObiettiviRoute = AuthenticatedObiettiviRouteImport.update({
   id: '/obiettivi',
   path: '/obiettivi',
@@ -94,6 +106,7 @@ const AuthenticatedStoricoRoute = AuthenticatedStoricoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/avvertenze': typeof AvvertenzeRoute
   '/accessi': typeof AuthenticatedAccessiRoute
   '/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/allenamento': typeof AuthenticatedAllenamentoRoute
@@ -101,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
   '/clienti': typeof AuthenticatedClientiRoute
   '/esercizi': typeof AuthenticatedEserciziRoute
+  '/installa': typeof AuthenticatedInstallaRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
   '/scheda': typeof AuthenticatedSchedaRoute
@@ -108,6 +122,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/avvertenze': typeof AvvertenzeRoute
   '/accessi': typeof AuthenticatedAccessiRoute
   '/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/allenamento': typeof AuthenticatedAllenamentoRoute
@@ -115,6 +130,7 @@ export interface FileRoutesByTo {
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
   '/clienti': typeof AuthenticatedClientiRoute
   '/esercizi': typeof AuthenticatedEserciziRoute
+  '/installa': typeof AuthenticatedInstallaRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
   '/scheda': typeof AuthenticatedSchedaRoute
@@ -124,6 +140,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/avvertenze': typeof AvvertenzeRoute
   '/_authenticated/accessi': typeof AuthenticatedAccessiRoute
   '/_authenticated/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/_authenticated/allenamento': typeof AuthenticatedAllenamentoRoute
@@ -131,6 +148,7 @@ export interface FileRoutesById {
   '/_authenticated/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
   '/_authenticated/clienti': typeof AuthenticatedClientiRoute
   '/_authenticated/esercizi': typeof AuthenticatedEserciziRoute
+  '/_authenticated/installa': typeof AuthenticatedInstallaRoute
   '/_authenticated/obiettivi': typeof AuthenticatedObiettiviRoute
   '/_authenticated/registrazioni': typeof AuthenticatedRegistrazioniRoute
   '/_authenticated/scheda': typeof AuthenticatedSchedaRoute
@@ -140,6 +158,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/avvertenze'
     | '/accessi'
     | '/allenamenti-recenti'
     | '/allenamento'
@@ -147,6 +166,7 @@ export interface FileRouteTypes {
     | '/catalogo-obiettivi'
     | '/clienti'
     | '/esercizi'
+    | '/installa'
     | '/obiettivi'
     | '/registrazioni'
     | '/scheda'
@@ -154,6 +174,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/avvertenze'
     | '/accessi'
     | '/allenamenti-recenti'
     | '/allenamento'
@@ -161,6 +182,7 @@ export interface FileRouteTypes {
     | '/catalogo-obiettivi'
     | '/clienti'
     | '/esercizi'
+    | '/installa'
     | '/obiettivi'
     | '/registrazioni'
     | '/scheda'
@@ -169,6 +191,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/avvertenze'
     | '/_authenticated/accessi'
     | '/_authenticated/allenamenti-recenti'
     | '/_authenticated/allenamento'
@@ -176,6 +199,7 @@ export interface FileRouteTypes {
     | '/_authenticated/catalogo-obiettivi'
     | '/_authenticated/clienti'
     | '/_authenticated/esercizi'
+    | '/_authenticated/installa'
     | '/_authenticated/obiettivi'
     | '/_authenticated/registrazioni'
     | '/_authenticated/scheda'
@@ -185,6 +209,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AvvertenzeRoute: typeof AvvertenzeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -201,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/avvertenze': {
+      id: '/avvertenze'
+      path: '/avvertenze'
+      fullPath: '/avvertenze'
+      preLoaderRoute: typeof AvvertenzeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/accessi': {
@@ -252,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEserciziRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/installa': {
+      id: '/_authenticated/installa'
+      path: '/installa'
+      fullPath: '/installa'
+      preLoaderRoute: typeof AuthenticatedInstallaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/obiettivi': {
       id: '/_authenticated/obiettivi'
       path: '/obiettivi'
@@ -291,6 +330,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCatalogoObiettiviRoute: typeof AuthenticatedCatalogoObiettiviRoute
   AuthenticatedClientiRoute: typeof AuthenticatedClientiRoute
   AuthenticatedEserciziRoute: typeof AuthenticatedEserciziRoute
+  AuthenticatedInstallaRoute: typeof AuthenticatedInstallaRoute
   AuthenticatedObiettiviRoute: typeof AuthenticatedObiettiviRoute
   AuthenticatedRegistrazioniRoute: typeof AuthenticatedRegistrazioniRoute
   AuthenticatedSchedaRoute: typeof AuthenticatedSchedaRoute
@@ -305,6 +345,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCatalogoObiettiviRoute: AuthenticatedCatalogoObiettiviRoute,
   AuthenticatedClientiRoute: AuthenticatedClientiRoute,
   AuthenticatedEserciziRoute: AuthenticatedEserciziRoute,
+  AuthenticatedInstallaRoute: AuthenticatedInstallaRoute,
   AuthenticatedObiettiviRoute: AuthenticatedObiettiviRoute,
   AuthenticatedRegistrazioniRoute: AuthenticatedRegistrazioniRoute,
   AuthenticatedSchedaRoute: AuthenticatedSchedaRoute,
@@ -317,6 +358,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AvvertenzeRoute: AvvertenzeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
