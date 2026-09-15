@@ -143,17 +143,31 @@ function PaginaEsercizi() {
     },
   });
 
-  const importa = useMutation({
+  const leggi = useMutation({
     mutationFn: async (file: File) => {
-      const { righe, errori } = await leggiFileCatalogo(file);
-      const salvate = await importaEsercizi(righe);
-      return { salvate, errori };
+      const esito = await leggiFileCatalogo(file);
+      return { ...esito, nomeFile: file.name };
     },
-    onError: (e) => setErrore(e instanceof Error ? e.message : "Importazione non riuscita."),
-    onSuccess: ({ salvate, errori }) => {
+    onError: (e) => {
+      setDaImportare(null);
+      setErrore(e instanceof Error ? e.message : "Lettura del file non riuscita.");
+    },
+    onSuccess: (esito) => {
       setErrore(null);
+      setAvviso(null);
+      setDaImportare(esito);
+    },
+  });
+
+  const importa = useMutation({
+    mutationFn: async (righe: RigaImportata[]) => importaEsercizi(righe),
+    onError: (e) => setErrore(e instanceof Error ? e.message : "Importazione non riuscita."),
+    onSuccess: (salvate) => {
+      setErrore(null);
+      const errori = daImportare?.errori ?? [];
       setAvviso(`Importati ${salvate} esercizi.`);
       setAnteprima(errori.length > 0 ? errori : null);
+      setDaImportare(null);
       invalida();
     },
   });
