@@ -1,3 +1,4 @@
+import { statoCertificato } from "@/lib/certificato";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CaricamentoCard } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -125,6 +126,8 @@ function PaginaScheda() {
         </p>
       )}
 
+      <CertificatoCliente clienteId={cliente} valore={profilo.data?.certificato_scadenza ?? null} />
+
       {scheda.isLoading && <CaricamentoCard />}
 
       {!scheda.isLoading && !scheda.data && (
@@ -166,6 +169,54 @@ function PaginaScheda() {
         Torna ai clienti
       </Link>
     </Pagina>
+  );
+}
+
+/** Certificato medico del cliente: lo può registrare solo il gestore. */
+function CertificatoCliente({ clienteId, valore }: { clienteId: string; valore: string | null }) {
+  const queryClient = useQueryClient();
+  const [data, setData] = useState(valore ?? "");
+  const [inviato, setInviato] = useState(valore ?? "");
+
+  useEffect(() => {
+    setData(valore ?? "");
+    setInviato(valore ?? "");
+  }, [valore]);
+
+  const salva = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("profili")
+        .update({ certificato_scadenza: data === "" ? null : data })
+        .eq("id", clienteId);
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      setInviato(data);
+      await queryClient.invalidateQueries({ queryKey: ["profilo-cliente", clienteId] });
+      await queryClient.invalidateQueries({ queryKey: ["certificati-da-rinnovare"] });
+      await queryClient.invalidateQueries({ queryKey: ["numeri-dashboard"] });
+      avvisoOk("Certificato medico aggiornato.");
+    },
+    onError: (e) => avvisoErrore(e instanceof Error ? e.message : "Salvataggio non riuscito."),
+  });
+
+  const stato = statoCertificato(valore);
+
+  return (
+    <section className="card-surface flex flex-col gap-3 p-6">
+      <h2 className="text-lg">Certificato medico</h2>
+      <p className={`text-base ${stato.colore}`}>{stato.testo}</p>
+      <CampoData label="Certificato medico valido fino al" value={data} onChange={setData} />
+      <button
+        type="button"
+        className="btn-secondary"
+        disabled={salva.isPending || data === inviato}
+        onClick={() => salva.mutate()}
+      >
+        {salva.isPending ? "Attendi…" : "Salva certificato"}
+      </button>
+    </section>
   );
 }
 

@@ -14,6 +14,9 @@ export type Profilo = {
   consenso_privacy: boolean;
   data_consenso: string | null;
   note_gestore: string | null;
+  certificato_scadenza: string | null;
+  consenso_avvertenze: boolean;
+  data_consenso_avvertenze: string | null;
   created_at: string;
 };
 

@@ -251,10 +251,13 @@ export type Database = {
       }
       profili: {
         Row: {
+          certificato_scadenza: string | null
           cognome: string
+          consenso_avvertenze: boolean
           consenso_privacy: boolean
           created_at: string
           data_consenso: string | null
+          data_consenso_avvertenze: string | null
           data_nascita: string | null
           email: string
           id: string
@@ -265,10 +268,13 @@ export type Database = {
           telefono: string | null
         }
         Insert: {
+          certificato_scadenza?: string | null
           cognome?: string
+          consenso_avvertenze?: boolean
           consenso_privacy?: boolean
           created_at?: string
           data_consenso?: string | null
+          data_consenso_avvertenze?: string | null
           data_nascita?: string | null
           email?: string
           id: string
@@ -279,10 +285,13 @@ export type Database = {
           telefono?: string | null
         }
         Update: {
+          certificato_scadenza?: string | null
           cognome?: string
+          consenso_avvertenze?: boolean
           consenso_privacy?: boolean
           created_at?: string
           data_consenso?: string | null
+          data_consenso_avvertenze?: string | null
           data_nascita?: string | null
           email?: string
           id?: string
@@ -291,6 +300,27 @@ export type Database = {
           sesso?: Database["public"]["Enums"]["sesso_tipo"] | null
           stato?: Database["public"]["Enums"]["stato_profilo"]
           telefono?: string | null
+        }
+        Relationships: []
+      }
+      regole_palestra: {
+        Row: {
+          contenuto: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          contenuto?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          contenuto?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
         }
         Relationships: []
       }

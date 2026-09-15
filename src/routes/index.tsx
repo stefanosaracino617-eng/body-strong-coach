@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CampoData } from "@/components/CampoData";
@@ -39,6 +39,7 @@ function PaginaAccesso() {
   const [dataNascita, setDataNascita] = useState("");
   const [sesso, setSesso] = useState("");
   const [consenso, setConsenso] = useState(false);
+  const [consensoAvvertenze, setConsensoAvvertenze] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -53,6 +54,11 @@ function PaginaAccesso() {
 
     if (modalita === "registrazione" && !consenso) {
       setErrore("Devi accettare l'informativa sulla privacy per registrarti.");
+      return;
+    }
+
+    if (modalita === "registrazione" && !consensoAvvertenze) {
+      setErrore("Devi confermare di aver letto le avvertenze e di avere il certificato medico.");
       return;
     }
 
@@ -75,6 +81,7 @@ function PaginaAccesso() {
               data_nascita: dataNascita,
               sesso,
               consenso_privacy: true,
+              consenso_avvertenze: true,
             },
           },
         });
@@ -178,6 +185,25 @@ function PaginaAccesso() {
                 <span className="text-base text-muted-foreground">
                   Ho letto e accetto l&apos;informativa sulla privacy e il trattamento dei miei dati
                   personali. <span className="text-destructive">*</span>
+                </span>
+              </label>
+            )}
+
+            {modalita === "registrazione" && (
+              <label className="flex items-start gap-3 py-2">
+                <input
+                  type="checkbox"
+                  checked={consensoAvvertenze}
+                  onChange={(e) => setConsensoAvvertenze(e.target.checked)}
+                  className="mt-1 size-6 shrink-0 rounded-[6px] accent-[#1080CC]"
+                />
+                <span className="text-base text-muted-foreground">
+                  Dichiaro di aver letto le{" "}
+                  <Link to="/avvertenze" className="text-accent underline">
+                    avvertenze
+                  </Link>{" "}
+                  e di essere in possesso di certificato medico per attività sportiva non agonistica
+                  in corso di validità. <span className="text-destructive">*</span>
                 </span>
               </label>
             )}

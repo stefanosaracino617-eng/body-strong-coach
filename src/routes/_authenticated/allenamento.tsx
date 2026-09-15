@@ -236,6 +236,9 @@ function PaginaAllenamento() {
       <Link to="/area" className="btn-secondary w-full">
         Torna alla mia area
       </Link>
+      <p className="text-base text-muted-foreground">
+        I programmi di allenamento non costituiscono prescrizione medica.
+      </p>
     </Pagina>
   );
 }

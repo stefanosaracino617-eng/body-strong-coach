@@ -172,3 +172,11 @@
     object-fit: contain;
   }
 }
+
+@utility testo-regole {
+  & p { margin-bottom: 0.75rem; }
+  & ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+  & ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+  & li { margin-bottom: 0.25rem; }
+  & strong, & b { font-weight: 700; }
+}

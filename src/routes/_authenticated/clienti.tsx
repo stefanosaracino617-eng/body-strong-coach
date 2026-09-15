@@ -1,3 +1,4 @@
+import { statoCertificato } from "@/lib/certificato";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -134,6 +135,9 @@ function Clienti() {
             {p.nome} {p.cognome}
           </h2>
           <ScadenzaScheda scadenza={mappaScadenze[p.id] ?? null} />
+          <p className={`text-base ${statoCertificato(p.certificato_scadenza).colore}`}>
+            {statoCertificato(p.certificato_scadenza).testo}
+          </p>
           {aperto === p.id ? (
             <>
               <dl className="flex flex-col gap-2 text-base text-muted-foreground">

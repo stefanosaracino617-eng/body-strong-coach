@@ -1,12 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
 import { giorniAllaScadenza, oggiRoma } from "@/lib/date";
 import { caricaIdGestori, soloClienti, soloDiClienti } from "@/lib/clienti";
+import { certificatoDaRinnovare } from "@/lib/certificato";
 
 export type NumeriDashboard = {
   inAttesa: number;
   clientiAttivi: number;
   inScadenza: number;
   senzaScheda: number;
+  certificati: number;
   allenamenti7: number;
   eserciziAttivi: number;
 };
@@ -22,7 +24,7 @@ export async function caricaNumeriDashboard(): Promise<NumeriDashboard> {
 
   const [attesa, approvati, schede, allenamenti, esercizi] = await Promise.all([
     supabase.from("profili").select("id").eq("stato", "in_attesa"),
-    supabase.from("profili").select("id").eq("stato", "approvato"),
+    supabase.from("profili").select("id, certificato_scadenza").eq("stato", "approvato"),
     supabase
       .from("schede")
       .select("cliente_id, data_scadenza")
@@ -41,9 +43,14 @@ export async function caricaNumeriDashboard(): Promise<NumeriDashboard> {
     if (r.error) throw r.error;
   }
 
-  const idApprovati = soloClienti((approvati.data ?? []) as { id: string }[], gestori).map(
-    (p) => p.id,
+  const clientiApprovati = soloClienti(
+    (approvati.data ?? []) as { id: string; certificato_scadenza: string | null }[],
+    gestori,
   );
+  const idApprovati = clientiApprovati.map((p) => p.id);
+  const certificati = clientiApprovati.filter((p) =>
+    certificatoDaRinnovare(p.certificato_scadenza),
+  ).length;
   const inAttesaClienti = soloClienti((attesa.data ?? []) as { id: string }[], gestori).length;
   const allenamentiClienti = soloDiClienti(
     (allenamenti.data ?? []) as { id: string; cliente_id: string }[],
@@ -70,6 +77,7 @@ export async function caricaNumeriDashboard(): Promise<NumeriDashboard> {
     clientiAttivi: idApprovati.length,
     inScadenza,
     senzaScheda,
+    certificati,
     allenamenti7: allenamentiClienti,
     eserciziAttivi: esercizi.count ?? 0,
   };

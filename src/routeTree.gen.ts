@@ -11,15 +11,19 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AvvertenzeRouteImport } from './routes/avvertenze'
 import { Route as AuthenticatedAccessiRouteImport } from './routes/_authenticated/accessi'
 import { Route as AuthenticatedAllenamentiRecentiRouteImport } from './routes/_authenticated/allenamenti-recenti'
 import { Route as AuthenticatedAllenamentoRouteImport } from './routes/_authenticated/allenamento'
 import { Route as AuthenticatedAreaRouteImport } from './routes/_authenticated/area'
 import { Route as AuthenticatedCatalogoObiettiviRouteImport } from './routes/_authenticated/catalogo-obiettivi'
+import { Route as AuthenticatedCertificatiRouteImport } from './routes/_authenticated/certificati'
 import { Route as AuthenticatedClientiRouteImport } from './routes/_authenticated/clienti'
 import { Route as AuthenticatedEserciziRouteImport } from './routes/_authenticated/esercizi'
+import { Route as AuthenticatedInstallaRouteImport } from './routes/_authenticated/installa'
 import { Route as AuthenticatedObiettiviRouteImport } from './routes/_authenticated/obiettivi'
 import { Route as AuthenticatedRegistrazioniRouteImport } from './routes/_authenticated/registrazioni'
+import { Route as AuthenticatedRegoleRouteImport } from './routes/_authenticated/regole'
 import { Route as AuthenticatedSchedaRouteImport } from './routes/_authenticated/scheda'
 import { Route as AuthenticatedStoricoRouteImport } from './routes/_authenticated/storico'
 
@@ -30,6 +34,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AvvertenzeRoute = AvvertenzeRouteImport.update({
+  id: '/avvertenze',
+  path: '/avvertenze',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccessiRoute = AuthenticatedAccessiRouteImport.update({
@@ -60,6 +69,12 @@ const AuthenticatedCatalogoObiettiviRoute =
     path: '/catalogo-obiettivi',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCertificatiRoute =
+  AuthenticatedCertificatiRouteImport.update({
+    id: '/certificati',
+    path: '/certificati',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientiRoute = AuthenticatedClientiRouteImport.update({
   id: '/clienti',
   path: '/clienti',
@@ -68,6 +83,11 @@ const AuthenticatedClientiRoute = AuthenticatedClientiRouteImport.update({
 const AuthenticatedEserciziRoute = AuthenticatedEserciziRouteImport.update({
   id: '/esercizi',
   path: '/esercizi',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInstallaRoute = AuthenticatedInstallaRouteImport.update({
+  id: '/installa',
+  path: '/installa',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedObiettiviRoute = AuthenticatedObiettiviRouteImport.update({
@@ -81,6 +101,11 @@ const AuthenticatedRegistrazioniRoute =
     path: '/registrazioni',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRegoleRoute = AuthenticatedRegoleRouteImport.update({
+  id: '/regole',
+  path: '/regole',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSchedaRoute = AuthenticatedSchedaRouteImport.update({
   id: '/scheda',
   path: '/scheda',
@@ -94,29 +119,37 @@ const AuthenticatedStoricoRoute = AuthenticatedStoricoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/avvertenze': typeof AvvertenzeRoute
   '/accessi': typeof AuthenticatedAccessiRoute
   '/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/allenamento': typeof AuthenticatedAllenamentoRoute
   '/area': typeof AuthenticatedAreaRoute
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
+  '/certificati': typeof AuthenticatedCertificatiRoute
   '/clienti': typeof AuthenticatedClientiRoute
   '/esercizi': typeof AuthenticatedEserciziRoute
+  '/installa': typeof AuthenticatedInstallaRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
+  '/regole': typeof AuthenticatedRegoleRoute
   '/scheda': typeof AuthenticatedSchedaRoute
   '/storico': typeof AuthenticatedStoricoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/avvertenze': typeof AvvertenzeRoute
   '/accessi': typeof AuthenticatedAccessiRoute
   '/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/allenamento': typeof AuthenticatedAllenamentoRoute
   '/area': typeof AuthenticatedAreaRoute
   '/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
+  '/certificati': typeof AuthenticatedCertificatiRoute
   '/clienti': typeof AuthenticatedClientiRoute
   '/esercizi': typeof AuthenticatedEserciziRoute
+  '/installa': typeof AuthenticatedInstallaRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
+  '/regole': typeof AuthenticatedRegoleRoute
   '/scheda': typeof AuthenticatedSchedaRoute
   '/storico': typeof AuthenticatedStoricoRoute
 }
@@ -124,15 +157,19 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/avvertenze': typeof AvvertenzeRoute
   '/_authenticated/accessi': typeof AuthenticatedAccessiRoute
   '/_authenticated/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/_authenticated/allenamento': typeof AuthenticatedAllenamentoRoute
   '/_authenticated/area': typeof AuthenticatedAreaRoute
   '/_authenticated/catalogo-obiettivi': typeof AuthenticatedCatalogoObiettiviRoute
+  '/_authenticated/certificati': typeof AuthenticatedCertificatiRoute
   '/_authenticated/clienti': typeof AuthenticatedClientiRoute
   '/_authenticated/esercizi': typeof AuthenticatedEserciziRoute
+  '/_authenticated/installa': typeof AuthenticatedInstallaRoute
   '/_authenticated/obiettivi': typeof AuthenticatedObiettiviRoute
   '/_authenticated/registrazioni': typeof AuthenticatedRegistrazioniRoute
+  '/_authenticated/regole': typeof AuthenticatedRegoleRoute
   '/_authenticated/scheda': typeof AuthenticatedSchedaRoute
   '/_authenticated/storico': typeof AuthenticatedStoricoRoute
 }
@@ -140,44 +177,56 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/avvertenze'
     | '/accessi'
     | '/allenamenti-recenti'
     | '/allenamento'
     | '/area'
     | '/catalogo-obiettivi'
+    | '/certificati'
     | '/clienti'
     | '/esercizi'
+    | '/installa'
     | '/obiettivi'
     | '/registrazioni'
+    | '/regole'
     | '/scheda'
     | '/storico'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/avvertenze'
     | '/accessi'
     | '/allenamenti-recenti'
     | '/allenamento'
     | '/area'
     | '/catalogo-obiettivi'
+    | '/certificati'
     | '/clienti'
     | '/esercizi'
+    | '/installa'
     | '/obiettivi'
     | '/registrazioni'
+    | '/regole'
     | '/scheda'
     | '/storico'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/avvertenze'
     | '/_authenticated/accessi'
     | '/_authenticated/allenamenti-recenti'
     | '/_authenticated/allenamento'
     | '/_authenticated/area'
     | '/_authenticated/catalogo-obiettivi'
+    | '/_authenticated/certificati'
     | '/_authenticated/clienti'
     | '/_authenticated/esercizi'
+    | '/_authenticated/installa'
     | '/_authenticated/obiettivi'
     | '/_authenticated/registrazioni'
+    | '/_authenticated/regole'
     | '/_authenticated/scheda'
     | '/_authenticated/storico'
   fileRoutesById: FileRoutesById
@@ -185,6 +234,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AvvertenzeRoute: typeof AvvertenzeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -201,6 +251,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/avvertenze': {
+      id: '/avvertenze'
+      path: '/avvertenze'
+      fullPath: '/avvertenze'
+      preLoaderRoute: typeof AvvertenzeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/accessi': {
@@ -238,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCatalogoObiettiviRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/certificati': {
+      id: '/_authenticated/certificati'
+      path: '/certificati'
+      fullPath: '/certificati'
+      preLoaderRoute: typeof AuthenticatedCertificatiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/clienti': {
       id: '/_authenticated/clienti'
       path: '/clienti'
@@ -252,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEserciziRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/installa': {
+      id: '/_authenticated/installa'
+      path: '/installa'
+      fullPath: '/installa'
+      preLoaderRoute: typeof AuthenticatedInstallaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/obiettivi': {
       id: '/_authenticated/obiettivi'
       path: '/obiettivi'
@@ -264,6 +335,13 @@ declare module '@tanstack/react-router' {
       path: '/registrazioni'
       fullPath: '/registrazioni'
       preLoaderRoute: typeof AuthenticatedRegistrazioniRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/regole': {
+      id: '/_authenticated/regole'
+      path: '/regole'
+      fullPath: '/regole'
+      preLoaderRoute: typeof AuthenticatedRegoleRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/scheda': {
@@ -289,10 +367,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAllenamentoRoute: typeof AuthenticatedAllenamentoRoute
   AuthenticatedAreaRoute: typeof AuthenticatedAreaRoute
   AuthenticatedCatalogoObiettiviRoute: typeof AuthenticatedCatalogoObiettiviRoute
+  AuthenticatedCertificatiRoute: typeof AuthenticatedCertificatiRoute
   AuthenticatedClientiRoute: typeof AuthenticatedClientiRoute
   AuthenticatedEserciziRoute: typeof AuthenticatedEserciziRoute
+  AuthenticatedInstallaRoute: typeof AuthenticatedInstallaRoute
   AuthenticatedObiettiviRoute: typeof AuthenticatedObiettiviRoute
   AuthenticatedRegistrazioniRoute: typeof AuthenticatedRegistrazioniRoute
+  AuthenticatedRegoleRoute: typeof AuthenticatedRegoleRoute
   AuthenticatedSchedaRoute: typeof AuthenticatedSchedaRoute
   AuthenticatedStoricoRoute: typeof AuthenticatedStoricoRoute
 }
@@ -303,10 +384,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAllenamentoRoute: AuthenticatedAllenamentoRoute,
   AuthenticatedAreaRoute: AuthenticatedAreaRoute,
   AuthenticatedCatalogoObiettiviRoute: AuthenticatedCatalogoObiettiviRoute,
+  AuthenticatedCertificatiRoute: AuthenticatedCertificatiRoute,
   AuthenticatedClientiRoute: AuthenticatedClientiRoute,
   AuthenticatedEserciziRoute: AuthenticatedEserciziRoute,
+  AuthenticatedInstallaRoute: AuthenticatedInstallaRoute,
   AuthenticatedObiettiviRoute: AuthenticatedObiettiviRoute,
   AuthenticatedRegistrazioniRoute: AuthenticatedRegistrazioniRoute,
+  AuthenticatedRegoleRoute: AuthenticatedRegoleRoute,
   AuthenticatedSchedaRoute: AuthenticatedSchedaRoute,
   AuthenticatedStoricoRoute: AuthenticatedStoricoRoute,
 }
@@ -317,6 +401,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AvvertenzeRoute: AvvertenzeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

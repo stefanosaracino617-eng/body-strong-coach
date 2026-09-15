@@ -78,6 +78,9 @@ export function VistaSchedaCliente({ scheda, conAvvio = false }: { scheda: Sched
           conAvvio={conAvvio}
         />
       ))}
+      <p className="text-base text-muted-foreground">
+        I programmi di allenamento non costituiscono prescrizione medica.
+      </p>
     </div>
   );
 }

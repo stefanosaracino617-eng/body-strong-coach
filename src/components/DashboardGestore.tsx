@@ -67,6 +67,13 @@ export function DashboardGestore() {
             tono={n.senzaScheda > 0 ? "rosso" : "normale"}
           />
         </Link>
+        <Link to="/certificati">
+          <Riquadro
+            numero={n.certificati}
+            testo="Certificati da rinnovare"
+            tono={n.certificati > 0 ? "rosso" : "normale"}
+          />
+        </Link>
         <Link to="/allenamenti-recenti">
           <Riquadro numero={n.allenamenti7} testo="Allenamenti negli ultimi 7 giorni" />
         </Link>
