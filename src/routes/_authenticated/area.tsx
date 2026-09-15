@@ -62,6 +62,9 @@ function Area() {
     },
   });
 
+  const regole = useQuery({ queryKey: ["regole-palestra"], queryFn: caricaRegole });
+  const regoleVisibili = regoleNonVuote(regole.data?.contenuto);
+
   const nessunObiettivo = deveSceglierne && miei.isSuccess && miei.data.length === 0;
 
   useEffect(() => {
