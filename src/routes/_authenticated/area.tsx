@@ -109,6 +109,12 @@ function Area() {
         <Link to="/accessi" className="btn-secondary w-full">
           Gestione accessi
         </Link>
+        <Link to="/regole" className="btn-secondary w-full">
+          Regole della palestra
+        </Link>
+        <Link to="/installa" className="btn-secondary w-full">
+          Installa l&apos;app
+        </Link>
       </Schermo>
     );
   }
