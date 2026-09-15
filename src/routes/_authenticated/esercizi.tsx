@@ -264,23 +264,68 @@ function PaginaEsercizi() {
       <div className="card-surface flex flex-col gap-4 p-6">
         <h2 className="text-lg">Importa il catalogo</h2>
         <p className="text-base text-muted-foreground">
-          File CSV o Excel con le colonne: numero, nome, gruppo_muscolare, attrezzatura, tipo,
+          Solo file CSV, con le colonne: numero, nome, gruppo_muscolare, attrezzatura, tipo,
           unita_misura, descrizione_esecuzione, errori_comuni, attivo. Gli esercizi con lo stesso
           numero vengono aggiornati.
         </p>
         <input
           className="field"
           type="file"
-          accept=".csv,.xlsx,.xls"
+          accept=".csv,text/csv"
           aria-label="File del catalogo esercizi"
-          disabled={importa.isPending}
+          disabled={leggi.isPending || importa.isPending}
           onChange={(ev) => {
             const f = ev.target.files?.[0];
-            if (f) importa.mutate(f);
             ev.target.value = "";
+            if (!f) return;
+            const nome = f.name.toLowerCase();
+            if (nome.endsWith(".xlsx") || nome.endsWith(".xls")) {
+              setDaImportare(null);
+              setAvviso(null);
+              setErrore(MESSAGGIO_FORMATO_NON_SUPPORTATO);
+              return;
+            }
+            leggi.mutate(f);
           }}
         />
+        {leggi.isPending && <p className="text-base text-muted-foreground">Lettura in corso…</p>}
         {importa.isPending && <p className="text-base text-muted-foreground">Importazione in corso…</p>}
+
+        {daImportare && (
+          <div className="flex flex-col gap-3 rounded-[10px] border border-[#00A8E8] p-4">
+            <h3 className="text-base text-accent">Anteprima di {daImportare.nomeFile}</h3>
+            <p className="text-base text-muted-foreground">
+              Righe lette correttamente: {daImportare.righe.length}
+              {daImportare.errori.length > 0 ? ` · righe con problemi: ${daImportare.errori.length}` : ""}
+            </p>
+            {daImportare.righe.slice(0, 3).map((r) => (
+              <p key={r.ordine} className="text-base text-muted-foreground">
+                {String(r.ordine).padStart(3, "0")} · {r.nome} · {r.gruppo_muscolare} ·{" "}
+                {etichettaUnita[r.unita_misura]}
+              </p>
+            ))}
+            {daImportare.errori.slice(0, 5).map((m) => (
+              <p key={m} className="text-base text-warning">
+                {m}
+              </p>
+            ))}
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={importa.isPending || daImportare.righe.length === 0}
+              onClick={() => importa.mutate(daImportare.righe)}
+            >
+              Conferma importazione
+            </button>
+            <button
+              type="button"
+              className="btn-secondary w-full"
+              onClick={() => setDaImportare(null)}
+            >
+              Annulla
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="card-surface flex flex-col gap-4 p-6">
