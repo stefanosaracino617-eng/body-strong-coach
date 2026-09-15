@@ -125,6 +125,8 @@ function PaginaScheda() {
         </p>
       )}
 
+      <CertificatoCliente clienteId={cliente} valore={profilo.data?.certificato_scadenza ?? null} />
+
       {scheda.isLoading && <CaricamentoCard />}
 
       {!scheda.isLoading && !scheda.data && (
