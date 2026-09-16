@@ -20,6 +20,7 @@ import { Route as AuthenticatedCatalogoObiettiviRouteImport } from './routes/_au
 import { Route as AuthenticatedCertificatiRouteImport } from './routes/_authenticated/certificati'
 import { Route as AuthenticatedClientiRouteImport } from './routes/_authenticated/clienti'
 import { Route as AuthenticatedEserciziRouteImport } from './routes/_authenticated/esercizi'
+import { Route as AuthenticatedEsportaRouteImport } from './routes/_authenticated/esporta'
 import { Route as AuthenticatedInstallaRouteImport } from './routes/_authenticated/installa'
 import { Route as AuthenticatedObiettiviRouteImport } from './routes/_authenticated/obiettivi'
 import { Route as AuthenticatedRegistrazioniRouteImport } from './routes/_authenticated/registrazioni'
@@ -85,6 +86,11 @@ const AuthenticatedEserciziRoute = AuthenticatedEserciziRouteImport.update({
   path: '/esercizi',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEsportaRoute = AuthenticatedEsportaRouteImport.update({
+  id: '/esporta',
+  path: '/esporta',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedInstallaRoute = AuthenticatedInstallaRouteImport.update({
   id: '/installa',
   path: '/installa',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/certificati': typeof AuthenticatedCertificatiRoute
   '/clienti': typeof AuthenticatedClientiRoute
   '/esercizi': typeof AuthenticatedEserciziRoute
+  '/esporta': typeof AuthenticatedEsportaRoute
   '/installa': typeof AuthenticatedInstallaRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/certificati': typeof AuthenticatedCertificatiRoute
   '/clienti': typeof AuthenticatedClientiRoute
   '/esercizi': typeof AuthenticatedEserciziRoute
+  '/esporta': typeof AuthenticatedEsportaRoute
   '/installa': typeof AuthenticatedInstallaRoute
   '/obiettivi': typeof AuthenticatedObiettiviRoute
   '/registrazioni': typeof AuthenticatedRegistrazioniRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/_authenticated/certificati': typeof AuthenticatedCertificatiRoute
   '/_authenticated/clienti': typeof AuthenticatedClientiRoute
   '/_authenticated/esercizi': typeof AuthenticatedEserciziRoute
+  '/_authenticated/esporta': typeof AuthenticatedEsportaRoute
   '/_authenticated/installa': typeof AuthenticatedInstallaRoute
   '/_authenticated/obiettivi': typeof AuthenticatedObiettiviRoute
   '/_authenticated/registrazioni': typeof AuthenticatedRegistrazioniRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/certificati'
     | '/clienti'
     | '/esercizi'
+    | '/esporta'
     | '/installa'
     | '/obiettivi'
     | '/registrazioni'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/certificati'
     | '/clienti'
     | '/esercizi'
+    | '/esporta'
     | '/installa'
     | '/obiettivi'
     | '/registrazioni'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/_authenticated/certificati'
     | '/_authenticated/clienti'
     | '/_authenticated/esercizi'
+    | '/_authenticated/esporta'
     | '/_authenticated/installa'
     | '/_authenticated/obiettivi'
     | '/_authenticated/registrazioni'
@@ -316,6 +328,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEserciziRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/esporta': {
+      id: '/_authenticated/esporta'
+      path: '/esporta'
+      fullPath: '/esporta'
+      preLoaderRoute: typeof AuthenticatedEsportaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/installa': {
       id: '/_authenticated/installa'
       path: '/installa'
@@ -370,6 +389,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCertificatiRoute: typeof AuthenticatedCertificatiRoute
   AuthenticatedClientiRoute: typeof AuthenticatedClientiRoute
   AuthenticatedEserciziRoute: typeof AuthenticatedEserciziRoute
+  AuthenticatedEsportaRoute: typeof AuthenticatedEsportaRoute
   AuthenticatedInstallaRoute: typeof AuthenticatedInstallaRoute
   AuthenticatedObiettiviRoute: typeof AuthenticatedObiettiviRoute
   AuthenticatedRegistrazioniRoute: typeof AuthenticatedRegistrazioniRoute
@@ -387,6 +407,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCertificatiRoute: AuthenticatedCertificatiRoute,
   AuthenticatedClientiRoute: AuthenticatedClientiRoute,
   AuthenticatedEserciziRoute: AuthenticatedEserciziRoute,
+  AuthenticatedEsportaRoute: AuthenticatedEsportaRoute,
   AuthenticatedInstallaRoute: AuthenticatedInstallaRoute,
   AuthenticatedObiettiviRoute: AuthenticatedObiettiviRoute,
   AuthenticatedRegistrazioniRoute: AuthenticatedRegistrazioniRoute,
