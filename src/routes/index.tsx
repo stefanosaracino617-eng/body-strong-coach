@@ -90,7 +90,7 @@ function PaginaAccesso() {
           navigate({ to: "/area", replace: true });
         } else {
           setMessaggio(
-            "Registrazione inviata. Controlla la tua email per confermare l'indirizzo, poi attendi l'approvazione del gestore.",
+            "Ti abbiamo inviato un'email di conferma. Aprila e tocca il collegamento per completare la registrazione. Controlla anche la cartella spam.",
           );
         }
       }
