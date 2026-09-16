@@ -15,3 +15,4 @@
 - [x] Dashboard gestore con sei riquadri in tempo reale, stati di caricamento/errore/vuoto in tutte le pagine, avvisi verdi e rossi dopo le azioni
 - [x] Esclusione degli account gestore da tutti i conteggi ed elenchi clienti; definizione unica di scheda attiva (inizio <= oggi <= scadenza) ed etichetta "Programmata"
 - [x] Installazione sul telefono (icone, manifest, pagina Installa, striscia di invito, pagina senza connessione), pagina Regole della palestra, pagina Avvertenze con consenso in registrazione, certificato medico con stato nei clienti, settimo riquadro "Certificati da rinnovare" e riga dell'avviso medico nelle pagine della scheda
+- [x] Esportazione dati per il gestore: pagina "Esporta dati" dalla dashboard e pulsante per singolo cliente, pacchetto zip con sei CSV pronti per Excel italiano

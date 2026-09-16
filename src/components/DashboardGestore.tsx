@@ -85,6 +85,10 @@ export function DashboardGestore() {
       <Link to="/clienti" search={{ filtro: "tutti" as const }} className="btn-primary">
         Tutti i clienti
       </Link>
+
+      <Link to="/esporta" className="btn-secondary text-center">
+        Esporta dati
+      </Link>
     </div>
   );
 }
