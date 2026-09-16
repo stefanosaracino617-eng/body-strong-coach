@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
-import { formattaData, giorniAllaScadenza } from "@/lib/date";
+import { formattaData, formattaDataOra, giorniAllaScadenza } from "@/lib/date";
 import { caricaScadenzePerClienti } from "@/lib/schede";
 import { caricaIdGestori, soloClienti } from "@/lib/clienti";
 import { andamentoCarico, riepilogoCliente } from "@/lib/allenamenti";
@@ -155,6 +155,16 @@ function Clienti() {
                 <Riga etichetta="Data di nascita" valore={formattaData(p.data_nascita)} />
                 <Riga etichetta="Sesso" valore={p.sesso ?? "—"} />
                 <Riga etichetta="Stato" valore={etichettaStato[p.stato]} />
+                <Riga
+                  etichetta="Approvato il"
+                  valore={p.data_approvazione ? formattaDataOra(p.data_approvazione) : "—"}
+                />
+                <Riga etichetta="Tipo di abbonamento" valore={p.tipo_abbonamento ?? "—"} />
+                <Riga etichetta="Abbonamento dal" valore={formattaData(p.abbonamento_inizio)} />
+                <Riga
+                  etichetta="Abbonamento valido fino al"
+                  valore={formattaData(p.abbonamento_scadenza)}
+                />
               </dl>
               <ObiettiviCliente clienteId={p.id} />
               <AllenamentiCliente clienteId={p.id} />
