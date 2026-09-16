@@ -143,20 +143,32 @@ function Area() {
     );
   }
 
+  const sospeso = abbonamentoSospeso(profilo.abbonamento_scadenza);
+
   return (
     <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci} contenutoLibero>
       <AvvisoCertificato scadenza={profilo.certificato_scadenza} />
-      {scheda.isLoading && <CaricamentoCard quante={2} />}
-      {scheda.isError && <BloccoErrore onRiprova={() => scheda.refetch()} />}
-      {!scheda.isLoading && !scheda.isError && !scheda.data && (
-        <div className="card-surface flex flex-col items-center gap-2 p-6 text-center">
-          <p className="text-xl font-semibold">La tua scheda di allenamento è scaduta.</p>
-          <p className="text-base text-muted-foreground">
-            Rivolgiti all&apos;istruttore per il rinnovo.
-          </p>
+      <AvvisoAbbonamento scadenza={profilo.abbonamento_scadenza} />
+      {sospeso ? (
+        <div className="rounded-[10px] border border-destructive px-4 py-6 text-center text-lg text-destructive">
+          Il tuo abbonamento è scaduto il {formattaData(profilo.abbonamento_scadenza)}. Rivolgiti in
+          palestra per il rinnovo.
         </div>
+      ) : (
+        <>
+          {scheda.isLoading && <CaricamentoCard quante={2} />}
+          {scheda.isError && <BloccoErrore onRiprova={() => scheda.refetch()} />}
+          {!scheda.isLoading && !scheda.isError && !scheda.data && (
+            <div className="card-surface flex flex-col items-center gap-2 p-6 text-center">
+              <p className="text-xl font-semibold">Non hai ancora una scheda di allenamento.</p>
+              <p className="text-base text-muted-foreground">
+                Rivolgiti all&apos;istruttore per riceverla.
+              </p>
+            </div>
+          )}
+          {scheda.data && <VistaSchedaCliente scheda={scheda.data} conAvvio avvisoScaduta />}
+        </>
       )}
-      {scheda.data && <VistaSchedaCliente scheda={scheda.data} conAvvio />}
       <Link to="/storico" className="btn-secondary w-full">
         Storico allenamenti
       </Link>
