@@ -128,6 +128,12 @@ function PaginaScheda() {
 
       <CertificatoCliente clienteId={cliente} valore={profilo.data?.certificato_scadenza ?? null} />
 
+      <EsportaCliente
+        clienteId={cliente}
+        cognome={profilo.data?.cognome ?? ""}
+        nome={profilo.data?.nome ?? ""}
+      />
+
       {scheda.isLoading && <CaricamentoCard />}
 
       {!scheda.isLoading && !scheda.data && (
