@@ -179,6 +179,56 @@ function PaginaScheda() {
 }
 
 /** Certificato medico del cliente: lo può registrare solo il gestore. */
+/** Copia dei dati di un singolo cliente, da consegnare se li richiede. */
+function EsportaCliente({
+  clienteId,
+  cognome,
+  nome,
+}: {
+  clienteId: string;
+  cognome: string;
+  nome: string;
+}) {
+  const [attesa, setAttesa] = useState(false);
+  const [erroreEsporta, setErroreEsporta] = useState<string | null>(null);
+
+  async function avvia() {
+    setAttesa(true);
+    setErroreEsporta(null);
+    try {
+      const nomeFile = await esportaCliente(clienteId, cognome, nome);
+      avvisoOk(`Esportazione pronta: ${nomeFile}`);
+    } catch (e) {
+      const testo = testoErrore(
+        e,
+        "Non riesco a preparare l'esportazione. Controlla la connessione.",
+      );
+      setErroreEsporta(testo);
+      avvisoErrore(testo);
+    } finally {
+      setAttesa(false);
+    }
+  }
+
+  return (
+    <section className="card-surface flex flex-col gap-3 p-6">
+      <h2 className="text-lg">Dati del cliente</h2>
+      <p className="text-base text-muted-foreground">
+        Il file conterrà dati personali. Conservalo in un luogo sicuro e non inviarlo per email o
+        messaggistica.
+      </p>
+      {erroreEsporta && <p className="text-base text-destructive">{erroreEsporta}</p>}
+      <button type="button" className="btn-secondary" disabled={attesa} onClick={() => void avvia()}>
+        {attesa
+          ? "Preparazione in corso…"
+          : erroreEsporta
+            ? "Riprova"
+            : "Esporta i dati di questo cliente"}
+      </button>
+    </section>
+  );
+}
+
 function CertificatoCliente({ clienteId, valore }: { clienteId: string; valore: string | null }) {
   const queryClient = useQueryClient();
   const [data, setData] = useState(valore ?? "");
