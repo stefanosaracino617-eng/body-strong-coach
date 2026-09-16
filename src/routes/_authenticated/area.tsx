@@ -11,6 +11,7 @@ import { BloccoErrore, CaricamentoCard } from "@/components/Stati";
 import { StrisciaInstalla } from "@/components/StrisciaInstalla";
 import { caricaRegole, regoleNonVuote } from "@/lib/regole";
 import { statoCertificato } from "@/lib/certificato";
+import { abbonamentoSospeso, statoAbbonamento } from "@/lib/abbonamento";
 import { formattaData } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/area")({
@@ -189,6 +190,31 @@ function Area() {
       <StrisciaInstalla />
       <div className="h-14" aria-hidden="true" />
     </Schermo>
+  );
+}
+
+/** Riquadro con la scadenza dell'abbonamento del cliente. */
+function AvvisoAbbonamento({ scadenza }: { scadenza: string | null }) {
+  if (!scadenza) return null;
+  const stato = statoAbbonamento(scadenza);
+  if (stato.stato === "valido") {
+    return (
+      <p className="text-base text-muted-foreground">
+        Abbonamento valido fino al {formattaData(scadenza)}.
+      </p>
+    );
+  }
+  const scaduto = stato.stato === "scaduto";
+  return (
+    <div
+      className={`rounded-[10px] border px-4 py-4 text-base ${
+        scaduto ? "border-destructive text-destructive" : "border-[#F2A93B] text-warning"
+      }`}
+    >
+      {scaduto
+        ? `Il tuo abbonamento è scaduto il ${formattaData(scadenza)}. Rivolgiti in palestra per il rinnovo.`
+        : `Il tuo abbonamento scade il ${formattaData(scadenza)}. Ricordati di rinnovarlo in palestra.`}
+    </div>
   );
 }
 
