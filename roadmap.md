@@ -16,3 +16,7 @@
 - [x] Esclusione degli account gestore da tutti i conteggi ed elenchi clienti; definizione unica di scheda attiva (inizio <= oggi <= scadenza) ed etichetta "Programmata"
 - [x] Installazione sul telefono (icone, manifest, pagina Installa, striscia di invito, pagina senza connessione), pagina Regole della palestra, pagina Avvertenze con consenso in registrazione, certificato medico con stato nei clienti, settimo riquadro "Certificati da rinnovare" e riga dell'avviso medico nelle pagine della scheda
 - [x] Esportazione dati per il gestore: pagina "Esporta dati" dalla dashboard e pulsante per singolo cliente, pacchetto zip con sei CSV pronti per Excel italiano
+- [x] Schede scadute sempre visibili al cliente con avviso ambra, niente archiviazione automatica notturna; archiviazione solo manuale o alla creazione di una nuova scheda
+- [x] Abbonamento: tipo, inizio e scadenza gestiti dal gestore, colori in elenco e dettaglio, riquadro "Abbonamenti da rinnovare" in dashboard, avviso al cliente e sospensione automatica dopo 7 giorni di ritardo (storico sempre visibile)
+- [x] Data e ora di approvazione registrate dal database, mostrate nella pagina del cliente e nell'esportazione
+- [x] Accenti corretti nel catalogo obiettivi e durate sotto il minuto mostrate come "meno di 1 minuto"
