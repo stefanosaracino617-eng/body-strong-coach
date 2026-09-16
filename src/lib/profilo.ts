@@ -15,6 +15,10 @@ export type Profilo = {
   data_consenso: string | null;
   note_gestore: string | null;
   certificato_scadenza: string | null;
+  tipo_abbonamento: string | null;
+  abbonamento_inizio: string | null;
+  abbonamento_scadenza: string | null;
+  data_approvazione: string | null;
   consenso_avvertenze: boolean;
   data_consenso_avvertenze: string | null;
   created_at: string;
