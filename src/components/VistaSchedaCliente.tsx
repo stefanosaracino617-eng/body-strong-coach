@@ -22,7 +22,16 @@ export function giorniAllaScadenza(dataScadenza: string): number {
   return Math.max(0, Math.ceil((scadenza.getTime() - oggi.getTime()) / 86_400_000));
 }
 
-export function VistaSchedaCliente({ scheda, conAvvio = false }: { scheda: Scheda; conAvvio?: boolean }) {
+export function VistaSchedaCliente({
+  scheda,
+  conAvvio = false,
+  avvisoScaduta = false,
+}: {
+  scheda: Scheda;
+  conAvvio?: boolean;
+  /** Mostra in cima il riquadro ambra quando la scheda ha superato la scadenza. */
+  avvisoScaduta?: boolean;
+}) {
   const righe = useQuery({
     queryKey: ["scheda-esercizi", scheda.id],
     queryFn: () => caricaEserciziScheda(scheda.id),
