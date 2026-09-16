@@ -2,6 +2,7 @@ import { zipSync, strToU8 } from "fflate";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaIdGestori } from "@/lib/clienti";
 import { formattaData, oggiRoma } from "@/lib/date";
+import { minutiTra, testoDurata } from "@/lib/durata";
 
 /* ---------------------------------------------------------------- formato */
 
@@ -68,6 +69,10 @@ type ProfiloRiga = {
   stato: string;
   created_at: string;
   certificato_scadenza: string | null;
+  tipo_abbonamento: string | null;
+  abbonamento_inizio: string | null;
+  abbonamento_scadenza: string | null;
+  data_approvazione: string | null;
   data_consenso: string | null;
   data_consenso_avvertenze: string | null;
 };
@@ -146,7 +151,7 @@ export async function preparaFileEsportazione(clienteId?: string): Promise<FileE
   const profiliQuery = supabase
     .from("profili")
     .select(
-      "id, nome, cognome, email, telefono, data_nascita, sesso, stato, created_at, certificato_scadenza, data_consenso, data_consenso_avvertenze",
+      "id, nome, cognome, email, telefono, data_nascita, sesso, stato, created_at, certificato_scadenza, tipo_abbonamento, abbonamento_inizio, abbonamento_scadenza, data_approvazione, data_consenso, data_consenso_avvertenze",
     )
     .order("cognome", { ascending: true });
   if (clienteId) profiliQuery.eq("id", clienteId);
@@ -268,6 +273,9 @@ export async function preparaFileEsportazione(clienteId?: string): Promise<FileE
       "Data di registrazione",
       "Data di approvazione",
       "Certificato medico valido fino al",
+      "Tipo di abbonamento",
+      "Abbonamento dal",
+      "Abbonamento valido fino al",
       "Consenso privacy accettato il",
       "Avvertenze accettate il",
       "Obiettivi selezionati",
@@ -281,8 +289,11 @@ export async function preparaFileEsportazione(clienteId?: string): Promise<FileE
       p.sesso ?? "",
       p.stato === "in_attesa" ? "In attesa" : p.stato === "approvato" ? "Approvato" : "Sospeso",
       dataOraSoloData(p.created_at),
-      "",
+      p.data_approvazione ? `${dataOraSoloData(p.data_approvazione)} ${ora(p.data_approvazione)}`.trim() : "",
       data(p.certificato_scadenza),
+      p.tipo_abbonamento ?? "",
+      data(p.abbonamento_inizio),
+      data(p.abbonamento_scadenza),
       dataOraSoloData(p.data_consenso),
       dataOraSoloData(p.data_consenso_avvertenze),
       (obiettiviPerCliente.get(p.id) ?? [])
@@ -368,6 +379,7 @@ export async function preparaFileEsportazione(clienteId?: string): Promise<FileE
       "Data",
       "Ora di inizio",
       "Ora di fine",
+      "Durata",
       "Esercizi svolti",
       "Esercizi previsti",
     ],
@@ -384,6 +396,7 @@ export async function preparaFileEsportazione(clienteId?: string): Promise<FileE
         data(a.data),
         ora(a.created_at),
         ora(a.completato_at),
+        a.completato_at ? testoDurata(minutiTra(a.created_at, a.completato_at)) : "",
         righe.filter((r) => r.completato).length,
         previsti,
       ];
