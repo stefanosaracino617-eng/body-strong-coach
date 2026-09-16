@@ -1,5 +1,5 @@
 import { statoCertificato } from "@/lib/certificato";
-import { abbonamentoSospeso, statoAbbonamento } from "@/lib/abbonamento";
+import { abbonamentoDaRinnovare, abbonamentoSospeso, statoAbbonamento } from "@/lib/abbonamento";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -11,18 +11,20 @@ import { caricaIdGestori, soloClienti } from "@/lib/clienti";
 import { andamentoCarico, riepilogoCliente } from "@/lib/allenamenti";
 import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 
-type Filtro = "tutti" | "in-scadenza" | "senza-scheda";
+type Filtro = "tutti" | "in-scadenza" | "senza-scheda" | "abbonamento";
 
 const etichettaFiltro: Record<Filtro, string> = {
   tutti: "Clienti",
   "in-scadenza": "Schede in scadenza",
   "senza-scheda": "Clienti senza scheda attiva",
+  abbonamento: "Abbonamenti da rinnovare",
 };
 
 const vuotoFiltro: Record<Filtro, string> = {
   tutti: "Nessun cliente approvato.",
   "in-scadenza": "Nessuna scheda in scadenza nei prossimi 14 giorni.",
   "senza-scheda": "Tutti i clienti hanno una scheda attiva.",
+  abbonamento: "Nessun abbonamento scaduto o in scadenza.",
 };
 
 export const Route = createFileRoute("/_authenticated/clienti")({
@@ -30,7 +32,9 @@ export const Route = createFileRoute("/_authenticated/clienti")({
     const valore = search["filtro"];
     return {
       filtro:
-        valore === "in-scadenza" || valore === "senza-scheda" ? valore : ("tutti" as Filtro),
+        valore === "in-scadenza" || valore === "senza-scheda" || valore === "abbonamento"
+          ? valore
+          : ("tutti" as Filtro),
     };
   },
   head: () => ({
@@ -110,6 +114,7 @@ function Clienti() {
     const scadenza = mappaScadenze[p.id];
     if (filtro === "senza-scheda") return !scadenza;
     if (filtro === "in-scadenza") return !!scadenza && giorniAllaScadenza(scadenza) <= 14;
+    if (filtro === "abbonamento") return abbonamentoDaRinnovare(p.abbonamento_scadenza);
     return true;
   });
 

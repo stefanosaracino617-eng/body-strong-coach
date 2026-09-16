@@ -56,7 +56,7 @@ export function DashboardGestore() {
         <Link to="/clienti" search={{ filtro: "in-scadenza" as const }}>
           <Riquadro
             numero={n.inScadenza}
-            testo="Schede in scadenza"
+            testo="Schede scadute o in scadenza"
             tono={n.inScadenza > 0 ? "ambra" : "normale"}
           />
         </Link>
@@ -72,6 +72,13 @@ export function DashboardGestore() {
             numero={n.certificati}
             testo="Certificati da rinnovare"
             tono={n.certificati > 0 ? "rosso" : "normale"}
+          />
+        </Link>
+        <Link to="/clienti" search={{ filtro: "abbonamento" as const }}>
+          <Riquadro
+            numero={n.abbonamenti}
+            testo="Abbonamenti da rinnovare"
+            tono={n.abbonamenti > 0 ? "rosso" : "normale"}
           />
         </Link>
         <Link to="/allenamenti-recenti">
