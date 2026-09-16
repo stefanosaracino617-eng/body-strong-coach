@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { giorniAllaScadenza, oggiRoma } from "@/lib/date";
 import { caricaIdGestori, soloClienti, soloDiClienti } from "@/lib/clienti";
 import { certificatoDaRinnovare } from "@/lib/certificato";
+import { abbonamentoDaRinnovare } from "@/lib/abbonamento";
 
 export type NumeriDashboard = {
   inAttesa: number;
@@ -9,6 +10,7 @@ export type NumeriDashboard = {
   inScadenza: number;
   senzaScheda: number;
   certificati: number;
+  abbonamenti: number;
   allenamenti7: number;
   eserciziAttivi: number;
 };
@@ -24,13 +26,15 @@ export async function caricaNumeriDashboard(): Promise<NumeriDashboard> {
 
   const [attesa, approvati, schede, allenamenti, esercizi] = await Promise.all([
     supabase.from("profili").select("id").eq("stato", "in_attesa"),
-    supabase.from("profili").select("id, certificato_scadenza").eq("stato", "approvato"),
+    supabase
+      .from("profili")
+      .select("id, certificato_scadenza, abbonamento_scadenza")
+      .eq("stato", "approvato"),
     supabase
       .from("schede")
       .select("cliente_id, data_scadenza")
       .eq("stato", "attiva")
-      .lte("data_inizio", oggi)
-      .gte("data_scadenza", oggi),
+      .lte("data_inizio", oggi),
     supabase
       .from("allenamenti")
       .select("id, cliente_id")
@@ -44,12 +48,19 @@ export async function caricaNumeriDashboard(): Promise<NumeriDashboard> {
   }
 
   const clientiApprovati = soloClienti(
-    (approvati.data ?? []) as { id: string; certificato_scadenza: string | null }[],
+    (approvati.data ?? []) as {
+      id: string;
+      certificato_scadenza: string | null;
+      abbonamento_scadenza: string | null;
+    }[],
     gestori,
   );
   const idApprovati = clientiApprovati.map((p) => p.id);
   const certificati = clientiApprovati.filter((p) =>
     certificatoDaRinnovare(p.certificato_scadenza),
+  ).length;
+  const abbonamenti = clientiApprovati.filter((p) =>
+    abbonamentoDaRinnovare(p.abbonamento_scadenza),
   ).length;
   const inAttesaClienti = soloClienti((attesa.data ?? []) as { id: string }[], gestori).length;
   const allenamentiClienti = soloDiClienti(
@@ -78,6 +89,7 @@ export async function caricaNumeriDashboard(): Promise<NumeriDashboard> {
     inScadenza,
     senzaScheda,
     certificati,
+    abbonamenti,
     allenamenti7: allenamentiClienti,
     eserciziAttivi: esercizi.count ?? 0,
   };

@@ -251,11 +251,14 @@ export type Database = {
       }
       profili: {
         Row: {
+          abbonamento_inizio: string | null
+          abbonamento_scadenza: string | null
           certificato_scadenza: string | null
           cognome: string
           consenso_avvertenze: boolean
           consenso_privacy: boolean
           created_at: string
+          data_approvazione: string | null
           data_consenso: string | null
           data_consenso_avvertenze: string | null
           data_nascita: string | null
@@ -266,13 +269,17 @@ export type Database = {
           sesso: Database["public"]["Enums"]["sesso_tipo"] | null
           stato: Database["public"]["Enums"]["stato_profilo"]
           telefono: string | null
+          tipo_abbonamento: string | null
         }
         Insert: {
+          abbonamento_inizio?: string | null
+          abbonamento_scadenza?: string | null
           certificato_scadenza?: string | null
           cognome?: string
           consenso_avvertenze?: boolean
           consenso_privacy?: boolean
           created_at?: string
+          data_approvazione?: string | null
           data_consenso?: string | null
           data_consenso_avvertenze?: string | null
           data_nascita?: string | null
@@ -283,13 +290,17 @@ export type Database = {
           sesso?: Database["public"]["Enums"]["sesso_tipo"] | null
           stato?: Database["public"]["Enums"]["stato_profilo"]
           telefono?: string | null
+          tipo_abbonamento?: string | null
         }
         Update: {
+          abbonamento_inizio?: string | null
+          abbonamento_scadenza?: string | null
           certificato_scadenza?: string | null
           cognome?: string
           consenso_avvertenze?: boolean
           consenso_privacy?: boolean
           created_at?: string
+          data_approvazione?: string | null
           data_consenso?: string | null
           data_consenso_avvertenze?: string | null
           data_nascita?: string | null
@@ -300,6 +311,7 @@ export type Database = {
           sesso?: Database["public"]["Enums"]["sesso_tipo"] | null
           stato?: Database["public"]["Enums"]["stato_profilo"]
           telefono?: string | null
+          tipo_abbonamento?: string | null
         }
         Relationships: []
       }
@@ -461,7 +473,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      archivia_schede_scadute: { Args: never; Returns: number }
+      [_ in never]: never
     }
     Enums: {
       gruppo_muscolare:

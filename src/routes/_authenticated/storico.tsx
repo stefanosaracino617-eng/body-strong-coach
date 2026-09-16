@@ -11,6 +11,7 @@ import {
   type EsercizioDettaglio,
 } from "@/lib/allenamenti";
 import { formattaData, formattaDataOra } from "@/lib/date";
+import { durataNonAttendibile, formattaDurata, minutiTra, testoDurata } from "@/lib/durata";
 
 export const Route = createFileRoute("/_authenticated/storico")({
   head: () => ({
@@ -107,7 +108,7 @@ function CardAllenamento({
   const esercizi = allenamento.allenamento_esercizi ?? [];
   const svoltiCount = esercizi.filter((e) => e.completato).length;
   const totale = esercizi.length;
-  const durata = durataMinuti(allenamento.created_at, allenamento.completato_at!);
+  const durata = minutiTra(allenamento.created_at, allenamento.completato_at);
 
   return (
     <button
@@ -150,7 +151,7 @@ function DettaglioAllenamento({
       (a, b) =>
         (a.scheda_esercizi?.ordine ?? 0) - (b.scheda_esercizi?.ordine ?? 0),
     );
-  const durata = durataMinuti(allenamento.created_at, allenamento.completato_at!);
+  const durata = minutiTra(allenamento.created_at, allenamento.completato_at);
 
   return (
     <main className="min-h-screen px-4 py-8">
@@ -301,14 +302,10 @@ function confrontoPrecedente(
 }
 
 function DurataRiga({ minuti }: { minuti: number }) {
-  if (minuti > 240) {
+  if (durataNonAttendibile(minuti)) {
     return <p className="text-muted-foreground">durata non registrata</p>;
   }
   return <p className="text-foreground">Durata: {formattaDurata(minuti)}</p>;
-}
-
-function testoDurata(minuti: number): string {
-  return minuti > 240 ? "durata non registrata" : formattaDurata(minuti);
 }
 
 function formattaNumero(n: number): string {
@@ -348,16 +345,4 @@ function intestazioneMese(chiave: string): string {
   return testo.charAt(0).toUpperCase() + testo.slice(1);
 }
 
-function durataMinuti(inizioIso: string, fineIso: string): number {
-  const inizio = new Date(inizioIso).getTime();
-  const fine = new Date(fineIso).getTime();
-  return Math.max(0, Math.round((fine - inizio) / 60000));
-}
-
-function formattaDurata(minuti: number): string {
-  if (minuti < 60) return `${minuti} min`;
-  const ore = Math.floor(minuti / 60);
-  const resto = minuti % 60;
-  return resto === 0 ? `${ore} h` : `${ore} h ${resto} min`;
-}
 

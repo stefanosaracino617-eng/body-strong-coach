@@ -9,6 +9,7 @@ import {
   caricaEserciziScheda,
   nomeRiga,
   percorsiImmagini,
+  schedaScaduta,
   unitaRiga,
   type Scheda,
   type SchedaEsercizio,
@@ -22,7 +23,16 @@ export function giorniAllaScadenza(dataScadenza: string): number {
   return Math.max(0, Math.ceil((scadenza.getTime() - oggi.getTime()) / 86_400_000));
 }
 
-export function VistaSchedaCliente({ scheda, conAvvio = false }: { scheda: Scheda; conAvvio?: boolean }) {
+export function VistaSchedaCliente({
+  scheda,
+  conAvvio = false,
+  avvisoScaduta = false,
+}: {
+  scheda: Scheda;
+  conAvvio?: boolean;
+  /** Mostra in cima il riquadro ambra quando la scheda ha superato la scadenza. */
+  avvisoScaduta?: boolean;
+}) {
   const righe = useQuery({
     queryKey: ["scheda-esercizi", scheda.id],
     queryFn: () => caricaEserciziScheda(scheda.id),
@@ -44,6 +54,7 @@ export function VistaSchedaCliente({ scheda, conAvvio = false }: { scheda: Sched
     return Array.from(gruppi.entries());
   }, [righe.data]);
 
+  const scaduta = schedaScaduta(scheda);
   const giorni = giorniAllaScadenza(scheda.data_scadenza);
   const testoGiorni = giorni === 0 ? "Scade oggi" : `${giorni} ${giorni === 1 ? "giorno" : "giorni"} rimanenti`;
   const coloreScadenza =
@@ -51,10 +62,18 @@ export function VistaSchedaCliente({ scheda, conAvvio = false }: { scheda: Sched
 
   return (
     <div className="flex flex-col gap-6">
+      {avvisoScaduta && scaduta && (
+        <div className="rounded-[10px] border border-[#F2A93B] px-4 py-4 text-lg text-warning">
+          La tua scheda è scaduta il {formattaData(scheda.data_scadenza)}. Chiedi all&apos;istruttore
+          di aggiornarla.
+        </div>
+      )}
       <section className="card-surface flex flex-col gap-3 p-6">
         <h2 className="text-2xl">{scheda.titolo}</h2>
         <p className={`text-lg font-semibold ${coloreScadenza}`}>
-          Scadenza: {formattaData(scheda.data_scadenza)} · {testoGiorni}
+          {scaduta
+            ? `Scaduta il ${formattaData(scheda.data_scadenza)}`
+            : `Scadenza: ${formattaData(scheda.data_scadenza)} · ${testoGiorni}`}
         </p>
         {scheda.note_gestore && (
           <div className="border-t border-border pt-4">

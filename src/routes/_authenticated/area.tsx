@@ -11,6 +11,7 @@ import { BloccoErrore, CaricamentoCard } from "@/components/Stati";
 import { StrisciaInstalla } from "@/components/StrisciaInstalla";
 import { caricaRegole, regoleNonVuote } from "@/lib/regole";
 import { statoCertificato } from "@/lib/certificato";
+import { abbonamentoSospeso, statoAbbonamento } from "@/lib/abbonamento";
 import { formattaData } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/area")({
@@ -143,20 +144,32 @@ function Area() {
     );
   }
 
+  const sospeso = abbonamentoSospeso(profilo.abbonamento_scadenza);
+
   return (
     <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci} contenutoLibero>
       <AvvisoCertificato scadenza={profilo.certificato_scadenza} />
-      {scheda.isLoading && <CaricamentoCard quante={2} />}
-      {scheda.isError && <BloccoErrore onRiprova={() => scheda.refetch()} />}
-      {!scheda.isLoading && !scheda.isError && !scheda.data && (
-        <div className="card-surface flex flex-col items-center gap-2 p-6 text-center">
-          <p className="text-xl font-semibold">La tua scheda di allenamento è scaduta.</p>
-          <p className="text-base text-muted-foreground">
-            Rivolgiti all&apos;istruttore per il rinnovo.
-          </p>
+      <AvvisoAbbonamento scadenza={profilo.abbonamento_scadenza} />
+      {sospeso ? (
+        <div className="rounded-[10px] border border-destructive px-4 py-6 text-center text-lg text-destructive">
+          Il tuo abbonamento è scaduto il {formattaData(profilo.abbonamento_scadenza)}. Rivolgiti in
+          palestra per il rinnovo.
         </div>
+      ) : (
+        <>
+          {scheda.isLoading && <CaricamentoCard quante={2} />}
+          {scheda.isError && <BloccoErrore onRiprova={() => scheda.refetch()} />}
+          {!scheda.isLoading && !scheda.isError && !scheda.data && (
+            <div className="card-surface flex flex-col items-center gap-2 p-6 text-center">
+              <p className="text-xl font-semibold">Non hai ancora una scheda di allenamento.</p>
+              <p className="text-base text-muted-foreground">
+                Rivolgiti all&apos;istruttore per riceverla.
+              </p>
+            </div>
+          )}
+          {scheda.data && <VistaSchedaCliente scheda={scheda.data} conAvvio avvisoScaduta />}
+        </>
       )}
-      {scheda.data && <VistaSchedaCliente scheda={scheda.data} conAvvio />}
       <Link to="/storico" className="btn-secondary w-full">
         Storico allenamenti
       </Link>
@@ -177,6 +190,31 @@ function Area() {
       <StrisciaInstalla />
       <div className="h-14" aria-hidden="true" />
     </Schermo>
+  );
+}
+
+/** Riquadro con la scadenza dell'abbonamento del cliente. */
+function AvvisoAbbonamento({ scadenza }: { scadenza: string | null }) {
+  if (!scadenza) return null;
+  const stato = statoAbbonamento(scadenza);
+  if (stato.stato === "valido") {
+    return (
+      <p className="text-base text-muted-foreground">
+        Abbonamento valido fino al {formattaData(scadenza)}.
+      </p>
+    );
+  }
+  const scaduto = stato.stato === "scaduto";
+  return (
+    <div
+      className={`rounded-[10px] border px-4 py-4 text-base ${
+        scaduto ? "border-destructive text-destructive" : "border-[#F2A93B] text-warning"
+      }`}
+    >
+      {scaduto
+        ? `Il tuo abbonamento è scaduto il ${formattaData(scadenza)}. Rivolgiti in palestra per il rinnovo.`
+        : `Il tuo abbonamento scade il ${formattaData(scadenza)}. Ricordati di rinnovarlo in palestra.`}
+    </div>
   );
 }
 

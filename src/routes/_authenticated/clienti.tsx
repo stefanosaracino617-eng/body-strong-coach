@@ -1,27 +1,30 @@
 import { statoCertificato } from "@/lib/certificato";
+import { abbonamentoDaRinnovare, abbonamentoSospeso, statoAbbonamento } from "@/lib/abbonamento";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
-import { formattaData, giorniAllaScadenza } from "@/lib/date";
+import { formattaData, formattaDataOra, giorniAllaScadenza } from "@/lib/date";
 import { caricaScadenzePerClienti } from "@/lib/schede";
 import { caricaIdGestori, soloClienti } from "@/lib/clienti";
 import { andamentoCarico, riepilogoCliente } from "@/lib/allenamenti";
 import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 
-type Filtro = "tutti" | "in-scadenza" | "senza-scheda";
+type Filtro = "tutti" | "in-scadenza" | "senza-scheda" | "abbonamento";
 
 const etichettaFiltro: Record<Filtro, string> = {
   tutti: "Clienti",
   "in-scadenza": "Schede in scadenza",
   "senza-scheda": "Clienti senza scheda attiva",
+  abbonamento: "Abbonamenti da rinnovare",
 };
 
 const vuotoFiltro: Record<Filtro, string> = {
   tutti: "Nessun cliente approvato.",
   "in-scadenza": "Nessuna scheda in scadenza nei prossimi 14 giorni.",
   "senza-scheda": "Tutti i clienti hanno una scheda attiva.",
+  abbonamento: "Nessun abbonamento scaduto o in scadenza.",
 };
 
 export const Route = createFileRoute("/_authenticated/clienti")({
@@ -29,7 +32,9 @@ export const Route = createFileRoute("/_authenticated/clienti")({
     const valore = search["filtro"];
     return {
       filtro:
-        valore === "in-scadenza" || valore === "senza-scheda" ? valore : ("tutti" as Filtro),
+        valore === "in-scadenza" || valore === "senza-scheda" || valore === "abbonamento"
+          ? valore
+          : ("tutti" as Filtro),
     };
   },
   head: () => ({
@@ -109,6 +114,7 @@ function Clienti() {
     const scadenza = mappaScadenze[p.id];
     if (filtro === "senza-scheda") return !scadenza;
     if (filtro === "in-scadenza") return !!scadenza && giorniAllaScadenza(scadenza) <= 14;
+    if (filtro === "abbonamento") return abbonamentoDaRinnovare(p.abbonamento_scadenza);
     return true;
   });
 
@@ -134,7 +140,15 @@ function Clienti() {
           <h2 className="text-lg">
             {p.nome} {p.cognome}
           </h2>
+          {abbonamentoSospeso(p.abbonamento_scadenza) && (
+            <span className="inline-block w-fit rounded-[10px] border border-destructive px-2 py-1 text-base text-destructive">
+              Sospeso - abbonamento scaduto il {formattaData(p.abbonamento_scadenza)}
+            </span>
+          )}
           <ScadenzaScheda scadenza={mappaScadenze[p.id] ?? null} />
+          <p className={`text-base ${statoAbbonamento(p.abbonamento_scadenza).colore}`}>
+            {statoAbbonamento(p.abbonamento_scadenza).testo}
+          </p>
           <p className={`text-base ${statoCertificato(p.certificato_scadenza).colore}`}>
             {statoCertificato(p.certificato_scadenza).testo}
           </p>
@@ -146,6 +160,16 @@ function Clienti() {
                 <Riga etichetta="Data di nascita" valore={formattaData(p.data_nascita)} />
                 <Riga etichetta="Sesso" valore={p.sesso ?? "—"} />
                 <Riga etichetta="Stato" valore={etichettaStato[p.stato]} />
+                <Riga
+                  etichetta="Approvato il"
+                  valore={p.data_approvazione ? formattaDataOra(p.data_approvazione) : "—"}
+                />
+                <Riga etichetta="Tipo di abbonamento" valore={p.tipo_abbonamento ?? "—"} />
+                <Riga etichetta="Abbonamento dal" valore={formattaData(p.abbonamento_inizio)} />
+                <Riga
+                  etichetta="Abbonamento valido fino al"
+                  valore={formattaData(p.abbonamento_scadenza)}
+                />
               </dl>
               <ObiettiviCliente clienteId={p.id} />
               <AllenamentiCliente clienteId={p.id} />
@@ -180,6 +204,13 @@ function ScadenzaScheda({ scadenza }: { scadenza: string | null }) {
     return <p className="text-base text-destructive">Nessuna scheda attiva</p>;
   }
   const giorni = giorniAllaScadenza(scadenza);
+  if (giorni < 0) {
+    return (
+      <p className="text-base text-destructive">
+        Scaduta il {formattaData(scadenza)} - da rinnovare
+      </p>
+    );
+  }
   const colore =
     giorni <= 3 ? "text-destructive" : giorni <= 14 ? "text-warning" : "text-muted-foreground";
   return <p className={`text-base ${colore}`}>Scadenza scheda: {formattaData(scadenza)}</p>;

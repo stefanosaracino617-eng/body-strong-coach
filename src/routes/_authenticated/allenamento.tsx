@@ -13,7 +13,8 @@ import {
   terminaAllenamento,
   ultimiValori,
 } from "@/lib/allenamenti";
-import { dataAIso } from "@/lib/date";
+import { dataAIso, formattaData } from "@/lib/date";
+import { abbonamentoSospeso } from "@/lib/abbonamento";
 
 export const Route = createFileRoute("/_authenticated/allenamento")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -172,6 +173,25 @@ function PaginaAllenamento() {
   }
 
   if (sessioneApp.isLoading || scheda.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
+
+  const scadenzaAbbonamento = sessioneApp.data?.profilo.abbonamento_scadenza ?? null;
+  if (abbonamentoSospeso(scadenzaAbbonamento)) {
+    return (
+      <Pagina titolo="Abbonamento scaduto">
+        <div className="rounded-[10px] border border-destructive px-4 py-6 text-center text-lg text-destructive">
+          Il tuo abbonamento è scaduto il {formattaData(scadenzaAbbonamento)}. Rivolgiti in palestra
+          per il rinnovo.
+        </div>
+        <Link to="/storico" className="btn-secondary w-full">
+          Storico allenamenti
+        </Link>
+        <Link to="/area" className="btn-secondary w-full">
+          Torna alla mia area
+        </Link>
+      </Pagina>
+    );
+  }
+
 
   if (!scheda.data) {
     return (

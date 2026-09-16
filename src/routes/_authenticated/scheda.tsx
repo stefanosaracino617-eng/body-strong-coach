@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, type Profilo } from "@/lib/profilo";
 import { CampoData } from "@/components/CampoData";
 import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
-import { formattaData } from "@/lib/date";
+import { formattaData, formattaDataOra } from "@/lib/date";
+import { abbonamentoSospeso, statoAbbonamento } from "@/lib/abbonamento";
 import { GRUPPI_MUSCOLARI, caricaEsercizi, type GruppoMuscolare } from "@/lib/esercizi";
 import { avvisoErrore, avvisoOk, testoErrore } from "@/lib/avvisi";
 import { esportaCliente } from "@/lib/esportazione";
@@ -129,6 +130,8 @@ function PaginaScheda() {
 
       <CertificatoCliente clienteId={cliente} valore={profilo.data?.certificato_scadenza ?? null} />
 
+      <AbbonamentoCliente clienteId={cliente} profilo={profilo.data ?? null} />
+
       <EsportaCliente
         clienteId={cliente}
         cognome={profilo.data?.cognome ?? ""}
@@ -141,6 +144,7 @@ function PaginaScheda() {
         <DatiScheda
           clienteId={cliente}
           scheda={null}
+          abbonamentoScadenza={profilo.data?.abbonamento_scadenza ?? null}
           onErrore={setErrore}
           onFatto={() => queryClient.invalidateQueries({ queryKey: ["scheda-attiva", cliente] })}
         />
@@ -151,6 +155,7 @@ function PaginaScheda() {
           <DatiScheda
             clienteId={cliente}
             scheda={scheda.data}
+            abbonamentoScadenza={profilo.data?.abbonamento_scadenza ?? null}
             onErrore={setErrore}
             onFatto={() => queryClient.invalidateQueries({ queryKey: ["scheda-attiva", cliente] })}
           />
@@ -230,6 +235,86 @@ function EsportaCliente({
   );
 }
 
+/** Dati dell'abbonamento: li registra solo il gestore. */
+function AbbonamentoCliente({
+  clienteId,
+  profilo,
+}: {
+  clienteId: string;
+  profilo: Profilo | null;
+}) {
+  const queryClient = useQueryClient();
+  const [tipo, setTipo] = useState(profilo?.tipo_abbonamento ?? "");
+  const [inizio, setInizio] = useState(profilo?.abbonamento_inizio ?? "");
+  const [scadenza, setScadenza] = useState(profilo?.abbonamento_scadenza ?? "");
+
+  useEffect(() => {
+    setTipo(profilo?.tipo_abbonamento ?? "");
+    setInizio(profilo?.abbonamento_inizio ?? "");
+    setScadenza(profilo?.abbonamento_scadenza ?? "");
+  }, [profilo]);
+
+  const salva = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("profili")
+        .update({
+          tipo_abbonamento: testoOppureNull(tipo),
+          abbonamento_inizio: inizio === "" ? null : inizio,
+          abbonamento_scadenza: scadenza === "" ? null : scadenza,
+        })
+        .eq("id", clienteId);
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["profilo-cliente", clienteId] });
+      await queryClient.invalidateQueries({ queryKey: ["clienti-approvati"] });
+      await queryClient.invalidateQueries({ queryKey: ["numeri-dashboard"] });
+      avvisoOk("Abbonamento aggiornato.");
+    },
+    onError: (e) => avvisoErrore(e instanceof Error ? e.message : "Salvataggio non riuscito."),
+  });
+
+  const stato = statoAbbonamento(profilo?.abbonamento_scadenza ?? null);
+  const sospeso = abbonamentoSospeso(profilo?.abbonamento_scadenza ?? null);
+
+  return (
+    <section className="card-surface flex flex-col gap-3 p-6">
+      <h2 className="text-lg">Abbonamento</h2>
+      <p className={`text-base ${stato.colore}`}>{stato.testo}</p>
+      {sospeso && (
+        <span className="inline-block w-fit rounded-[10px] border border-destructive px-2 py-1 text-base text-destructive">
+          Sospeso - abbonamento scaduto il {formattaData(profilo?.abbonamento_scadenza ?? null)}
+        </span>
+      )}
+      {profilo?.data_approvazione && (
+        <p className="text-base text-muted-foreground">
+          Approvato il {formattaDataOra(profilo.data_approvazione)}
+        </p>
+      )}
+      <label className="flex flex-col gap-2 text-base">
+        <span className="text-accent">Tipo di abbonamento</span>
+        <input
+          className="field"
+          value={tipo}
+          onChange={(e) => setTipo(e.target.value)}
+          placeholder="Es. Mensile, Trimestrale, Annuale, Open"
+        />
+      </label>
+      <CampoData label="Abbonamento dal" value={inizio} onChange={setInizio} />
+      <CampoData label="Abbonamento valido fino al" value={scadenza} onChange={setScadenza} />
+      <button
+        type="button"
+        className="btn-secondary"
+        disabled={salva.isPending}
+        onClick={() => salva.mutate()}
+      >
+        {salva.isPending ? "Attendi…" : "Salva abbonamento"}
+      </button>
+    </section>
+  );
+}
+
 function CertificatoCliente({ clienteId, valore }: { clienteId: string; valore: string | null }) {
   const queryClient = useQueryClient();
   const [data, setData] = useState(valore ?? "");
@@ -280,11 +365,13 @@ function CertificatoCliente({ clienteId, valore }: { clienteId: string; valore: 
 function DatiScheda({
   clienteId,
   scheda,
+  abbonamentoScadenza,
   onErrore,
   onFatto,
 }: {
   clienteId: string;
   scheda: Scheda | null;
+  abbonamentoScadenza: string | null;
   onErrore: (m: string | null) => void;
   onFatto: () => void;
 }) {
@@ -341,9 +428,11 @@ function DatiScheda({
           ) : schedaScaduta(scheda) ? (
             <>
               <span className="inline-block w-fit rounded-[10px] border border-destructive px-2 py-1 text-base text-destructive">
-                Scaduta - in attesa di archiviazione
+                Scaduta il {formattaData(scheda.data_scadenza)} - da rinnovare
               </span>
-              <span className="text-base text-muted-foreground">Il cliente non la vede più.</span>
+              <span className="text-base text-muted-foreground">
+                Il cliente continua a vederla e ad allenarsi finché non la archivi.
+              </span>
             </>
           ) : (
             <span className="inline-block w-fit rounded-[10px] border border-border px-2 py-1 text-base text-muted-foreground">
@@ -363,6 +452,12 @@ function DatiScheda({
       </label>
       <CampoData label="Data di inizio" value={inizio} onChange={setInizio} />
       <CampoData label="Data di scadenza" value={scadenza} onChange={setScadenza} required />
+      {abbonamentoScadenza && scadenza && scadenza > abbonamentoScadenza && (
+        <p className="rounded-[10px] border border-[#F2A93B] px-3 py-3 text-base text-warning">
+          Attenzione: la scheda scade dopo l&apos;abbonamento del cliente, che termina il{" "}
+          {formattaData(abbonamentoScadenza)}.
+        </p>
+      )}
       <label className="flex flex-col gap-2 text-base">
         <span className="text-accent">Note del gestore</span>
         <textarea
