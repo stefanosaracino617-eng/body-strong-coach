@@ -1,4 +1,5 @@
 import { statoCertificato } from "@/lib/certificato";
+import { abbonamentoSospeso, statoAbbonamento } from "@/lib/abbonamento";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -134,7 +135,15 @@ function Clienti() {
           <h2 className="text-lg">
             {p.nome} {p.cognome}
           </h2>
+          {abbonamentoSospeso(p.abbonamento_scadenza) && (
+            <span className="inline-block w-fit rounded-[10px] border border-destructive px-2 py-1 text-base text-destructive">
+              Sospeso - abbonamento scaduto il {formattaData(p.abbonamento_scadenza)}
+            </span>
+          )}
           <ScadenzaScheda scadenza={mappaScadenze[p.id] ?? null} />
+          <p className={`text-base ${statoAbbonamento(p.abbonamento_scadenza).colore}`}>
+            {statoAbbonamento(p.abbonamento_scadenza).testo}
+          </p>
           <p className={`text-base ${statoCertificato(p.certificato_scadenza).colore}`}>
             {statoCertificato(p.certificato_scadenza).testo}
           </p>
@@ -180,6 +189,13 @@ function ScadenzaScheda({ scadenza }: { scadenza: string | null }) {
     return <p className="text-base text-destructive">Nessuna scheda attiva</p>;
   }
   const giorni = giorniAllaScadenza(scadenza);
+  if (giorni < 0) {
+    return (
+      <p className="text-base text-destructive">
+        Scaduta il {formattaData(scadenza)} - da rinnovare
+      </p>
+    );
+  }
   const colore =
     giorni <= 3 ? "text-destructive" : giorni <= 14 ? "text-warning" : "text-muted-foreground";
   return <p className={`text-base ${colore}`}>Scadenza scheda: {formattaData(scadenza)}</p>;
