@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { accediFn, registraFn, sessioneAppFn } from "@/lib/fn";
 import { CampoData } from "@/components/CampoData";
 
 export const Route = createFileRoute("/")({
@@ -42,8 +42,8 @@ function PaginaAccesso() {
   const [consensoAvvertenze, setConsensoAvvertenze] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/area", replace: true });
+    sessioneAppFn().then((sessione) => {
+      if (sessione) navigate({ to: "/area", replace: true });
     });
   }, [navigate]);
 
@@ -65,34 +65,21 @@ function PaginaAccesso() {
     setCaricamento(true);
     try {
       if (modalita === "accesso") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await accediFn({ data: { email, password } });
         navigate({ to: "/area", replace: true });
       } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: {
-              nome,
-              cognome,
-              telefono,
-              data_nascita: dataNascita,
-              sesso,
-              consenso_privacy: true,
-              consenso_avvertenze: true,
-            },
+        await registraFn({
+          data: {
+            email,
+            password,
+            nome,
+            cognome,
+            telefono,
+            dataNascita,
+            sesso,
           },
         });
-        if (error) throw error;
-        if (data.session) {
-          navigate({ to: "/area", replace: true });
-        } else {
-          setMessaggio(
-            "Ti abbiamo inviato un'email di conferma. Aprila e tocca il collegamento per completare la registrazione. Controlla anche la cartella spam.",
-          );
-        }
+        navigate({ to: "/area", replace: true });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Si è verificato un errore.";
@@ -230,7 +217,7 @@ function PaginaAccesso() {
         </div>
 
         <p className="mt-6 text-center text-base text-muted-foreground">
-          Dopo la registrazione il gestore deve approvare il tuo account.
+          Il primo account diventa gestore. I successivi attendono l&apos;approvazione.
         </p>
       </div>
     </main>

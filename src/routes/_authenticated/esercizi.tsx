@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp } from "@/lib/profilo";
 import {
   GRUPPI_MUSCOLARI,
@@ -13,6 +12,8 @@ import {
   leggiFileCatalogo,
   urlImmagini,
   MESSAGGIO_FORMATO_NON_SUPPORTATO,
+  salvaEsercizio,
+  impostaAttivoEsercizio,
   type EsitoLettura,
   type RigaImportata,
   type Esercizio,
@@ -117,11 +118,9 @@ function PaginaEsercizi() {
       if (!Number.isFinite(valori.ordine) || valori.ordine <= 0)
         throw new Error("Il numero dell'esercizio è obbligatorio.");
       if (modifica) {
-        const { error } = await supabase.from("esercizi").update(valori).eq("id", modifica);
-        if (error) throw error;
+        await salvaEsercizio({ id: modifica, ...valori });
       } else {
-        const { error } = await supabase.from("esercizi").insert(valori);
-        if (error) throw error;
+        await salvaEsercizio(valori);
       }
     },
     onError: (e) => setErrore(e instanceof Error ? e.message : "Salvataggio non riuscito."),
@@ -136,11 +135,7 @@ function PaginaEsercizi() {
 
   const cambiaStato = useMutation({
     mutationFn: async (e: Esercizio) => {
-      const { error } = await supabase
-        .from("esercizi")
-        .update({ attivo: !e.attivo })
-        .eq("id", e.id);
-      if (error) throw error;
+      await impostaAttivoEsercizio(e.id, !e.attivo);
     },
     onError: (e) => setErrore(e instanceof Error ? e.message : "Operazione non riuscita."),
     onSuccess: () => {

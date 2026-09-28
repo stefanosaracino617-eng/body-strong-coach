@@ -1,16 +1,12 @@
-import { supabase } from "@/integrations/supabase/client";
+import { idGestoriFn } from "@/lib/fn";
 
 /**
  * Regola unica: un account con ruolo gestore non è mai un cliente.
  * Qualsiasi conteggio, elenco o filtro che riguarda i clienti passa da qui.
  */
 export async function caricaIdGestori(): Promise<Set<string>> {
-  const { data, error } = await supabase
-    .from("ruoli_utente")
-    .select("user_id")
-    .eq("ruolo", "gestore");
-  if (error) throw error;
-  return new Set(((data ?? []) as { user_id: string }[]).map((r) => r.user_id));
+  const ids = await idGestoriFn();
+  return new Set(ids);
 }
 
 /** Tiene solo i clienti veri: esclude ogni riga che appartiene a un gestore. */

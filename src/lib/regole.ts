@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { regoleFn, salvaRegoleFn } from "@/lib/fn";
 
 export type RegolePalestra = {
   id: string;
@@ -8,27 +8,11 @@ export type RegolePalestra = {
 
 /** Testo delle regole della palestra: una sola riga in tutta l'app. */
 export async function caricaRegole(): Promise<RegolePalestra | null> {
-  const { data, error } = await supabase
-    .from("regole_palestra")
-    .select("id, contenuto, updated_at")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as RegolePalestra | null) ?? null;
+  return regoleFn();
 }
 
 export async function salvaRegole(id: string | null, contenuto: string): Promise<void> {
-  if (id) {
-    const { error } = await supabase
-      .from("regole_palestra")
-      .update({ contenuto })
-      .eq("id", id);
-    if (error) throw error;
-    return;
-  }
-  const { error } = await supabase.from("regole_palestra").insert({ contenuto });
-  if (error) throw error;
+  await salvaRegoleFn({ data: { id, contenuto } });
 }
 
 /** Vero se il gestore ha scritto qualcosa di visibile. */

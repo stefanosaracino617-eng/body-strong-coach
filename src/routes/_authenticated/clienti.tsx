@@ -3,8 +3,8 @@ import { abbonamentoDaRinnovare, abbonamentoSospeso, statoAbbonamento } from "@/
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
+import { elencoProfiliFn, obiettiviNominatiFn } from "@/lib/fn";
 import { formattaData, formattaDataOra, giorniAllaScadenza } from "@/lib/date";
 import { caricaScadenzePerClienti } from "@/lib/schede";
 import { caricaIdGestori, soloClienti } from "@/lib/clienti";
@@ -65,16 +65,11 @@ function Clienti() {
     queryKey: ["clienti-approvati"],
     enabled: sessione.data?.isGestore === true,
     queryFn: async () => {
-      const [gestori, { data, error }] = await Promise.all([
+      const [gestori, data] = await Promise.all([
         caricaIdGestori(),
-        supabase
-          .from("profili")
-          .select("*")
-          .eq("stato", "approvato")
-          .order("cognome", { ascending: true }),
+        elencoProfiliFn({ data: { stato: "approvato" } }),
       ]);
-      if (error) throw error;
-      return soloClienti((data ?? []) as Profilo[], gestori);
+      return soloClienti(data, gestori);
     },
   });
 
@@ -220,12 +215,7 @@ function ObiettiviCliente({ clienteId }: { clienteId: string }) {
   const q = useQuery({
     queryKey: ["obiettivi-di", clienteId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("cliente_obiettivi")
-        .select("data_selezione, obiettivi(nome, ordine)")
-        .eq("cliente_id", clienteId);
-      if (error) throw error;
-      return (data ?? []) as { data_selezione: string; obiettivi: { nome: string; ordine: number } | null }[];
+      return obiettiviNominatiFn({ data: { clienteId } });
     },
   });
 

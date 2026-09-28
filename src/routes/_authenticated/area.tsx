@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp } from "@/lib/profilo";
+import { esciFn } from "@/lib/fn";
 import { caricaObiettiviCliente } from "@/lib/obiettivi";
 import { caricaSchedaClienteAttiva } from "@/lib/schede";
 import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
@@ -75,7 +75,7 @@ function Area() {
   async function esci() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    await esciFn();
     navigate({ to: "/", replace: true });
   }
 

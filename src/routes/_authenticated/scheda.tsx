@@ -4,8 +4,16 @@ import { CaricamentoCard } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, GripVertical } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, type Profilo } from "@/lib/profilo";
+import {
+  aggiornaAbbonamentoFn,
+  aggiornaCertificatoFn,
+  aggiornaRigaSchedaFn,
+  eliminaRigaSchedaFn,
+  inserisciRigaSchedaFn,
+  profiloFn,
+  salvaSchedaFn,
+} from "@/lib/fn";
 import { CampoData } from "@/components/CampoData";
 import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
 import { formattaData, formattaDataOra } from "@/lib/date";
@@ -80,9 +88,7 @@ function PaginaScheda() {
     queryKey: ["profilo-cliente", cliente],
     enabled: gestore && cliente !== "",
     queryFn: async () => {
-      const { data, error } = await supabase.from("profili").select("*").eq("id", cliente).maybeSingle();
-      if (error) throw error;
-      return data as Profilo | null;
+      return profiloFn({ data: { id: cliente } });
     },
   });
 
@@ -256,15 +262,14 @@ function AbbonamentoCliente({
 
   const salva = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("profili")
-        .update({
+      await aggiornaAbbonamentoFn({
+        data: {
+          id: clienteId,
           tipo_abbonamento: testoOppureNull(tipo),
           abbonamento_inizio: inizio === "" ? null : inizio,
           abbonamento_scadenza: scadenza === "" ? null : scadenza,
-        })
-        .eq("id", clienteId);
-      if (error) throw error;
+        },
+      });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["profilo-cliente", clienteId] });
@@ -327,11 +332,9 @@ function CertificatoCliente({ clienteId, valore }: { clienteId: string; valore: 
 
   const salva = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("profili")
-        .update({ certificato_scadenza: data === "" ? null : data })
-        .eq("id", clienteId);
-      if (error) throw error;
+      await aggiornaCertificatoFn({
+        data: { id: clienteId, certificato_scadenza: data === "" ? null : data },
+      });
     },
     onSuccess: async () => {
       setInviato(data);
@@ -390,13 +393,9 @@ function DatiScheda({
         note_gestore: testoOppureNull(note),
       };
       if (scheda) {
-        const { error } = await supabase.from("schede").update(valori).eq("id", scheda.id);
-        if (error) throw error;
+        await salvaSchedaFn({ data: { id: scheda.id, cliente_id: clienteId, ...valori } });
       } else {
-        const { error } = await supabase
-          .from("schede")
-          .insert({ ...valori, cliente_id: clienteId, stato: "attiva" as const });
-        if (error) throw error;
+        await salvaSchedaFn({ data: { cliente_id: clienteId, ...valori } });
       }
     },
     onError: (e) => {
@@ -660,14 +659,24 @@ function SessioneScheda({
     mutationFn: async (esercizioId: string) => {
       const e = (catalogo.data ?? []).find((x) => x.id === esercizioId);
       if (!e) throw new Error("Esercizio non trovato.");
-      const { error } = await supabase.from("scheda_esercizi").insert({
-        scheda_id: schedaId,
-        esercizio_id: e.id,
-        sessione: etichetta,
-        ordine: totaleRighe + 1,
-        ...valoriIniziali(e),
+      const iniziali = valoriIniziali(e);
+      await inserisciRigaSchedaFn({
+        data: {
+          scheda_id: schedaId,
+          esercizio_id: e.id,
+          nome_libero: null,
+          descrizione_libera: null,
+          immagine_libera_url: null,
+          sessione: etichetta,
+          ordine: totaleRighe + 1,
+          serie: iniziali.serie,
+          ripetizioni: iniziali.ripetizioni,
+          durata_minuti: iniziali.durata_minuti,
+          recupero_secondi: null,
+          carico_indicativo: null,
+          note: null,
+        },
       });
-      if (error) throw error;
     },
     onError: (e) => onErrore(e instanceof Error ? e.message : "Aggiunta non riuscita."),
     onSuccess: () => {
@@ -884,20 +893,21 @@ function EsercizioLibero({
             ripetizioni: testoOppureNull(ripetizioni),
             durata_minuti: null,
           };
-      const { error } = await supabase.from("scheda_esercizi").insert({
-        scheda_id: schedaId,
-        esercizio_id: null,
-        nome_libero: nomePulito,
-        descrizione_libera: testoOppureNull(descrizione),
-        immagine_libera_url: percorso,
-        sessione: etichetta,
-        ordine,
-        ...prescrizione,
-        recupero_secondi: numeroOppureNull(recupero),
-        carico_indicativo: testoOppureNull(carico),
-        note: testoOppureNull(note),
+      await inserisciRigaSchedaFn({
+        data: {
+          scheda_id: schedaId,
+          esercizio_id: null,
+          nome_libero: nomePulito,
+          descrizione_libera: testoOppureNull(descrizione),
+          immagine_libera_url: percorso,
+          sessione: etichetta,
+          ordine,
+          ...prescrizione,
+          recupero_secondi: numeroOppureNull(recupero),
+          carico_indicativo: testoOppureNull(carico),
+          note: testoOppureNull(note),
+        },
       });
-      if (error) throw error;
     },
     onError: (e) => onErrore(e instanceof Error ? e.message : "Aggiunta non riuscita."),
     onSuccess: () => {
@@ -1045,16 +1055,15 @@ function RigaEsercizio({
             ripetizioni: testoOppureNull(ripetizioni),
             durata_minuti: null,
           };
-      const { error } = await supabase
-        .from("scheda_esercizi")
-        .update({
+      await aggiornaRigaSchedaFn({
+        data: {
+          id: riga.id,
           ...valori,
           recupero_secondi: numeroOppureNull(recupero),
           carico_indicativo: testoOppureNull(carico),
           note: testoOppureNull(note),
-        })
-        .eq("id", riga.id);
-      if (error) throw error;
+        },
+      });
     },
     onError: (e) => onErrore(e instanceof Error ? e.message : "Salvataggio non riuscito."),
     onSuccess: () => {
@@ -1065,8 +1074,7 @@ function RigaEsercizio({
 
   const rimuovi = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("scheda_esercizi").delete().eq("id", riga.id);
-      if (error) throw error;
+      await eliminaRigaSchedaFn({ data: { id: riga.id } });
     },
     onError: (e) => onErrore(e instanceof Error ? e.message : "Rimozione non riuscita."),
     onSuccess: () => {

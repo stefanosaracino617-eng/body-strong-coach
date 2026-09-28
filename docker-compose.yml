@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: bodystrong
+      POSTGRES_PASSWORD: bodystrong
+      POSTGRES_DB: bodystrong
+    ports:
+      - "5432:5432"
+    volumes:
+      - bodystrong-pg:/var/lib/postgresql/data
+
+volumes:
+  bodystrong-pg:

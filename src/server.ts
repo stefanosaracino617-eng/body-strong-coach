@@ -47,6 +47,16 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname === "/health" || url.pathname === "/healthz") {
+        return new Response("ok", { headers: { "content-type": "text/plain" } });
+      }
+      if (url.pathname.startsWith("/media/")) {
+        const { serveMedia } = await import("./server/media");
+        return serveMedia(request);
+      }
+      const { assicuraSchema } = await import("./server/db");
+      await assicuraSchema();
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

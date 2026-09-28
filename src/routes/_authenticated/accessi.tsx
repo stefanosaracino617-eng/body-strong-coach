@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, type Profilo } from "@/lib/profilo";
+import { assegnaGestoreFn, elencoProfiliFn, idGestoriFn } from "@/lib/fn";
 
 export const Route = createFileRoute("/_authenticated/accessi")({
   head: () => ({
@@ -37,35 +37,17 @@ function Accessi() {
     enabled: sessione.data?.isGestore === true,
     queryFn: async (): Promise<Voce[]> => {
       const [profili, ruoli] = await Promise.all([
-        supabase
-          .from("profili")
-          .select("*")
-          .eq("stato", "approvato")
-          .order("cognome", { ascending: true }),
-        supabase.from("ruoli_utente").select("user_id, ruolo").eq("ruolo", "gestore"),
+        elencoProfiliFn({ data: { stato: "approvato" } }),
+        idGestoriFn(),
       ]);
-      if (profili.error) throw profili.error;
-      if (ruoli.error) throw ruoli.error;
-      const gestori = new Set((ruoli.data ?? []).map((r) => r.user_id));
-      return (profili.data as Profilo[]).map((p) => ({ ...p, isGestore: gestori.has(p.id) }));
+      const gestori = new Set(ruoli);
+      return profili.map((p) => ({ ...p, isGestore: gestori.has(p.id) }));
     },
   });
 
   const cambia = useMutation({
     mutationFn: async ({ voce, assegna }: { voce: Voce; assegna: boolean }) => {
-      if (assegna) {
-        const { error } = await supabase
-          .from("ruoli_utente")
-          .insert({ user_id: voce.id, ruolo: "gestore" });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("ruoli_utente")
-          .delete()
-          .eq("user_id", voce.id)
-          .eq("ruolo", "gestore");
-        if (error) throw error;
-      }
+      await assegnaGestoreFn({ data: { userId: voce.id, assegna } });
     },
     onError: (e) => setErrore(e instanceof Error ? e.message : "Operazione non riuscita."),
     onSuccess: () => {

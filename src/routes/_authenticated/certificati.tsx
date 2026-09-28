@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, type Profilo } from "@/lib/profilo";
+import { elencoProfiliFn } from "@/lib/fn";
 import { caricaIdGestori, soloClienti } from "@/lib/clienti";
 import { certificatoDaRinnovare, statoCertificato } from "@/lib/certificato";
 import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
@@ -32,16 +32,11 @@ function Certificati() {
     queryKey: ["certificati-da-rinnovare"],
     enabled: sessione.data?.isGestore === true,
     queryFn: async () => {
-      const [gestori, { data, error }] = await Promise.all([
+      const [gestori, data] = await Promise.all([
         caricaIdGestori(),
-        supabase
-          .from("profili")
-          .select("*")
-          .eq("stato", "approvato")
-          .order("cognome", { ascending: true }),
+        elencoProfiliFn({ data: { stato: "approvato" } }),
       ]);
-      if (error) throw error;
-      return soloClienti((data ?? []) as Profilo[], gestori).filter((p) =>
+      return soloClienti(data, gestori).filter((p) =>
         certificatoDaRinnovare(p.certificato_scadenza),
       );
     },

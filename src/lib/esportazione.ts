@@ -1,8 +1,7 @@
 import { zipSync, strToU8 } from "fflate";
-import { supabase } from "@/integrations/supabase/client";
-import { caricaIdGestori } from "@/lib/clienti";
 import { formattaData, oggiRoma } from "@/lib/date";
 import { minutiTra, testoDurata } from "@/lib/durata";
+import { esportazioneFn } from "@/lib/fn";
 
 /* ---------------------------------------------------------------- formato */
 
@@ -134,11 +133,6 @@ type EsercizioRiga = {
   attivo: boolean;
 };
 
-function controlla<T>(risultato: { data: T[] | null; error: unknown }): T[] {
-  if (risultato.error) throw risultato.error;
-  return risultato.data ?? [];
-}
-
 export type FileEsportato = { nome: string; contenuto: string };
 
 /**
@@ -146,82 +140,14 @@ export type FileEsportato = { nome: string; contenuto: string };
  * Con clienteId valorizzato, i dati sono limitati a quella sola persona.
  */
 export async function preparaFileEsportazione(clienteId?: string): Promise<FileEsportato[]> {
-  const gestori = clienteId ? new Set<string>() : await caricaIdGestori();
-
-  const profiliQuery = supabase
-    .from("profili")
-    .select(
-      "id, nome, cognome, email, telefono, data_nascita, sesso, stato, created_at, certificato_scadenza, tipo_abbonamento, abbonamento_inizio, abbonamento_scadenza, data_approvazione, data_consenso, data_consenso_avvertenze",
-    )
-    .order("cognome", { ascending: true });
-  if (clienteId) profiliQuery.eq("id", clienteId);
-
-  const obiettiviQuery = supabase
-    .from("cliente_obiettivi")
-    .select("cliente_id, obiettivi(nome, ordine)");
-  if (clienteId) obiettiviQuery.eq("cliente_id", clienteId);
-
-  const schedeQuery = supabase
-    .from("schede")
-    .select("id, cliente_id, titolo, data_inizio, data_scadenza, stato, archiviata_at")
-    .order("data_inizio", { ascending: true });
-  if (clienteId) schedeQuery.eq("cliente_id", clienteId);
-
-  const allenamentiQuery = supabase
-    .from("allenamenti")
-    .select("id, cliente_id, scheda_id, sessione, data, created_at, completato_at")
-    .order("data", { ascending: true });
-  if (clienteId) allenamentiQuery.eq("cliente_id", clienteId);
-
-  const [profiliRes, obiettiviRes, schedeRes, allenamentiRes, catalogoRes] = await Promise.all([
-    profiliQuery,
-    obiettiviQuery,
-    schedeQuery,
-    allenamentiQuery,
-    supabase
-      .from("esercizi")
-      .select(
-        "ordine, nome, gruppo_muscolare, attrezzatura, tipo, unita_misura, descrizione_esecuzione, errori_comuni, immagine_url, attivo",
-      )
-      .order("ordine", { ascending: true }),
-  ]);
-
-  const profili = (controlla(profiliRes) as ProfiloRiga[]).filter((p) => !gestori.has(p.id));
-  const idClienti = new Set(profili.map((p) => p.id));
-  const obiettiviRighe = controlla(obiettiviRes) as {
-    cliente_id: string;
-    obiettivi: { nome: string; ordine: number } | null;
-  }[];
-  const schede = (controlla(schedeRes) as SchedaRiga[]).filter((s) => idClienti.has(s.cliente_id));
-  const allenamenti = (controlla(allenamentiRes) as AllenamentoRiga[]).filter((a) =>
-    idClienti.has(a.cliente_id),
-  );
-  const catalogo = controlla(catalogoRes) as EsercizioRiga[];
-
-  const idSchede = schede.map((s) => s.id);
-  let righeSchede: SchedaEsercizioRiga[] = [];
-  if (idSchede.length > 0) {
-    const res = await supabase
-      .from("scheda_esercizi")
-      .select(
-        "id, scheda_id, sessione, ordine, nome_libero, serie, ripetizioni, durata_minuti, recupero_secondi, carico_indicativo, note, esercizi(nome)",
-      )
-      .in("scheda_id", idSchede)
-      .order("ordine", { ascending: true });
-    righeSchede = controlla(res) as unknown as SchedaEsercizioRiga[];
-  }
-
-  const idAllenamenti = allenamenti.map((a) => a.id);
-  let righeSvolte: RigaSvolta[] = [];
-  if (idAllenamenti.length > 0) {
-    const res = await supabase
-      .from("allenamento_esercizi")
-      .select(
-        "allenamento_id, scheda_esercizio_id, completato, peso_kg, ripetizioni_effettive, durata_minuti",
-      )
-      .in("allenamento_id", idAllenamenti);
-    righeSvolte = controlla(res) as RigaSvolta[];
-  }
+  const dati = await esportazioneFn({ data: clienteId ? { clienteId } : {} });
+  const profili = dati.profili;
+  const obiettiviRighe = dati.obiettivi;
+  const schede = dati.schede;
+  const allenamenti = dati.allenamenti;
+  const catalogo = dati.catalogo;
+  const righeSchede = dati.righeSchede;
+  const righeSvolte = dati.righeSvolte;
 
   /* --------------------------------------------------------- indici utili */
 

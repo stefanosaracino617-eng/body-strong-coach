@@ -2,9 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp } from "@/lib/profilo";
 import { caricaCatalogo, nomeGruppo, type Obiettivo } from "@/lib/obiettivi";
+import { eliminaObiettivoCatalogoFn, salvaObiettivoCatalogoFn } from "@/lib/fn";
 
 export const Route = createFileRoute("/_authenticated/catalogo-obiettivi")({
   head: () => ({
@@ -64,11 +64,9 @@ function Catalogo() {
       };
       if (!valori.nome) throw new Error("Il nome è obbligatorio.");
       if (modifica) {
-        const { error } = await supabase.from("obiettivi").update(valori).eq("id", modifica);
-        if (error) throw error;
+        await salvaObiettivoCatalogoFn({ data: { id: modifica, ...valori } });
       } else {
-        const { error } = await supabase.from("obiettivi").insert(valori);
-        if (error) throw error;
+        await salvaObiettivoCatalogoFn({ data: valori });
       }
     },
     onError: (e) => setErrore(e instanceof Error ? e.message : "Salvataggio non riuscito."),
@@ -83,8 +81,7 @@ function Catalogo() {
 
   const rimuovi = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("obiettivi").delete().eq("id", id);
-      if (error) throw error;
+      await eliminaObiettivoCatalogoFn({ data: { id } });
     },
     onError: (e) => setErrore(e instanceof Error ? e.message : "Eliminazione non riuscita."),
     onSuccess: () => {

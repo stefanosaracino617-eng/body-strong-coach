@@ -1,4 +1,10 @@
-import { supabase } from "@/integrations/supabase/client";
+import {
+  attivoEsercizioFn,
+  caricaImmaginiFn,
+  eserciziFn,
+  importaEserciziFn,
+  salvaEsercizioFn,
+} from "@/lib/fn";
 
 export const GRUPPI_MUSCOLARI = [
   "cardio",
@@ -34,31 +40,43 @@ export type Esercizio = {
 
 export const BUCKET_IMMAGINI = "esercizi";
 
+export async function fileToBase64(file: File): Promise<{
+  name: string;
+  contentType: string;
+  base64: string;
+}> {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return {
+    name: file.name,
+    contentType: file.type || "application/octet-stream",
+    base64: btoa(bin),
+  };
+}
+
 export const etichettaUnita: Record<UnitaMisura, string> = {
   serie_ripetizioni: "Serie e ripetizioni",
   minuti: "Minuti",
 };
 
 export async function caricaEsercizi(): Promise<Esercizio[]> {
-  const { data, error } = await supabase
-    .from("esercizi")
-    .select("*")
-    .order("ordine", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as unknown as Esercizio[];
+  return eserciziFn();
 }
 
-/** Genera gli indirizzi temporanei per mostrare le immagini del catalogo privato. */
+/** Genera gli indirizzi per mostrare le immagini del catalogo. */
 export async function urlImmagini(percorsi: string[]): Promise<Record<string, string>> {
   const unici = Array.from(new Set(percorsi.filter(Boolean)));
-  if (unici.length === 0) return {};
-  const { data, error } = await supabase.storage
-    .from(BUCKET_IMMAGINI)
-    .createSignedUrls(unici, 60 * 60);
-  if (error) return {};
   const mappa: Record<string, string> = {};
-  for (const voce of data ?? []) {
-    if (voce.path && voce.signedUrl) mappa[voce.path] = voce.signedUrl;
+  for (const path of unici) {
+    mappa[path] = `/media/${path
+      .split("/")
+      .map((p) => encodeURIComponent(p))
+      .join("/")}`;
   }
   return mappa;
 }
@@ -294,12 +312,7 @@ export async function leggiFileCatalogo(file: File): Promise<EsitoLettura> {
  */
 export async function importaEsercizi(righe: RigaImportata[]): Promise<number> {
   if (righe.length === 0) return 0;
-  const { error, data } = await supabase
-    .from("esercizi")
-    .upsert(righe as never, { onConflict: "ordine", defaultToNull: false })
-    .select("id");
-  if (error) throw error;
-  return data?.length ?? righe.length;
+  return importaEserciziFn({ data: { righe } });
 }
 
 export function numeroDaNomeFile(nomeFile: string): number | null {
@@ -312,35 +325,26 @@ export function numeroDaNomeFile(nomeFile: string): number | null {
 export type EsitoImmagini = { abbinate: number; nonAbbinate: string[]; errori: string[] };
 
 /** Carica più immagini abbinandole all'esercizio con lo stesso numero iniziale nel nome del file. */
-export async function caricaImmagini(file: File[], esercizi: Esercizio[]): Promise<EsitoImmagini> {
-  const perNumero = new Map(esercizi.map((e) => [e.ordine, e]));
-  const esito: EsitoImmagini = { abbinate: 0, nonAbbinate: [], errori: [] };
+export async function caricaImmagini(file: File[], _esercizi: Esercizio[]): Promise<EsitoImmagini> {
+  const payload = await Promise.all(file.map(fileToBase64));
+  return caricaImmaginiFn({ data: { file: payload } });
+}
 
-  for (const f of file) {
-    const numero = numeroDaNomeFile(f.name);
-    const esercizio = numero === null ? undefined : perNumero.get(numero);
-    if (!esercizio) {
-      esito.nonAbbinate.push(f.name);
-      continue;
-    }
-    const percorso = `${String(esercizio.ordine).padStart(3, "0")}/${f.name}`;
-    const { error: erroreUpload } = await supabase.storage
-      .from(BUCKET_IMMAGINI)
-      .upload(percorso, f, f.type ? { upsert: true, contentType: f.type } : { upsert: true });
-    if (erroreUpload) {
-      esito.errori.push(`${f.name}: ${erroreUpload.message}`);
-      continue;
-    }
-    const { error: erroreRiga } = await supabase
-      .from("esercizi")
-      .update({ immagine_url: percorso })
-      .eq("id", esercizio.id);
-    if (erroreRiga) {
-      esito.errori.push(`${f.name}: ${erroreRiga.message}`);
-      continue;
-    }
-    esito.abbinate += 1;
-  }
+export async function salvaEsercizio(dati: {
+  id?: string;
+  nome: string;
+  gruppo_muscolare: GruppoMuscolare;
+  attrezzatura: string | null;
+  tipo: TipoEsercizio;
+  unita_misura: UnitaMisura;
+  descrizione_esecuzione: string | null;
+  errori_comuni: string | null;
+  attivo: boolean;
+  ordine: number;
+}): Promise<void> {
+  await salvaEsercizioFn({ data: dati });
+}
 
-  return esito;
+export async function impostaAttivoEsercizio(id: string, attivo: boolean): Promise<void> {
+  await attivoEsercizioFn({ data: { id, attivo } });
 }

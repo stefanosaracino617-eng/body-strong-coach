@@ -1,6 +1,17 @@
-import { supabase } from "@/integrations/supabase/client";
-import { BUCKET_IMMAGINI, type Esercizio, type UnitaMisura } from "@/lib/esercizi";
+import { fileToBase64, type Esercizio, type UnitaMisura } from "@/lib/esercizi";
 import { oggiRoma } from "@/lib/date";
+import {
+  archiviaSchedaFn,
+  caricaImmagineLiberaFn,
+  duplicaSchedaFn,
+  eserciziSchedaFn,
+  salvaOrdineFn,
+  schedaAttivaFn,
+  schedaClienteAttivaFn,
+  schedaPerAllenamentoFn,
+  schedeClienteFn,
+  scadenzeFn,
+} from "@/lib/fn";
 
 export type StatoScheda = "attiva" | "archiviata";
 
@@ -71,26 +82,11 @@ export function verificaDateScheda(dataInizio: string, dataScadenza: string): vo
 
 /** Scheda con stato attiva (anche se scaduta): serve al gestore. */
 export async function caricaSchedaAttiva(clienteId: string): Promise<Scheda | null> {
-  const { data, error } = await supabase
-    .from("schede")
-    .select("*")
-    .eq("cliente_id", clienteId)
-    .eq("stato", "attiva")
-    .maybeSingle();
-  if (error) throw error;
-  return (data as Scheda | null) ?? null;
+  return schedaAttivaFn({ data: { clienteId } });
 }
 
 export async function caricaEserciziScheda(schedaId: string): Promise<SchedaEsercizio[]> {
-  const { data, error } = await supabase
-    .from("scheda_esercizi")
-    .select(
-      "*, esercizi(nome, gruppo_muscolare, unita_misura, immagine_url, descrizione_esecuzione, errori_comuni)",
-    )
-    .eq("scheda_id", schedaId)
-    .order("ordine", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as unknown as SchedaEsercizio[];
+  return eserciziSchedaFn({ data: { schedaId } });
 }
 
 /**
@@ -98,15 +94,7 @@ export async function caricaEserciziScheda(schedaId: string): Promise<SchedaEser
  * di scadenza, finché il gestore non la archivia o non ne crea una nuova.
  */
 export async function caricaSchedaClienteAttiva(clienteId: string): Promise<Scheda | null> {
-  const { data, error } = await supabase
-    .from("schede")
-    .select("*")
-    .eq("cliente_id", clienteId)
-    .eq("stato", "attiva")
-    .lte("data_inizio", oggiRoma())
-    .maybeSingle();
-  if (error) throw error;
-  return (data as Scheda | null) ?? null;
+  return schedaClienteAttivaFn({ data: { clienteId } });
 }
 
 /**
@@ -114,68 +102,24 @@ export async function caricaSchedaClienteAttiva(clienteId: string): Promise<Sche
  * lo può concludere anche se nel frattempo la scheda è stata archiviata o è scaduta.
  */
 export async function caricaSchedaPerAllenamento(clienteId: string): Promise<Scheda | null> {
-  const attiva = await caricaSchedaClienteAttiva(clienteId);
-  if (attiva) return attiva;
-
-  const { data: aperto, error: erroreAperto } = await supabase
-    .from("allenamenti")
-    .select("scheda_id")
-    .eq("cliente_id", clienteId)
-    .is("completato_at", null)
-    .not("scheda_id", "is", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (erroreAperto) throw erroreAperto;
-  const schedaId = (aperto as { scheda_id: string | null } | null)?.scheda_id;
-  if (!schedaId) return null;
-
-  const { data, error } = await supabase
-    .from("schede")
-    .select("*")
-    .eq("id", schedaId)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as Scheda | null) ?? null;
+  return schedaPerAllenamentoFn({ data: { clienteId } });
 }
 
 /** Archivia subito una scheda: nulla viene cancellato, il cliente smette solo di vederla. */
 export async function archiviaScheda(schedaId: string): Promise<void> {
-  const { error } = await supabase
-    .from("schede")
-    .update({ stato: "archiviata" as const, archiviata_at: new Date().toISOString() })
-    .eq("id", schedaId);
-  if (error) throw error;
+  await archiviaSchedaFn({ data: { schedaId } });
 }
 
 /** Schede in corso dei clienti indicati, anche se già scadute: serve all'elenco clienti. */
 export async function caricaScadenzePerClienti(
   clientiId: string[],
 ): Promise<Record<string, string>> {
-  if (clientiId.length === 0) return {};
-  const { data, error } = await supabase
-    .from("schede")
-    .select("cliente_id, data_scadenza")
-    .in("cliente_id", clientiId)
-    .eq("stato", "attiva")
-    .lte("data_inizio", oggiRoma());
-  if (error) throw error;
-  const mappa: Record<string, string> = {};
-  for (const r of (data ?? []) as { cliente_id: string; data_scadenza: string }[]) {
-    mappa[r.cliente_id] = r.data_scadenza;
-  }
-  return mappa;
+  return scadenzeFn({ data: { clientiId } });
 }
 
 /** Tutte le schede del cliente, dalla più recente: serve al gestore per lo storico e la duplicazione. */
 export async function caricaSchedeCliente(clienteId: string): Promise<Scheda[]> {
-  const { data, error } = await supabase
-    .from("schede")
-    .select("*")
-    .eq("cliente_id", clienteId)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as Scheda[];
+  return schedeClienteFn({ data: { clienteId } });
 }
 
 /** Percorsi immagine (catalogo e liberi) presenti nelle righe della scheda. */
@@ -188,29 +132,15 @@ export function percorsiImmagini(righe: SchedaEsercizio[]): string[] {
   return Array.from(new Set(percorsi));
 }
 
-/** Carica nel deposito privato l'immagine di un esercizio libero e restituisce il percorso salvato. */
+/** Carica nel deposito l'immagine di un esercizio libero e restituisce il percorso salvato. */
 export async function caricaImmagineLibera(schedaId: string, file: File): Promise<string> {
-  const nomePulito = file.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-  const percorso = `libere/${schedaId}/${Date.now()}-${nomePulito}`;
-  const { error } = await supabase.storage
-    .from(BUCKET_IMMAGINI)
-    .upload(percorso, file, file.type ? { upsert: true, contentType: file.type } : { upsert: true });
-  if (error) throw error;
-  return percorso;
+  const payload = await fileToBase64(file);
+  return caricaImmagineLiberaFn({ data: { schedaId, file: payload } });
 }
 
 /** Salva subito il nuovo ordine degli esercizi di una sessione, riusando le posizioni esistenti. */
 export async function salvaOrdine(righe: { id: string; ordine: number }[]): Promise<void> {
-  const posizioni = righe.map((r) => r.ordine).sort((a, b) => a - b);
-  for (const [indice, riga] of righe.entries()) {
-    const nuovo = posizioni[indice]!;
-    if (nuovo === riga.ordine) continue;
-    const { error } = await supabase
-      .from("scheda_esercizi")
-      .update({ ordine: nuovo })
-      .eq("id", riga.id);
-    if (error) throw error;
-  }
+  await salvaOrdineFn({ data: { righe } });
 }
 
 /**
@@ -224,42 +154,14 @@ export async function duplicaScheda(
   titolo?: string,
 ): Promise<string> {
   verificaDateScheda(dataInizio, dataScadenza);
-  const { data, error } = await supabase
-    .from("schede")
-    .insert({
-      cliente_id: origine.cliente_id,
-      titolo: (titolo ?? "").trim() || origine.titolo,
-      data_inizio: dataInizio,
-      data_scadenza: dataScadenza,
-      stato: "attiva" as const,
-      note_gestore: origine.note_gestore,
-    })
-    .select("id")
-    .single();
-  if (error) throw error;
-  const nuovaId = (data as { id: string }).id;
-
-  const righe = await caricaEserciziScheda(origine.id);
-  if (righe.length > 0) {
-    const copie = righe.map((r) => ({
-      scheda_id: nuovaId,
-      esercizio_id: r.esercizio_id,
-      nome_libero: r.nome_libero,
-      descrizione_libera: r.descrizione_libera,
-      immagine_libera_url: r.immagine_libera_url,
-      sessione: r.sessione,
-      ordine: r.ordine,
-      serie: r.serie,
-      ripetizioni: r.ripetizioni,
-      durata_minuti: r.durata_minuti,
-      recupero_secondi: r.recupero_secondi,
-      carico_indicativo: r.carico_indicativo,
-      note: r.note,
-    }));
-    const { error: erroreRighe } = await supabase.from("scheda_esercizi").insert(copie);
-    if (erroreRighe) throw erroreRighe;
-  }
-  return nuovaId;
+  return duplicaSchedaFn({
+    data: {
+      origineId: origine.id,
+      dataInizio,
+      dataScadenza,
+      ...(titolo === undefined ? {} : { titolo }),
+    },
+  });
 }
 
 /** Unità di misura effettiva della riga: dal catalogo, altrimenti serie e ripetizioni. */

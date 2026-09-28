@@ -1,0 +1,7 @@
+[variables]
+NIXPACKS_NODE_VERSION = "22"
+NITRO_PRESET = "node-server"
+NPM_CONFIG_PRODUCTION = "false"
+
+[start]
+cmd = "HOST=0.0.0.0 node .output/server/index.mjs"

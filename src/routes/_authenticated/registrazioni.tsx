@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { caricaSessioneApp, etichettaStato, type Profilo } from "@/lib/profilo";
+import { decidiRegistrazioneFn, elencoProfiliFn } from "@/lib/fn";
 import { formattaData } from "@/lib/date";
 import { caricaIdGestori, soloClienti } from "@/lib/clienti";
 import { avvisoErrore, avvisoOk } from "@/lib/avvisi";
@@ -34,26 +34,17 @@ function Registrazioni() {
     queryKey: ["registrazioni-in-attesa"],
     enabled: sessione.data?.isGestore === true,
     queryFn: async () => {
-      const [gestori, { data, error }] = await Promise.all([
+      const [gestori, data] = await Promise.all([
         caricaIdGestori(),
-        supabase
-          .from("profili")
-          .select("*")
-          .eq("stato", "in_attesa")
-          .order("created_at", { ascending: true }),
+        elencoProfiliFn({ data: { stato: "in_attesa" } }),
       ]);
-      if (error) throw error;
-      return soloClienti((data ?? []) as Profilo[], gestori);
+      return soloClienti(data, gestori);
     },
   });
 
   const decidi = useMutation({
     mutationFn: async ({ id, approva }: { id: string; approva: boolean }) => {
-      const { error } = await supabase
-        .from("profili")
-        .update({ stato: approva ? "approvato" : "sospeso" })
-        .eq("id", id);
-      if (error) throw error;
+      await decidiRegistrazioneFn({ data: { id, approva } });
       return approva;
     },
     onError: () => avvisoErrore("Operazione non riuscita. Riprova."),
