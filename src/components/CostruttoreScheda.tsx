@@ -520,8 +520,8 @@ function CatalogoScheda({
 
   return (
     <aside id="catalogo-scheda" className="card-surface flex max-h-[min(42rem,calc(100vh-6rem))] flex-col gap-3 overflow-hidden p-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
-      <h2 className="text-lg">Aggiungi esercizio</h2>
-      <label className="flex flex-col gap-1 text-sm">
+      <h2 className="shrink-0 text-lg">Aggiungi esercizio</h2>
+      <label className="flex shrink-0 flex-col gap-1 text-sm">
         <span className="text-accent">Cerca nel catalogo</span>
         <input
           className="field"
@@ -535,18 +535,18 @@ function CatalogoScheda({
         />
       </label>
       {ricerca.trim() && (
-        <p className="text-sm text-muted-foreground">
+        <p className="shrink-0 text-sm text-muted-foreground">
           {filtrati.length} {filtrati.length === 1 ? "risultato" : "risultati"}
         </p>
       )}
-      <div className="scorri-chip flex gap-2" aria-label="Gruppi muscolari">
+      <div className="flex shrink-0 flex-wrap gap-2" aria-label="Gruppi muscolari">
         {GRUPPI_MUSCOLARI.map((voce) => {
           const selezionato = !ricerca && voce === gruppo;
           return (
             <button
               key={voce}
               type="button"
-              className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-2 text-sm font-semibold ${
+              className={`whitespace-nowrap rounded-full border px-3 py-2 text-sm font-semibold ${
                 selezionato ? "border-primary bg-primary text-primary-foreground" : "border-border"
               }`}
               onClick={() => {
@@ -589,7 +589,7 @@ function CatalogoScheda({
         ))}
       </ul>
       {filtrati.length > visibili.length && (
-        <button type="button" className="btn-secondary w-full" onClick={() => setLimite((n) => n + 24)}>
+        <button type="button" className="btn-secondary w-full shrink-0" onClick={() => setLimite((n) => n + 24)}>
           Altri {Math.min(24, filtrati.length - visibili.length)} di {filtrati.length}
         </button>
       )}
