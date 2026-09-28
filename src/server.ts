@@ -1,7 +1,42 @@
 import "./lib/error-capture";
 
+import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+
+let importCatalogoAvviato = false;
+
+function avviaImportCatalogo() {
+  if (importCatalogoAvviato) return;
+  importCatalogoAvviato = true;
+  const script = resolve(process.cwd(), "scripts/importa-wger.mjs");
+  if (!existsSync(script)) {
+    console.error("Catalogo wger: script non trovato", script);
+    return;
+  }
+  void (async () => {
+    try {
+      const { db } = await import("./server/db");
+      const righe = await db()`SELECT count(*)::int AS n FROM esercizi WHERE fonte = 'wger'`;
+      const presenti = Number((righe[0] as { n?: number } | undefined)?.n ?? 0);
+      if (presenti >= 800) return;
+      console.log(`Catalogo wger incompleto (${presenti}). Avvio import.`);
+      const processo = spawn(process.execPath, [script], {
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: "inherit",
+      });
+      processo.on("exit", (codice) => {
+        console.log(`Import catalogo terminato con codice ${codice ?? "sconosciuto"}`);
+      });
+    } catch (error) {
+      importCatalogoAvviato = false;
+      console.error("Import catalogo non avviato", error);
+    }
+  })();
+}
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -57,6 +92,7 @@ export default {
       }
       const { assicuraSchema } = await import("./server/db");
       await assicuraSchema();
+      avviaImportCatalogo();
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

@@ -23,6 +23,21 @@ export type GruppoMuscolare = (typeof GRUPPI_MUSCOLARI)[number];
 export function etichettaGruppo(gruppo: string): string {
   return gruppo.charAt(0).toUpperCase() + gruppo.slice(1);
 }
+
+export function esercizioCoincide(
+  esercizio: {
+    nome: string;
+    attrezzatura: string | null;
+    gruppo_muscolare: string;
+    descrizione_esecuzione?: string | null;
+  },
+  testo: string,
+): boolean {
+  const parole = testo.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (parole.length === 0) return true;
+  const contenuto = `${esercizio.nome} ${esercizio.attrezzatura ?? ""} ${esercizio.gruppo_muscolare} ${esercizio.descrizione_esecuzione ?? ""}`.toLowerCase();
+  return parole.every((parola) => contenuto.includes(parola));
+}
 export type TipoEsercizio = "forza" | "cardio";
 export type UnitaMisura = "serie_ripetizioni" | "minuti";
 

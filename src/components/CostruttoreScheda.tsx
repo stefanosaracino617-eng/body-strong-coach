@@ -11,6 +11,7 @@ import {
 import {
   GRUPPI_MUSCOLARI,
   caricaEsercizi,
+  esercizioCoincide,
   etichettaGruppo,
   type Esercizio,
   type GruppoMuscolare,
@@ -508,9 +509,9 @@ function CatalogoScheda({
   }, [attivi]);
 
   const filtrati = useMemo(() => {
-    const testo = ricerca.trim().toLowerCase();
+    const testo = ricerca.trim();
     return attivi.filter((e) => {
-      if (testo) return e.nome.toLowerCase().includes(testo);
+      if (testo) return esercizioCoincide(e, testo);
       return e.gruppo_muscolare === gruppo;
     });
   }, [attivi, gruppo, ricerca]);
@@ -520,16 +521,24 @@ function CatalogoScheda({
   return (
     <aside id="catalogo-scheda" className="card-surface flex flex-col gap-3 p-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
       <h2 className="text-lg">Aggiungi esercizio</h2>
-      <input
-        className="field"
-        value={ricerca}
-        placeholder="Cerca, es. panca"
-        aria-label="Cerca esercizio"
-        onChange={(e) => {
-          setRicerca(e.target.value);
-          setLimite(24);
-        }}
-      />
+      <label className="flex flex-col gap-1 text-sm">
+        <span className="text-accent">Cerca nel catalogo</span>
+        <input
+          className="field"
+          value={ricerca}
+          placeholder="Nome o attrezzo, es. panca manubri"
+          aria-label="Cerca esercizio"
+          onChange={(e) => {
+            setRicerca(e.target.value);
+            setLimite(24);
+          }}
+        />
+      </label>
+      {ricerca.trim() && (
+        <p className="text-sm text-muted-foreground">
+          {filtrati.length} {filtrati.length === 1 ? "risultato" : "risultati"}
+        </p>
+      )}
       <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Gruppi muscolari">
         {GRUPPI_MUSCOLARI.map((voce) => {
           const selezionato = !ricerca && voce === gruppo;

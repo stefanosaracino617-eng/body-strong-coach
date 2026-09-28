@@ -7,6 +7,7 @@ import {
   GRUPPI_MUSCOLARI,
   caricaEsercizi,
   caricaImmagini,
+  esercizioCoincide,
   etichettaGruppo,
   etichettaUnita,
   importaEsercizi,
@@ -184,11 +185,9 @@ function PaginaEsercizi() {
   });
 
   const filtrati = useMemo(() => {
-    const testo = ricerca.trim().toLowerCase();
+    const testo = ricerca.trim();
     return esercizi.filter(
-      (e) =>
-        (!testo || e.nome.toLowerCase().includes(testo)) &&
-        (!filtro || e.gruppo_muscolare === filtro),
+      (e) => esercizioCoincide(e, testo) && (!testo && filtro ? e.gruppo_muscolare === filtro : true),
     );
   }, [esercizi, ricerca, filtro]);
   const conteggi = useMemo(() => {
@@ -235,6 +234,25 @@ function PaginaEsercizi() {
 
   return (
     <Pagina titolo="Catalogo esercizi">
+      <label className="sticky top-0 z-10 flex flex-col gap-2 bg-background py-2 text-base">
+        <span className="text-accent">Cerca nel catalogo</span>
+        <input
+          className="field"
+          value={ricerca}
+          onChange={(e) => {
+            setRicerca(e.target.value);
+            setFiltro("");
+            setQuanti(24);
+          }}
+          placeholder="Nome, attrezzo o muscolo. Es. panca, manubri, squat"
+          aria-label="Cerca un esercizio"
+        />
+        {ricerca.trim() && (
+          <span className="text-sm text-muted-foreground">
+            {filtrati.length} {filtrati.length === 1 ? "risultato" : "risultati"} in tutto il catalogo
+          </span>
+        )}
+      </label>
       {errore && (
         <p className="rounded-[10px] border border-destructive px-3 py-3 text-base text-destructive">
           {errore}
@@ -358,18 +376,6 @@ function PaginaEsercizi() {
       </details>
 
       <div className="flex flex-col gap-3">
-        <label className="flex flex-col gap-2 text-base">
-          <span className="text-accent">Cerca per nome</span>
-          <input
-            className="field"
-            value={ricerca}
-            onChange={(e) => {
-              setRicerca(e.target.value);
-              setQuanti(24);
-            }}
-            placeholder="Es. panca piana"
-          />
-        </label>
         <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Gruppi muscolari">
           <button
             type="button"
@@ -378,6 +384,7 @@ function PaginaEsercizi() {
             }`}
             onClick={() => {
               setFiltro("");
+              setRicerca("");
               setQuanti(24);
             }}
           >
@@ -392,6 +399,7 @@ function PaginaEsercizi() {
               }`}
               onClick={() => {
                 setFiltro(g);
+                setRicerca("");
                 setQuanti(24);
               }}
             >
@@ -465,6 +473,7 @@ function PaginaEsercizi() {
                   className="text-base font-semibold text-accent underline"
                   onClick={() => {
                     setFiltro(gruppo);
+                    setRicerca("");
                     setQuanti(24);
                   }}
                 >

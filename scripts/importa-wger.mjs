@@ -9,7 +9,7 @@ import postgres from "postgres";
 
 function caricaEnv() {
   const file = resolve(process.cwd(), ".env");
-  if (!existsSync(file)) throw new Error("Manca il file .env");
+  if (!existsSync(file)) return;
   for (const riga of readFileSync(file, "utf8").split("\n")) {
     const testo = riga.trim();
     if (!testo || testo.startsWith("#")) continue;
@@ -146,6 +146,13 @@ ALTER TABLE scheda_esercizi ADD COLUMN IF NOT EXISTS metodo text NOT NULL DEFAUL
 ALTER TABLE scheda_esercizi ADD COLUMN IF NOT EXISTS gruppo text;
 ALTER TABLE scheda_esercizi ADD COLUMN IF NOT EXISTS tempo text;
 `);
+
+const blocco = await sql`SELECT pg_try_advisory_lock(84736291) AS ok`;
+if (!blocco[0]?.ok) {
+  console.log("Import catalogo già in corso, esco.");
+  await sql.end();
+  process.exit(0);
+}
 
 const gia = new Set(
   (await sql`SELECT fonte_id FROM esercizi WHERE fonte_id IS NOT NULL`).map((r) => r.fonte_id),
