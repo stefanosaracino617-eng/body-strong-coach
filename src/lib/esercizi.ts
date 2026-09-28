@@ -19,6 +19,10 @@ export const GRUPPI_MUSCOLARI = [
 ] as const;
 
 export type GruppoMuscolare = (typeof GRUPPI_MUSCOLARI)[number];
+
+export function etichettaGruppo(gruppo: string): string {
+  return gruppo.charAt(0).toUpperCase() + gruppo.slice(1);
+}
 export type TipoEsercizio = "forza" | "cardio";
 export type UnitaMisura = "serie_ripetizioni" | "minuti";
 

@@ -2,15 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { caricaSessioneApp } from "@/lib/profilo";
+import { caricaSessioneApp, urlMedia } from "@/lib/profilo";
 import {
   GRUPPI_MUSCOLARI,
   caricaEsercizi,
   caricaImmagini,
+  etichettaGruppo,
   etichettaUnita,
   importaEsercizi,
   leggiFileCatalogo,
-  urlImmagini,
   MESSAGGIO_FORMATO_NON_SUPPORTATO,
   salvaEsercizio,
   impostaAttivoEsercizio,
@@ -74,6 +74,7 @@ function PaginaEsercizi() {
   const [avviso, setAvviso] = useState<string | null>(null);
   const [ricerca, setRicerca] = useState("");
   const [filtro, setFiltro] = useState<"" | GruppoMuscolare>("");
+  const [quanti, setQuanti] = useState(24);
   const [modifica, setModifica] = useState<string | null>(null);
   const [nuovo, setNuovo] = useState(false);
   const [modulo, setModulo] = useState<Modulo>(vuoto);
@@ -92,12 +93,6 @@ function PaginaEsercizi() {
   });
 
   const esercizi = useMemo(() => elenco.data ?? [], [elenco.data]);
-
-  const immagini = useQuery({
-    queryKey: ["immagini-esercizi", esercizi.map((e) => e.immagine_url).join("|")],
-    enabled: gestore && esercizi.length > 0,
-    queryFn: () => urlImmagini(esercizi.map((e) => e.immagine_url ?? "")),
-  });
 
   const invalida = () => queryClient.invalidateQueries({ queryKey: ["catalogo-esercizi"] });
 
@@ -185,7 +180,6 @@ function PaginaEsercizi() {
       ];
       setAnteprima(problemi.length > 0 ? problemi : null);
       queryClient.invalidateQueries({ queryKey: ["catalogo-esercizi"] });
-      queryClient.invalidateQueries({ queryKey: ["immagini-esercizi"] });
     },
   });
 
@@ -197,7 +191,15 @@ function PaginaEsercizi() {
         (!filtro || e.gruppo_muscolare === filtro),
     );
   }, [esercizi, ricerca, filtro]);
-  const visibili = filtrati.slice(0, 60);
+  const conteggi = useMemo(() => {
+    const mappa = new Map<string, number>();
+    for (const esercizio of esercizi) {
+      mappa.set(esercizio.gruppo_muscolare, (mappa.get(esercizio.gruppo_muscolare) ?? 0) + 1);
+    }
+    return mappa;
+  }, [esercizi]);
+
+  const visibili = filtrati.slice(0, quanti);
 
   if (sessione.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
@@ -257,7 +259,12 @@ function PaginaEsercizi() {
         </div>
       )}
 
-      <div className="card-surface flex flex-col gap-4 p-6">
+      <details className="card-surface">
+        <summary className="cursor-pointer px-6 py-4 text-lg font-semibold">
+          Importa catalogo o immagini
+        </summary>
+        <div className="flex flex-col gap-6 px-6 pb-6">
+      <div className="flex flex-col gap-4">
         <h2 className="text-lg">Importa il catalogo</h2>
         <p className="text-base text-muted-foreground">
           Solo file CSV, con le colonne: numero, nome, gruppo_muscolare, attrezzatura, tipo,
@@ -347,32 +354,52 @@ function PaginaEsercizi() {
           <p className="text-base text-muted-foreground">Caricamento in corso…</p>
         )}
       </div>
+        </div>
+      </details>
 
-      <div className="card-surface flex flex-col gap-4 p-6">
+      <div className="flex flex-col gap-3">
         <label className="flex flex-col gap-2 text-base">
           <span className="text-accent">Cerca per nome</span>
           <input
             className="field"
             value={ricerca}
-            onChange={(e) => setRicerca(e.target.value)}
+            onChange={(e) => {
+              setRicerca(e.target.value);
+              setQuanti(24);
+            }}
             placeholder="Es. panca piana"
           />
         </label>
-        <label className="flex flex-col gap-2 text-base">
-          <span className="text-accent">Gruppo muscolare</span>
-          <select
-            className="field"
-            value={filtro}
-            onChange={(e) => setFiltro(e.target.value as "" | GruppoMuscolare)}
+        <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Gruppi muscolari">
+          <button
+            type="button"
+            className={`shrink-0 rounded-full border px-3 py-2 text-sm font-semibold ${
+              filtro === "" ? "border-primary bg-primary text-primary-foreground" : "border-border"
+            }`}
+            onClick={() => {
+              setFiltro("");
+              setQuanti(24);
+            }}
           >
-            <option value="">Tutti i gruppi</option>
-            {GRUPPI_MUSCOLARI.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
-        </label>
+            Tutti
+          </button>
+          {GRUPPI_MUSCOLARI.map((g) => (
+            <button
+              key={g}
+              type="button"
+              className={`shrink-0 rounded-full border px-3 py-2 text-sm font-semibold ${
+                filtro === g ? "border-primary bg-primary text-primary-foreground" : "border-border"
+              }`}
+              onClick={() => {
+                setFiltro(g);
+                setQuanti(24);
+              }}
+            >
+              {etichettaGruppo(g)}
+              <span className="ml-1 opacity-70">{conteggi.get(g) ?? 0}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {nuovo || modifica ? (
@@ -424,64 +451,64 @@ function PaginaEsercizi() {
       {!elenco.isLoading && filtrati.length === 0 && (
         <p className="text-base text-muted-foreground">Nessun esercizio trovato.</p>
       )}
-      {!elenco.isLoading && filtrati.length > visibili.length && (
-        <p className="text-base text-muted-foreground">
-          {filtrati.length} esercizi. Qui ne vedi {visibili.length}: cerca il nome per restringere.
-        </p>
-      )}
 
-      {visibili.map((e) => (
-        <article key={e.id} className="card-surface flex flex-col gap-2 p-6">
-          {e.immagine_url && immagini.data?.[e.immagine_url] && (
-            <div className="immagine-esercizio">
-              <img
-                src={immagini.data[e.immagine_url]}
-                alt={`Esecuzione dell'esercizio ${e.nome}`}
-                loading="lazy"
-              />
-            </div>
-          )}
-          {e.video_url && (
-            <a href={e.video_url} target="_blank" rel="noreferrer" className="text-base font-semibold text-accent underline">
-              Guarda il video
-            </a>
-          )}
-          <h2 className="text-lg">
-            {String(e.ordine).padStart(3, "0")} · {e.nome}
-          </h2>
+      {!elenco.isLoading && !ricerca && !filtro &&
+        GRUPPI_MUSCOLARI.map((gruppo) => {
+          const delGruppo = esercizi.filter((e) => e.gruppo_muscolare === gruppo);
+          if (delGruppo.length === 0) return null;
+          return (
+            <section key={gruppo} className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg">{etichettaGruppo(gruppo)}</h2>
+                <button
+                  type="button"
+                  className="text-base font-semibold text-accent underline"
+                  onClick={() => {
+                    setFiltro(gruppo);
+                    setQuanti(24);
+                  }}
+                >
+                  Vedi tutti ({delGruppo.length})
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {delGruppo.slice(0, 8).map((e) => (
+                  <CartaEsercizio
+                    key={e.id}
+                    esercizio={e}
+                    statoInCorso={cambiaStato.isPending}
+                    onModifica={() => apriModifica(e)}
+                    onStato={() => cambiaStato.mutate(e)}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
+
+      {!elenco.isLoading && (ricerca || filtro) && (
+        <>
           <p className="text-base text-muted-foreground">
-            <span className="text-accent">{e.gruppo_muscolare}</span>
-            {e.attrezzatura ? ` · ${e.attrezzatura}` : ""} · {etichettaUnita[e.unita_misura]}
+            {filtrati.length} {filtrati.length === 1 ? "esercizio" : "esercizi"}
           </p>
-          {e.descrizione_esecuzione && (
-            <p className="line-clamp-3 text-base text-muted-foreground">{e.descrizione_esecuzione}</p>
-          )}
-          {e.errori_comuni && (
-            <p className="text-base text-warning">Errori comuni: {e.errori_comuni}</p>
-          )}
-          {(e.autore || e.licenza) && (
-            <p className="text-sm text-muted-foreground">
-              Fonte: {[e.autore, e.licenza, "wger.de"].filter(Boolean).join(" · ")}
-            </p>
-          )}
-          <p className={`text-base ${e.attivo ? "text-success" : "text-warning"}`}>
-            {e.attivo ? "Attivo" : "Non attivo"}
-          </p>
-          <div className="mt-2 flex flex-col gap-3">
-            <button type="button" className="btn-primary" onClick={() => apriModifica(e)}>
-              Modifica
-            </button>
-            <button
-              type="button"
-              className="btn-secondary w-full"
-              disabled={cambiaStato.isPending}
-              onClick={() => cambiaStato.mutate(e)}
-            >
-              {e.attivo ? "Disattiva" : "Riattiva"}
-            </button>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {visibili.map((e) => (
+              <CartaEsercizio
+                key={e.id}
+                esercizio={e}
+                statoInCorso={cambiaStato.isPending}
+                onModifica={() => apriModifica(e)}
+                onStato={() => cambiaStato.mutate(e)}
+              />
+            ))}
           </div>
-        </article>
-      ))}
+          {filtrati.length > visibili.length && (
+            <button type="button" className="btn-secondary w-full" onClick={() => setQuanti((n) => n + 24)}>
+              Mostra altri
+            </button>
+          )}
+        </>
+      )}
 
       <Link to="/area" className="btn-secondary w-full">
         Torna alla mia area
@@ -595,6 +622,68 @@ function ModuloEsercizio({
         <span>Attivo (utilizzabile nelle schede)</span>
       </label>
     </div>
+  );
+}
+
+function CartaEsercizio({
+  esercizio,
+  statoInCorso,
+  onModifica,
+  onStato,
+}: {
+  esercizio: Esercizio;
+  statoInCorso: boolean;
+  onModifica: () => void;
+  onStato: () => void;
+}) {
+  const foto = urlMedia(esercizio.immagine_url);
+  const [rotta, setRotta] = useState(false);
+  return (
+    <article className="card-surface flex flex-col gap-2 p-3">
+      <div className="flex h-32 items-center justify-center rounded-[10px] bg-white">
+        {foto && !rotta ? (
+          <img
+            src={foto}
+            alt=""
+            className="max-h-28 w-full object-contain"
+            loading="lazy"
+            onError={() => setRotta(true)}
+          />
+        ) : (
+          <span className="px-2 text-center text-sm text-[#003459]">Senza foto</span>
+        )}
+      </div>
+      <h3 className="text-base font-semibold leading-snug">{esercizio.nome}</h3>
+      <p className="text-sm text-muted-foreground">
+        {etichettaGruppo(esercizio.gruppo_muscolare)}
+        {esercizio.attrezzatura ? ` · ${esercizio.attrezzatura}` : ""}
+      </p>
+      {(esercizio.descrizione_esecuzione || esercizio.video_url) && (
+        <details className="text-sm text-muted-foreground">
+          <summary className="cursor-pointer text-accent">Dettagli</summary>
+          {esercizio.descrizione_esecuzione && <p className="mt-2">{esercizio.descrizione_esecuzione}</p>}
+          {esercizio.video_url && (
+            <a href={esercizio.video_url} target="_blank" rel="noreferrer" className="mt-2 block font-semibold text-accent underline">
+              Guarda il video
+            </a>
+          )}
+          {(esercizio.autore || esercizio.licenza) && (
+            <p className="mt-2">
+              Fonte: {[esercizio.autore, esercizio.licenza, "wger.de"].filter(Boolean).join(" · ")}
+            </p>
+          )}
+        </details>
+      )}
+      <p className={`text-sm ${esercizio.attivo ? "text-success" : "text-warning"}`}>
+        {esercizio.attivo ? "Attivo" : "Non attivo"} · {etichettaUnita[esercizio.unita_misura]}
+      </p>
+      <button type="button" className="btn-secondary w-full" onClick={onModifica}>
+        Modifica
+      </button>
+      <button type="button" className="text-sm font-semibold text-accent underline" disabled={statoInCorso} onClick={onStato}>
+        {esercizio.attivo ? "Disattiva" : "Riattiva"}
+      </button>
+    </article>
   );
 }
 

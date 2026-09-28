@@ -1,6 +1,7 @@
 import "./env";
 import { randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
+import { unsealSession } from "h3-v2";
 import { useSession } from "@tanstack/react-start/server";
 import { assicuraSchema, db } from "./db";
 
@@ -56,6 +57,50 @@ export async function idUtenteCorrente(): Promise<string | null> {
   await assicuraSchema();
   const sessione = await useSession<DatiSessione>(configSessione());
   return sessione.data.userId ?? null;
+}
+
+function valoreCookie(header: string | null, nome: string): string | undefined {
+  if (!header) return undefined;
+  for (const parte of header.split(";")) {
+    const indice = parte.indexOf("=");
+    if (indice < 0) continue;
+    if (parte.slice(0, indice).trim() !== nome) continue;
+    const grezzo = parte.slice(indice + 1).trim();
+    try {
+      return decodeURIComponent(grezzo);
+    } catch {
+      return grezzo;
+    }
+  }
+  return undefined;
+}
+
+/** Legge il cookie di sessione anche fuori dal runtime di Start (es. /media). */
+function cookieSessione(header: string | null): string | undefined {
+  const principale = valoreCookie(header, "bs");
+  if (!principale) return undefined;
+  if (!principale.startsWith("__chunked__")) return principale;
+  const pezzi = Number.parseInt(principale.slice(11), 10);
+  if (!Number.isFinite(pezzi) || pezzi < 1 || pezzi > 100) return undefined;
+  const parti: string[] = [];
+  for (let i = 1; i <= pezzi; i += 1) {
+    const pezzo = valoreCookie(header, `bs.${i}`);
+    if (!pezzo) return undefined;
+    parti.push(pezzo);
+  }
+  return parti.join("");
+}
+
+export async function idUtenteDaRichiesta(request: Request): Promise<string | null> {
+  const sigillata = cookieSessione(request.headers.get("cookie"));
+  if (!sigillata) return null;
+  try {
+    const sessione = await unsealSession(undefined as never, configSessione(), sigillata);
+    const dati = sessione.data as DatiSessione | undefined;
+    return dati?.userId ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function richiedeUtente(): Promise<string> {

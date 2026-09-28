@@ -3,51 +3,36 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CaricamentoCard } from "@/components/Stati";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, GripVertical } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { CostruttoreScheda } from "@/components/CostruttoreScheda";
 import { caricaSessioneApp, type Profilo } from "@/lib/profilo";
 import {
   aggiornaAbbonamentoFn,
   aggiornaCertificatoFn,
-  aggiornaRigaSchedaFn,
-  eliminaRigaSchedaFn,
-  inserisciRigaSchedaFn,
   profiloFn,
   salvaSchedaFn,
 } from "@/lib/fn";
 import { CampoData } from "@/components/CampoData";
 import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
-import { aggiungiGiorni, formattaData, formattaDataOra } from "@/lib/date";
+import { aggiungiGiorni, formattaData, formattaDataOra, oggiRoma } from "@/lib/date";
 import {
   abbonamentoSospeso,
   caricaTipiAbbonamento,
   etichettaDurata,
   statoAbbonamento,
 } from "@/lib/abbonamento";
-import { GRUPPI_MUSCOLARI, caricaEsercizi, type GruppoMuscolare } from "@/lib/esercizi";
 import { avvisoErrore, avvisoOk, testoErrore } from "@/lib/avvisi";
 import { esportaCliente } from "@/lib/esportazione";
 import {
   archiviaScheda,
-  caricaEserciziScheda,
-  caricaImmagineLibera,
   caricaSchedaAttiva,
   caricaSchedeCliente,
   duplicaScheda,
-  nomeRiga,
-  numeroOppureNull,
-  salvaOrdine,
-  etichettaMetodo,
-  GRUPPI_BLOCCO,
-  METODI_SCHEDA,
-  metodoScheda,
   schedaScaduta,
   schedaProgrammata,
   testoOppureNull,
   verificaDateScheda,
-  unitaRiga,
-  valoriIniziali,
   type Scheda,
-  type SchedaEsercizio,
 } from "@/lib/schede";
 
 export const Route = createFileRoute("/_authenticated/scheda")({
@@ -143,16 +128,6 @@ function PaginaScheda() {
         </p>
       )}
 
-      <CertificatoCliente clienteId={cliente} valore={profilo.data?.certificato_scadenza ?? null} />
-
-      <AbbonamentoCliente clienteId={cliente} profilo={profilo.data ?? null} />
-
-      <EsportaCliente
-        clienteId={cliente}
-        cognome={profilo.data?.cognome ?? ""}
-        nome={profilo.data?.nome ?? ""}
-      />
-
       {scheda.isLoading && <CaricamentoCard />}
 
       {!scheda.isLoading && !scheda.data && (
@@ -167,16 +142,38 @@ function PaginaScheda() {
 
       {scheda.data && (
         <>
-          <DatiScheda
-            clienteId={cliente}
-            scheda={scheda.data}
-            abbonamentoScadenza={profilo.data?.abbonamento_scadenza ?? null}
-            onErrore={setErrore}
-            onFatto={() => queryClient.invalidateQueries({ queryKey: ["scheda-attiva", cliente] })}
-          />
-          <Sessioni scheda={scheda.data} onErrore={setErrore} />
+          <CostruttoreScheda scheda={scheda.data} onErrore={setErrore} />
+          <details className="card-surface">
+            <summary className="cursor-pointer px-6 py-4 text-base font-semibold">
+              Date e note · {formattaData(scheda.data.data_inizio)} – {formattaData(scheda.data.data_scadenza)}
+            </summary>
+            <div className="px-2 pb-2">
+              <DatiScheda
+                clienteId={cliente}
+                scheda={scheda.data}
+                abbonamentoScadenza={profilo.data?.abbonamento_scadenza ?? null}
+                onErrore={setErrore}
+                onFatto={() => queryClient.invalidateQueries({ queryKey: ["scheda-attiva", cliente] })}
+              />
+            </div>
+          </details>
         </>
       )}
+
+      <details className="card-surface">
+        <summary className="cursor-pointer px-6 py-4 text-base font-semibold">
+          Abbonamento, certificato ed export
+        </summary>
+        <div className="flex flex-col gap-4 px-4 pb-4">
+          <CertificatoCliente clienteId={cliente} valore={profilo.data?.certificato_scadenza ?? null} />
+          <AbbonamentoCliente clienteId={cliente} profilo={profilo.data ?? null} />
+          <EsportaCliente
+            clienteId={cliente}
+            cognome={profilo.data?.cognome ?? ""}
+            nome={profilo.data?.nome ?? ""}
+          />
+        </div>
+      </details>
 
       <SchedeArchiviate clienteId={cliente} onDuplica={(id) => setDuplicaDa(id)} />
 
@@ -451,9 +448,11 @@ function DatiScheda({
   onErrore: (m: string | null) => void;
   onFatto: () => void;
 }) {
-  const [titolo, setTitolo] = useState(scheda?.titolo ?? "");
-  const [inizio, setInizio] = useState(scheda?.data_inizio ?? "");
-  const [scadenza, setScadenza] = useState(scheda?.data_scadenza ?? "");
+  const [titolo, setTitolo] = useState(scheda?.titolo ?? "Scheda di allenamento");
+  const [inizio, setInizio] = useState(() => scheda?.data_inizio ?? oggiRoma());
+  const [scadenza, setScadenza] = useState(
+    () => scheda?.data_scadenza ?? aggiungiGiorni(oggiRoma(), 56) ?? "",
+  );
   const [note, setNote] = useState(scheda?.note_gestore ?? "");
 
   const salva = useMutation({
@@ -485,7 +484,13 @@ function DatiScheda({
 
   return (
     <section className="card-surface flex flex-col gap-4 p-6">
-      <h2 className="text-lg">{scheda ? "Dati della scheda" : "Nuova scheda"}</h2>
+      <h2 className="text-lg">{scheda ? "Dati della scheda" : "Crea la scheda"}</h2>
+      {!scheda && (
+        <p className="text-base text-muted-foreground">
+          Parte oggi e dura 8 settimane. Dopo la creazione aggiungi gli esercizi per gruppo
+          muscolare.
+        </p>
+      )}
       {scheda && scheda.stato === "attiva" && (
         <div className="flex flex-col gap-1">
           {schedaProgrammata(scheda) ? (
@@ -550,7 +555,7 @@ function DatiScheda({
         disabled={salva.isPending}
         onClick={() => salva.mutate()}
       >
-        {scheda ? "Salva dati scheda" : "Crea scheda"}
+        {scheda ? "Salva dati scheda" : "Crea scheda e aggiungi esercizi"}
       </button>
       {scheda && scheda.stato === "attiva" && (
         <ArchiviaOra scheda={scheda} onErrore={onErrore} onFatto={onFatto} />
@@ -611,679 +616,6 @@ function ArchiviaOra({
       </button>
       <button type="button" className="btn-secondary" onClick={() => setConferma(false)}>
         Annulla
-      </button>
-    </div>
-  );
-}
-
-function Sessioni({ scheda, onErrore }: { scheda: Scheda; onErrore: (m: string | null) => void }) {
-  const queryClient = useQueryClient();
-  const [nuovaSessione, setNuovaSessione] = useState("");
-  const [aggiunte, setAggiunte] = useState<string[]>([]);
-
-  const righe = useQuery({
-    queryKey: ["scheda-esercizi", scheda.id],
-    queryFn: () => caricaEserciziScheda(scheda.id),
-  });
-
-  const elenco = righe.data ?? [];
-
-  const sessioni = useMemo(() => {
-    const daDb = elenco.map((r) => r.sessione);
-    return Array.from(new Set([...daDb, ...aggiunte])).filter((s) => s !== "");
-  }, [elenco, aggiunte]);
-
-  const invalida = () => queryClient.invalidateQueries({ queryKey: ["scheda-esercizi", scheda.id] });
-
-  return (
-    <section className="flex flex-col gap-6">
-      <div className="card-surface flex flex-col gap-4 p-6">
-        <h2 className="text-lg">Sessioni</h2>
-        <p className="text-base text-muted-foreground">
-          Dai un&apos;etichetta libera a ogni sessione, ad esempio «Giorno A - Petto e tricipiti»
-          oppure «Parte A».
-        </p>
-        <label className="flex flex-col gap-2 text-base">
-          <span className="text-accent">Etichetta della sessione</span>
-          <input
-            className="field"
-            value={nuovaSessione}
-            onChange={(e) => setNuovaSessione(e.target.value)}
-            placeholder="Es. Giorno A - Petto e tricipiti"
-          />
-        </label>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => {
-            const etichetta = nuovaSessione.trim();
-            if (!etichetta) return;
-            setAggiunte((a) => (a.includes(etichetta) ? a : [...a, etichetta]));
-            setNuovaSessione("");
-          }}
-        >
-          Aggiungi sessione
-        </button>
-      </div>
-
-      {righe.isLoading && <CaricamentoCard />}
-
-      {sessioni.length === 0 && !righe.isLoading && (
-        <p className="text-base text-muted-foreground">Nessuna sessione: aggiungine una.</p>
-      )}
-
-      {sessioni.map((s) => (
-        <SessioneScheda
-          key={s}
-          schedaId={scheda.id}
-          etichetta={s}
-          righe={elenco.filter((r) => r.sessione === s)}
-          totaleRighe={elenco.length}
-          onErrore={onErrore}
-          onAggiornato={invalida}
-        />
-      ))}
-    </section>
-  );
-}
-
-function SessioneScheda({
-  schedaId,
-  etichetta,
-  righe,
-  totaleRighe,
-  onErrore,
-  onAggiornato,
-}: {
-  schedaId: string;
-  etichetta: string;
-  righe: SchedaEsercizio[];
-  totaleRighe: number;
-  onErrore: (m: string | null) => void;
-  onAggiornato: () => void;
-}) {
-  const [aperta, setAperta] = useState(false);
-  const [apriCatalogo, setApriCatalogo] = useState(false);
-  const [apriLibero, setApriLibero] = useState(false);
-  const [ricerca, setRicerca] = useState("");
-  const [filtro, setFiltro] = useState<"" | GruppoMuscolare>("");
-  const [trascinato, setTrascinato] = useState<number | null>(null);
-  const [ordinate, setOrdinate] = useState<SchedaEsercizio[]>(righe);
-
-  const chiaveRighe = righe.map((r) => r.id).join("|");
-  useEffect(() => {
-    setOrdinate(righe);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chiaveRighe]);
-
-  const catalogo = useQuery({
-    queryKey: ["catalogo-esercizi"],
-    enabled: apriCatalogo,
-    queryFn: caricaEsercizi,
-  });
-
-  const disponibili = useMemo(() => {
-    const testo = ricerca.trim().toLowerCase();
-    return (catalogo.data ?? [])
-      .filter((e) => e.attivo)
-      .filter(
-        (e) =>
-          (!testo || e.nome.toLowerCase().includes(testo)) &&
-          (!filtro || e.gruppo_muscolare === filtro),
-      )
-      .slice(0, 80);
-  }, [catalogo.data, ricerca, filtro]);
-
-  const aggiungi = useMutation({
-    mutationFn: async (esercizioId: string) => {
-      const e = (catalogo.data ?? []).find((x) => x.id === esercizioId);
-      if (!e) throw new Error("Esercizio non trovato.");
-      const iniziali = valoriIniziali(e);
-      await inserisciRigaSchedaFn({
-        data: {
-          scheda_id: schedaId,
-          esercizio_id: e.id,
-          nome_libero: null,
-          descrizione_libera: null,
-          immagine_libera_url: null,
-          sessione: etichetta,
-          ordine: totaleRighe + 1,
-          serie: iniziali.serie,
-          ripetizioni: iniziali.ripetizioni,
-          durata_minuti: iniziali.durata_minuti,
-          recupero_secondi: null,
-          carico_indicativo: null,
-          note: null,
-        },
-      });
-    },
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Aggiunta non riuscita."),
-    onSuccess: () => {
-      onErrore(null);
-      onAggiornato();
-    },
-  });
-
-  const riordina = useMutation({
-    mutationFn: (elenco: SchedaEsercizio[]) => salvaOrdine(elenco.map((r) => ({ id: r.id, ordine: r.ordine }))),
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Riordino non riuscito."),
-    onSuccess: () => {
-      onErrore(null);
-      onAggiornato();
-    },
-  });
-
-  const spostaA = (da: number, a: number) => {
-    if (a < 0 || a >= ordinate.length || da === a) return;
-    const copia = [...ordinate];
-    const [voce] = copia.splice(da, 1);
-    if (!voce) return;
-    copia.splice(a, 0, voce);
-    setOrdinate(copia);
-    riordina.mutate(copia);
-  };
-
-  return (
-    <article className="card-surface overflow-hidden">
-      <button
-        type="button"
-        className="flex min-h-16 w-full items-center justify-between gap-4 p-5 text-left"
-        aria-expanded={aperta}
-        onClick={() => setAperta((valore) => !valore)}
-      >
-        <span>
-          <span className="block font-display text-lg font-bold">{etichetta}</span>
-          <span className="mt-1 block text-base text-muted-foreground">
-            {righe.length} {righe.length === 1 ? "esercizio" : "esercizi"}
-          </span>
-        </span>
-        <ChevronDown
-          aria-hidden="true"
-          className={`h-7 w-7 shrink-0 text-accent transition-transform ${aperta ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {aperta && (
-        <div className="flex flex-col gap-4 border-t border-border p-6">
-          {ordinate.length === 0 && (
-            <p className="text-base text-muted-foreground">Nessun esercizio in questa sessione.</p>
-          )}
-
-          {ordinate.length > 1 && (
-            <p className="text-base text-muted-foreground">
-              Trascina un esercizio per cambiarne la posizione, oppure usa le frecce. Per un
-              superset, un triset o un circuito assegna lo stesso gruppo agli esercizi da eseguire
-              di seguito.
-            </p>
-          )}
-
-          {ordinate.map((r, indice) => (
-            <div
-              key={r.id}
-              draggable
-              onDragStart={() => setTrascinato(indice)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                if (trascinato !== null) spostaA(trascinato, indice);
-                setTrascinato(null);
-              }}
-              onDragEnd={() => setTrascinato(null)}
-              className={trascinato === indice ? "opacity-60" : undefined}
-            >
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-base text-muted-foreground">
-                  <GripVertical aria-hidden="true" className="h-6 w-6 text-accent" />
-                  Posizione {indice + 1}
-                </span>
-                <span className="flex gap-2">
-                  <button
-                    type="button"
-                    className="btn-secondary min-h-12 px-4"
-                    aria-label={`Sposta ${nomeRiga(r)} in su`}
-                    disabled={indice === 0 || riordina.isPending}
-                    onClick={() => spostaA(indice, indice - 1)}
-                  >
-                    <ArrowUp aria-hidden="true" className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary min-h-12 px-4"
-                    aria-label={`Sposta ${nomeRiga(r)} in giù`}
-                    disabled={indice === ordinate.length - 1 || riordina.isPending}
-                    onClick={() => spostaA(indice, indice + 1)}
-                  >
-                    <ArrowDown aria-hidden="true" className="h-5 w-5" />
-                  </button>
-                </span>
-              </div>
-              <RigaEsercizio riga={r} onErrore={onErrore} onAggiornato={onAggiornato} />
-            </div>
-          ))}
-
-          {!apriCatalogo ? (
-            <button type="button" className="btn-primary" onClick={() => setApriCatalogo(true)}>
-              Aggiungi esercizio dal catalogo
-            </button>
-          ) : (
-            <div className="flex flex-col gap-4 rounded-[10px] border border-border p-4">
-          <label className="flex flex-col gap-2 text-base">
-            <span className="text-accent">Cerca per nome</span>
-            <input
-              className="field"
-              value={ricerca}
-              onChange={(e) => setRicerca(e.target.value)}
-              placeholder="Es. panca piana"
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-base">
-            <span className="text-accent">Gruppo muscolare</span>
-            <select
-              className="field"
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value as "" | GruppoMuscolare)}
-            >
-              <option value="">Tutti i gruppi</option>
-              {GRUPPI_MUSCOLARI.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {catalogo.isLoading && <CaricamentoCard />}
-          {!catalogo.isLoading && disponibili.length === 0 && (
-            <p className="text-base text-muted-foreground">Nessun esercizio trovato.</p>
-          )}
-
-          {disponibili.map((e) => (
-            <button
-              key={e.id}
-              type="button"
-              className="btn-secondary w-full text-left"
-              disabled={aggiungi.isPending}
-              onClick={() => aggiungi.mutate(e.id)}
-            >
-              {e.nome} · <span className="text-accent">{e.gruppo_muscolare}</span>
-            </button>
-          ))}
-
-              <button type="button" className="btn-secondary w-full" onClick={() => setApriCatalogo(false)}>
-                Chiudi catalogo
-              </button>
-            </div>
-          )}
-
-          {!apriLibero ? (
-            <button type="button" className="btn-secondary w-full" onClick={() => setApriLibero(true)}>
-              Aggiungi esercizio libero
-            </button>
-          ) : (
-            <EsercizioLibero
-              schedaId={schedaId}
-              etichetta={etichetta}
-              ordine={totaleRighe + 1}
-              onErrore={onErrore}
-              onChiudi={() => setApriLibero(false)}
-              onAggiunto={onAggiornato}
-            />
-          )}
-        </div>
-      )}
-    </article>
-  );
-}
-
-function EsercizioLibero({
-  schedaId,
-  etichetta,
-  ordine,
-  onErrore,
-  onChiudi,
-  onAggiunto,
-}: {
-  schedaId: string;
-  etichetta: string;
-  ordine: number;
-  onErrore: (m: string | null) => void;
-  onChiudi: () => void;
-  onAggiunto: () => void;
-}) {
-  const [nome, setNome] = useState("");
-  const [descrizione, setDescrizione] = useState("");
-  const [aMinuti, setAMinuti] = useState(false);
-  const [serie, setSerie] = useState("3");
-  const [ripetizioni, setRipetizioni] = useState("8-10");
-  const [durata, setDurata] = useState("10");
-  const [recupero, setRecupero] = useState("");
-  const [carico, setCarico] = useState("");
-  const [note, setNote] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-
-  const crea = useMutation({
-    mutationFn: async () => {
-      const nomePulito = nome.trim();
-      if (!nomePulito) throw new Error("Il nome dell'esercizio libero è obbligatorio.");
-      const percorso = file ? await caricaImmagineLibera(schedaId, file) : null;
-      const prescrizione = aMinuti
-        ? { serie: null, ripetizioni: null, durata_minuti: numeroOppureNull(durata) }
-        : {
-            serie: numeroOppureNull(serie),
-            ripetizioni: testoOppureNull(ripetizioni),
-            durata_minuti: null,
-          };
-      await inserisciRigaSchedaFn({
-        data: {
-          scheda_id: schedaId,
-          esercizio_id: null,
-          nome_libero: nomePulito,
-          descrizione_libera: testoOppureNull(descrizione),
-          immagine_libera_url: percorso,
-          sessione: etichetta,
-          ordine,
-          ...prescrizione,
-          recupero_secondi: numeroOppureNull(recupero),
-          carico_indicativo: testoOppureNull(carico),
-          note: testoOppureNull(note),
-        },
-      });
-    },
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Aggiunta non riuscita."),
-    onSuccess: () => {
-      onErrore(null);
-      onAggiunto();
-      onChiudi();
-    },
-  });
-
-  return (
-    <div className="flex flex-col gap-4 rounded-[10px] border border-border p-4">
-      <h3 className="text-lg">Esercizio libero fuori catalogo</h3>
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Nome</span>
-        <input
-          className="field"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          placeholder="Es. Affondi con manubri"
-        />
-      </label>
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Descrizione</span>
-        <textarea
-          className="field min-h-[96px]"
-          value={descrizione}
-          onChange={(e) => setDescrizione(e.target.value)}
-        />
-      </label>
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Immagine (facoltativa)</span>
-        <input
-          className="field"
-          type="file"
-          accept="image/*"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-        />
-      </label>
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Misurazione</span>
-        <select
-          className="field"
-          value={aMinuti ? "minuti" : "serie_ripetizioni"}
-          onChange={(e) => setAMinuti(e.target.value === "minuti")}
-        >
-          <option value="serie_ripetizioni">Serie e ripetizioni</option>
-          <option value="minuti">Minuti</option>
-        </select>
-      </label>
-
-      {aMinuti ? (
-        <label className="flex flex-col gap-2 text-base">
-          <span className="text-accent">Durata (minuti)</span>
-          <input
-            className="field"
-            inputMode="numeric"
-            value={durata}
-            onChange={(e) => setDurata(e.target.value)}
-          />
-        </label>
-      ) : (
-        <>
-          <label className="flex flex-col gap-2 text-base">
-            <span className="text-accent">Serie</span>
-            <input
-              className="field"
-              inputMode="numeric"
-              value={serie}
-              onChange={(e) => setSerie(e.target.value)}
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-base">
-            <span className="text-accent">Ripetizioni</span>
-            <input
-              className="field"
-              value={ripetizioni}
-              onChange={(e) => setRipetizioni(e.target.value)}
-            />
-          </label>
-        </>
-      )}
-
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Recupero (secondi)</span>
-        <input
-          className="field"
-          inputMode="numeric"
-          value={recupero}
-          onChange={(e) => setRecupero(e.target.value)}
-        />
-      </label>
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Carico indicativo</span>
-        <input className="field" value={carico} onChange={(e) => setCarico(e.target.value)} />
-      </label>
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Note</span>
-        <textarea
-          className="field min-h-[80px]"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
-      </label>
-
-      <button
-        type="button"
-        className="btn-primary"
-        disabled={crea.isPending}
-        onClick={() => crea.mutate()}
-      >
-        Aggiungi esercizio libero
-      </button>
-      <button type="button" className="btn-secondary w-full" onClick={onChiudi}>
-        Annulla
-      </button>
-    </div>
-  );
-}
-
-function RigaEsercizio({
-  riga,
-  onErrore,
-  onAggiornato,
-}: {
-  riga: SchedaEsercizio;
-  onErrore: (m: string | null) => void;
-  onAggiornato: () => void;
-}) {
-  const aMinuti = unitaRiga(riga) === "minuti";
-  const [serie, setSerie] = useState(riga.serie === null ? "" : String(riga.serie));
-  const [ripetizioni, setRipetizioni] = useState(riga.ripetizioni ?? "");
-  const [durata, setDurata] = useState(riga.durata_minuti === null ? "" : String(riga.durata_minuti));
-  const [recupero, setRecupero] = useState(
-    riga.recupero_secondi === null ? "" : String(riga.recupero_secondi),
-  );
-  const [carico, setCarico] = useState(riga.carico_indicativo ?? "");
-  const [note, setNote] = useState(riga.note ?? "");
-  const [metodo, setMetodo] = useState(riga.metodo ?? "normale");
-  const [gruppo, setGruppo] = useState(riga.gruppo ?? "A");
-  const [tempo, setTempo] = useState(riga.tempo ?? "");
-
-  const salva = useMutation({
-    mutationFn: async () => {
-      const valori = aMinuti
-        ? { serie: null, ripetizioni: null, durata_minuti: numeroOppureNull(durata) }
-        : {
-            serie: numeroOppureNull(serie),
-            ripetizioni: testoOppureNull(ripetizioni),
-            durata_minuti: null,
-          };
-      await aggiornaRigaSchedaFn({
-        data: {
-          id: riga.id,
-          ...valori,
-          recupero_secondi: numeroOppureNull(recupero),
-          carico_indicativo: testoOppureNull(carico),
-          note: testoOppureNull(note),
-          metodo: metodoScheda(metodo),
-          gruppo: metodo === "normale" ? null : gruppo,
-          tempo: testoOppureNull(tempo),
-        },
-      });
-    },
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Salvataggio non riuscito."),
-    onSuccess: () => {
-      onErrore(null);
-      onAggiornato();
-    },
-  });
-
-  const rimuovi = useMutation({
-    mutationFn: async () => {
-      await eliminaRigaSchedaFn({ data: { id: riga.id } });
-    },
-    onError: (e) => onErrore(e instanceof Error ? e.message : "Rimozione non riuscita."),
-    onSuccess: () => {
-      onErrore(null);
-      onAggiornato();
-    },
-  });
-
-  return (
-    <div className="flex flex-col gap-3 rounded-[10px] border border-border p-4">
-      <p className="text-base font-semibold">{nomeRiga(riga)}</p>
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Metodo</span>
-        <select
-          className="field"
-          value={metodo}
-          onChange={(e) => setMetodo(metodoScheda(e.target.value))}
-        >
-          {METODI_SCHEDA.map((voce) => (
-            <option key={voce} value={voce}>
-              {etichettaMetodo[voce]}
-            </option>
-          ))}
-        </select>
-      </label>
-      {metodo !== "normale" && (
-        <label className="flex flex-col gap-2 text-base">
-          <span className="text-accent">Gruppo</span>
-          <select className="field" value={gruppo} onChange={(e) => setGruppo(e.target.value)}>
-            {GRUPPI_BLOCCO.map((lettera) => (
-              <option key={lettera} value={lettera}>
-                Gruppo {lettera}
-              </option>
-            ))}
-          </select>
-          <span className="text-sm text-muted-foreground">
-            Gli esercizi con lo stesso gruppo, in questa sessione, si eseguono di seguito. Il
-            recupero si fa a fine blocco.
-          </span>
-        </label>
-      )}
-      {!aMinuti && (
-        <label className="flex flex-col gap-2 text-base">
-          <span className="text-accent">Tempo, facoltativo</span>
-          <input
-            className="field"
-            value={tempo}
-            onChange={(e) => setTempo(e.target.value)}
-            placeholder="Es. 3-0-1-0"
-          />
-        </label>
-      )}
-
-      {aMinuti ? (
-        <label className="flex flex-col gap-2 text-base">
-          <span className="text-accent">Durata (minuti)</span>
-          <input
-            className="field"
-            inputMode="numeric"
-            value={durata}
-            onChange={(e) => setDurata(e.target.value)}
-          />
-        </label>
-      ) : (
-        <>
-          <label className="flex flex-col gap-2 text-base">
-            <span className="text-accent">Serie</span>
-            <input
-              className="field"
-              inputMode="numeric"
-              value={serie}
-              onChange={(e) => setSerie(e.target.value)}
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-base">
-            <span className="text-accent">Ripetizioni</span>
-            <input
-              className="field"
-              value={ripetizioni}
-              onChange={(e) => setRipetizioni(e.target.value)}
-              placeholder="Es. 8-10"
-            />
-          </label>
-        </>
-      )}
-
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Recupero (secondi)</span>
-        <input
-          className="field"
-          inputMode="numeric"
-          value={recupero}
-          onChange={(e) => setRecupero(e.target.value)}
-        />
-      </label>
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Carico indicativo</span>
-        <input className="field" value={carico} onChange={(e) => setCarico(e.target.value)} />
-      </label>
-      <label className="flex flex-col gap-2 text-base">
-        <span className="text-accent">Note</span>
-        <textarea
-          className="field min-h-[80px]"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
-      </label>
-
-      <button
-        type="button"
-        className="btn-primary"
-        disabled={salva.isPending}
-        onClick={() => salva.mutate()}
-      >
-        Salva esercizio
-      </button>
-      <button
-        type="button"
-        className="btn-secondary w-full"
-        disabled={rimuovi.isPending}
-        onClick={() => rimuovi.mutate()}
-      >
-        Rimuovi
       </button>
     </div>
   );

@@ -623,10 +623,12 @@ export async function caricaImmagineLibera(
   return percorso;
 }
 
-export async function leggiMedia(path: string): Promise<{ contentType: string; bytes: Uint8Array } | null> {
+export async function leggiMedia(
+  path: string,
+  utenteId: string,
+): Promise<{ contentType: string; bytes: Uint8Array } | null> {
   await assicuraSchema();
-  const id = await idUtenteCorrente();
-  if (!id) return null;
+  if (!utenteId) return null;
   const righe = await db()`SELECT content_type, bytes FROM media WHERE path = ${path} LIMIT 1`;
   const r = righe[0] as { content_type: string; bytes: Uint8Array } | undefined;
   if (!r) return null;

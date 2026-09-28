@@ -184,9 +184,14 @@ function Clienti() {
               </button>
             </>
           ) : (
-            <button type="button" className="btn-primary" onClick={() => setAperto(p.id)}>
-              Apri dettaglio
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" className="btn-secondary w-full" onClick={() => setAperto(p.id)}>
+                Dettaglio
+              </button>
+              <Link to="/scheda" search={{ cliente: p.id }} className="btn-primary text-center">
+                {mappaScadenze[p.id] ? "Scheda" : "Crea scheda"}
+              </Link>
+            </div>
           )}
         </article>
         ))}
