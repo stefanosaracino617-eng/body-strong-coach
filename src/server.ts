@@ -8,6 +8,19 @@ import { renderErrorPage } from "./lib/error-page";
 
 let importCatalogoAvviato = false;
 
+function applicaTraduzioni() {
+  const script = resolve(process.cwd(), "scripts/applica-traduzioni.mjs");
+  if (!existsSync(script) || !existsSync(resolve(process.cwd(), "data/descrizioni-it.json"))) return;
+  const processo = spawn(process.execPath, [script], {
+    cwd: process.cwd(),
+    env: process.env,
+    stdio: "inherit",
+  });
+  processo.on("exit", (codice) => {
+    console.log(`Traduzioni applicate con codice ${codice ?? "sconosciuto"}`);
+  });
+}
+
 function avviaImportCatalogo() {
   if (importCatalogoAvviato) return;
   importCatalogoAvviato = true;
@@ -21,7 +34,10 @@ function avviaImportCatalogo() {
       const { db } = await import("./server/db");
       const righe = await db()`SELECT count(*)::int AS n FROM esercizi WHERE fonte = 'wger'`;
       const presenti = Number((righe[0] as { n?: number } | undefined)?.n ?? 0);
-      if (presenti >= 800) return;
+      if (presenti >= 800) {
+        applicaTraduzioni();
+        return;
+      }
       console.log(`Catalogo wger incompleto (${presenti}). Avvio import.`);
       const processo = spawn(process.execPath, [script], {
         cwd: process.cwd(),
@@ -30,6 +46,7 @@ function avviaImportCatalogo() {
       });
       processo.on("exit", (codice) => {
         console.log(`Import catalogo terminato con codice ${codice ?? "sconosciuto"}`);
+        applicaTraduzioni();
       });
     } catch (error) {
       importCatalogoAvviato = false;

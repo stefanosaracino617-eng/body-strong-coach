@@ -249,12 +249,6 @@ function EsercizioCliente({ riga, immagini }: { riga: SchedaEsercizio; immagini:
           {riga.tempo && <Parametro etichetta="Tempo" valore={riga.tempo} />}
           {riga.carico_indicativo && <Parametro etichetta="Carico indicativo" valore={riga.carico_indicativo} />}
           {riga.note && <Parametro etichetta="Note del gestore" valore={riga.note} />}
-          {(riga.esercizi?.autore || riga.esercizi?.licenza) && (
-            <Parametro
-              etichetta="Fonte"
-              valore={[riga.esercizi.autore, riga.esercizi.licenza, "wger.de"].filter(Boolean).join(" · ")}
-            />
-          )}
         </dl>
       )}
     </article>

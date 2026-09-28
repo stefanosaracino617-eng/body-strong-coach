@@ -451,11 +451,6 @@ function PaginaEsercizi() {
 
       {elenco.isLoading && <CaricamentoCard />}
       {elenco.isError && <BloccoErrore onRiprova={() => elenco.refetch()} />}
-      <p className="text-sm text-muted-foreground">
-        Il catalogo di base arriva da wger, con licenza Creative Commons. Nome in italiano quando
-        c&apos;è, altrimenti in inglese, come si usa in sala.
-      </p>
-
       {!elenco.isLoading && filtrati.length === 0 && (
         <p className="text-base text-muted-foreground">Nessun esercizio trovato.</p>
       )}
@@ -676,11 +671,6 @@ function CartaEsercizio({
               Guarda il video
             </a>
           )}
-          {(esercizio.autore || esercizio.licenza) && (
-            <p className="mt-2">
-              Fonte: {[esercizio.autore, esercizio.licenza, "wger.de"].filter(Boolean).join(" · ")}
-            </p>
-          )}
         </details>
       )}
       <p className={`text-sm ${esercizio.attivo ? "text-success" : "text-warning"}`}>
@@ -698,9 +688,14 @@ function CartaEsercizio({
 
 function Pagina({ titolo, children }: { titolo: string; children?: React.ReactNode }) {
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-md flex-col gap-6">
-        <h1 className="text-2xl">{titolo}</h1>
+    <main className="pagina">
+      <div className="pagina-contenuto">
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <h1 className="text-2xl">{titolo}</h1>
+          <Link to="/area" className="text-sm font-semibold text-accent">
+            Torna all&apos;area
+          </Link>
+        </header>
         {children}
       </div>
     </main>
