@@ -376,10 +376,10 @@ function PaginaEsercizi() {
       </details>
 
       <div className="flex flex-col gap-3">
-        <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Gruppi muscolari">
+        <div className="scorri-chip flex gap-2" aria-label="Gruppi muscolari">
           <button
             type="button"
-            className={`shrink-0 rounded-full border px-3 py-2 text-sm font-semibold ${
+            className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-2 text-sm font-semibold ${
               filtro === "" ? "border-primary bg-primary text-primary-foreground" : "border-border"
             }`}
             onClick={() => {
@@ -394,7 +394,7 @@ function PaginaEsercizi() {
             <button
               key={g}
               type="button"
-              className={`shrink-0 rounded-full border px-3 py-2 text-sm font-semibold ${
+              className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-2 text-sm font-semibold ${
                 filtro === g ? "border-primary bg-primary text-primary-foreground" : "border-border"
               }`}
               onClick={() => {

@@ -158,6 +158,40 @@
   outline-offset: 1px;
 }
 
+/* Riga di chip che scorre in orizzontale, senza la barra che ci finisce sopra. */
+@utility scorri-chip {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+}
+
+@utility scorri-y {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #58adec transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #58adec;
+    border-radius: 999px;
+  }
+}
+
 @utility immagine-esercizio {
   display: flex;
   justify-content: center;

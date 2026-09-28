@@ -147,7 +147,7 @@ export function CostruttoreScheda({
           </button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Giornate della scheda">
+        <div className="scorri-chip flex gap-2" role="tablist" aria-label="Giornate della scheda">
           {giornate.map((nome) => {
             const quanti = elenco.filter((r) => r.sessione === nome).length;
             const selezionata = nome === attiva;
@@ -157,7 +157,7 @@ export function CostruttoreScheda({
                 type="button"
                 role="tab"
                 aria-selected={selezionata}
-                className={`shrink-0 rounded-full border px-4 py-2 text-base font-semibold ${
+                className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-base font-semibold ${
                   selezionata ? "border-primary bg-primary text-primary-foreground" : "border-border"
                 }`}
                 onClick={() => setAttiva(nome)}
@@ -519,7 +519,7 @@ function CatalogoScheda({
   const visibili = filtrati.slice(0, limite);
 
   return (
-    <aside id="catalogo-scheda" className="card-surface flex flex-col gap-3 p-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
+    <aside id="catalogo-scheda" className="card-surface flex max-h-[min(42rem,calc(100vh-6rem))] flex-col gap-3 overflow-hidden p-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
       <h2 className="text-lg">Aggiungi esercizio</h2>
       <label className="flex flex-col gap-1 text-sm">
         <span className="text-accent">Cerca nel catalogo</span>
@@ -539,14 +539,14 @@ function CatalogoScheda({
           {filtrati.length} {filtrati.length === 1 ? "risultato" : "risultati"}
         </p>
       )}
-      <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Gruppi muscolari">
+      <div className="scorri-chip flex gap-2" aria-label="Gruppi muscolari">
         {GRUPPI_MUSCOLARI.map((voce) => {
           const selezionato = !ricerca && voce === gruppo;
           return (
             <button
               key={voce}
               type="button"
-              className={`shrink-0 rounded-full border px-3 py-2 text-sm font-semibold ${
+              className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-2 text-sm font-semibold ${
                 selezionato ? "border-primary bg-primary text-primary-foreground" : "border-border"
               }`}
               onClick={() => {
@@ -567,7 +567,7 @@ function CatalogoScheda({
         <p className="text-base text-muted-foreground">Nessun esercizio in questo gruppo.</p>
       )}
 
-      <ul className="flex flex-col gap-2 overflow-y-auto lg:min-h-0">
+      <ul className="scorri-y flex min-h-0 flex-1 flex-col gap-2">
         {visibili.map((esercizio) => (
           <li key={esercizio.id}>
             <button
