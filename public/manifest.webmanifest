@@ -1,13 +1,16 @@
 {
+  "id": "/",
   "name": "Body Strong Coach",
   "short_name": "Body Strong",
+  "description": "Schede, allenamenti e area soci della palestra Body Strong Fitness Club.",
   "lang": "it",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
   "theme_color": "#003459",
   "background_color": "#003459",
+  "prefer_related_applications": false,
+  "categories": ["health", "fitness"],
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

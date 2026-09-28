@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { SenzaConnessione } from "@/components/SenzaConnessione";
+import { avviaInstallazioneApp } from "@/lib/prompt-installa";
 
 function NotFoundComponent() {
   return (
@@ -147,6 +148,10 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    avviaInstallazioneApp();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

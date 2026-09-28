@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Library,
   LogOut,
+  Monitor,
   ScrollText,
   Shield,
   Smartphone,
@@ -51,6 +52,7 @@ const VOCI_CLIENTE: Voce[] = [
   { to: "/obiettivi", label: "Obiettivi", icona: Target },
   { to: "/regole", label: "Regole", icona: ScrollText },
   { to: "/avvertenze", label: "Avvertenze", icona: TriangleAlert },
+  { to: "/installa", label: "Installa", icona: Monitor },
 ];
 
 function voceAttiva(voce: Voce, pathname: string): boolean {
