@@ -1,13 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { caricaSessioneApp } from "@/lib/profilo";
-import { esciFn } from "@/lib/fn";
 import { caricaObiettiviCliente } from "@/lib/obiettivi";
-import { caricaSchedaClienteAttiva } from "@/lib/schede";
-import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
+import { DashboardCliente } from "@/components/DashboardCliente";
 import { DashboardGestore } from "@/components/DashboardGestore";
-import { BloccoErrore, CaricamentoCard } from "@/components/Stati";
+import { CaricamentoCard } from "@/components/Stati";
 import { StrisciaInstalla } from "@/components/StrisciaInstalla";
 import { caricaRegole, regoleNonVuote } from "@/lib/regole";
 import { statoCertificato } from "@/lib/certificato";
@@ -36,7 +34,6 @@ export const Route = createFileRoute("/_authenticated/area")({
 
 function Area() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["sessione-app"],
     queryFn: caricaSessioneApp,
@@ -54,15 +51,6 @@ function Area() {
     },
   });
 
-  const scheda = useQuery({
-    queryKey: ["mia-scheda-attiva", profilo0?.id],
-    enabled: deveSceglierne,
-    queryFn: () => {
-      if (!profilo0) return Promise.resolve(null);
-      return caricaSchedaClienteAttiva(profilo0.id);
-    },
-  });
-
   const regole = useQuery({ queryKey: ["regole-palestra"], queryFn: caricaRegole });
   const regoleVisibili = regoleNonVuote(regole.data?.contenuto);
 
@@ -71,14 +59,6 @@ function Area() {
   useEffect(() => {
     if (nessunObiettivo) navigate({ to: "/obiettivi", replace: true });
   }, [nessunObiettivo, navigate]);
-
-  async function esci() {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await esciFn();
-    navigate({ to: "/", replace: true });
-  }
-
 
   if (isLoading) {
     return (
@@ -90,7 +70,7 @@ function Area() {
 
   if (!data) {
     return (
-      <Schermo titolo="Profilo non disponibile" esci={esci}>
+      <Schermo titolo="Profilo non disponibile">
         <p className="text-base text-muted-foreground">
           Non riusciamo a trovare i tuoi dati. Prova a uscire e ad accedere di nuovo.
         </p>
@@ -102,27 +82,32 @@ function Area() {
 
   if (isGestore) {
     return (
-      <Schermo titolo={`Ciao ${profilo.nome || "gestore"}`} esci={esci} contenutoLibero>
+      <Schermo titolo={`Ciao ${profilo.nome || "gestore"}`} contenutoLibero>
         <DashboardGestore />
-        <Link to="/catalogo-obiettivi" className="btn-secondary w-full">
-          Catalogo obiettivi
-        </Link>
-        <Link to="/accessi" className="btn-secondary w-full">
-          Gestione accessi
-        </Link>
-        <Link to="/regole" className="btn-secondary w-full">
-          Regole della palestra
-        </Link>
-        <Link to="/installa" className="btn-secondary w-full">
-          Installa l&apos;app
-        </Link>
+        <div className="flex flex-col gap-3 lg:hidden">
+          <Link to="/abbonamenti" className="btn-secondary w-full">
+            Tipi di abbonamento
+          </Link>
+          <Link to="/catalogo-obiettivi" className="btn-secondary w-full">
+            Catalogo obiettivi
+          </Link>
+          <Link to="/accessi" className="btn-secondary w-full">
+            Gestione accessi
+          </Link>
+          <Link to="/regole" className="btn-secondary w-full">
+            Regole della palestra
+          </Link>
+          <Link to="/installa" className="btn-secondary w-full">
+            Installa l&apos;app
+          </Link>
+        </div>
       </Schermo>
     );
   }
 
   if (profilo.stato === "in_attesa") {
     return (
-      <Schermo titolo="Registrazione in attesa" esci={esci}>
+      <Schermo titolo="Registrazione in attesa">
         <p className="text-base text-muted-foreground">
           Grazie {profilo.nome}, la tua registrazione è stata ricevuta. Il gestore la verificherà al
           più presto: riceverai accesso alla tua scheda di allenamento non appena sarà approvata.
@@ -136,7 +121,7 @@ function Area() {
 
   if (profilo.stato === "sospeso") {
     return (
-      <Schermo titolo="Account sospeso" esci={esci}>
+      <Schermo titolo="Account sospeso">
         <p className="text-base text-muted-foreground">
           Il tuo account è sospeso. Rivolgiti al gestore della palestra per riattivarlo.
         </p>
@@ -147,46 +132,23 @@ function Area() {
   const sospeso = abbonamentoSospeso(profilo.abbonamento_scadenza);
 
   return (
-    <Schermo titolo={`Ciao ${profilo.nome}`} esci={esci} contenutoLibero>
+    <Schermo titolo={`Ciao ${profilo.nome}`} contenutoLibero>
       <AvvisoCertificato scadenza={profilo.certificato_scadenza} />
       <AvvisoAbbonamento scadenza={profilo.abbonamento_scadenza} />
-      {sospeso ? (
-        <div className="rounded-[10px] border border-destructive px-4 py-6 text-center text-lg text-destructive">
-          Il tuo abbonamento è scaduto il {formattaData(profilo.abbonamento_scadenza)}. Rivolgiti in
-          palestra per il rinnovo.
-        </div>
-      ) : (
-        <>
-          {scheda.isLoading && <CaricamentoCard quante={2} />}
-          {scheda.isError && <BloccoErrore onRiprova={() => scheda.refetch()} />}
-          {!scheda.isLoading && !scheda.isError && !scheda.data && (
-            <div className="card-surface flex flex-col items-center gap-2 p-6 text-center">
-              <p className="text-xl font-semibold">Non hai ancora una scheda di allenamento.</p>
-              <p className="text-base text-muted-foreground">
-                Rivolgiti all&apos;istruttore per riceverla.
-              </p>
-            </div>
-          )}
-          {scheda.data && <VistaSchedaCliente scheda={scheda.data} conAvvio avvisoScaduta />}
-        </>
-      )}
-      <Link to="/storico" className="btn-secondary w-full">
-        Storico allenamenti
-      </Link>
-      <Link to="/obiettivi" className="btn-secondary w-full">
-        I miei obiettivi ({miei.data?.length ?? 0})
-      </Link>
-      {regoleVisibili && (
-        <Link to="/regole" className="btn-secondary w-full">
-          Regole della palestra
+      <DashboardCliente profilo={profilo} allenamentoBloccato={sospeso} />
+      <div className="flex flex-col gap-3 lg:hidden">
+        {regoleVisibili && (
+          <Link to="/regole" className="btn-secondary w-full">
+            Regole della palestra
+          </Link>
+        )}
+        <Link to="/avvertenze" className="btn-secondary w-full">
+          Avvertenze
         </Link>
-      )}
-      <Link to="/avvertenze" className="btn-secondary w-full">
-        Avvertenze
-      </Link>
-      <Link to="/installa" className="btn-secondary w-full">
-        Installa l&apos;app
-      </Link>
+        <Link to="/installa" className="btn-secondary w-full">
+          Installa l&apos;app
+        </Link>
+      </div>
       <StrisciaInstalla />
       <div className="h-14" aria-hidden="true" />
     </Schermo>
@@ -246,26 +208,19 @@ function AvvisoCertificato({ scadenza }: { scadenza: string | null }) {
 function Schermo({
   titolo,
   children,
-  esci,
   contenutoLibero = false,
 }: {
   titolo: string;
   children?: React.ReactNode;
-  esci?: () => void;
   contenutoLibero?: boolean;
 }) {
   return (
     <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <h1 className="text-2xl">{titolo}</h1>
         <div className={contenutoLibero ? "flex flex-col gap-4" : "card-surface flex flex-col gap-4 p-6"}>
           {children}
         </div>
-        {esci && (
-          <button type="button" className="btn-secondary w-full" onClick={esci}>
-            Esci
-          </button>
-        )}
       </div>
     </main>
   );

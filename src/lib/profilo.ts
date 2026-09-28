@@ -21,6 +21,7 @@ export type Profilo = {
   data_approvazione: string | null;
   consenso_avvertenze: boolean;
   data_consenso_avvertenze: string | null;
+  foto_url: string | null;
   created_at: string;
 };
 
@@ -31,6 +32,19 @@ export type SessioneApp = {
 
 export async function caricaSessioneApp(): Promise<SessioneApp | null> {
   return sessioneAppFn();
+}
+
+export function urlMedia(path: string | null | undefined): string | null {
+  if (!path) return null;
+  return `/media/${path
+    .split("/")
+    .map((parte) => encodeURIComponent(parte))
+    .join("/")}`;
+}
+
+export function iniziali(nome: string, cognome: string): string {
+  const lettere = `${nome.trim().charAt(0)}${cognome.trim().charAt(0)}`.toUpperCase();
+  return lettere || "?";
 }
 
 export const etichettaStato: Record<StatoProfilo, string> = {

@@ -34,6 +34,18 @@ export const sessioneAppFn = createServerFn({ method: "GET" }).handler(async () 
   return repo.caricaSessioneApp();
 });
 
+export const salvaFotoProfiloFn = createServerFn({ method: "POST" })
+  .validator((d: { contentType: string; base64: string }) => d)
+  .handler(async ({ data }) => {
+    const repo = await import("@/server/repo");
+    return repo.salvaFotoProfilo(data);
+  });
+
+export const rimuoviFotoProfiloFn = createServerFn({ method: "POST" }).handler(async () => {
+  const repo = await import("@/server/repo");
+  await repo.rimuoviFotoProfilo();
+});
+
 export const idGestoriFn = createServerFn({ method: "GET" }).handler(async () => {
   const repo = await import("@/server/repo");
   return repo.caricaIdGestori();
@@ -65,6 +77,32 @@ export const assegnaGestoreFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const repo = await import("@/server/repo");
     await repo.assegnaGestore(data.userId, data.assegna);
+  });
+
+export const tipiAbbonamentoFn = createServerFn({ method: "POST" })
+  .validator((d: { soloAttivi: boolean }) => d)
+  .handler(async ({ data }) => {
+    const repo = await import("@/server/repo");
+    return repo.caricaTipiAbbonamento(data.soloAttivi);
+  });
+
+export const salvaTipoAbbonamentoFn = createServerFn({ method: "POST" })
+  .validator((d: {
+    id?: string;
+    nome: string;
+    durata_giorni: number | null;
+    attivo: boolean;
+  }) => d)
+  .handler(async ({ data }) => {
+    const repo = await import("@/server/repo");
+    await repo.salvaTipoAbbonamento(data);
+  });
+
+export const eliminaTipoAbbonamentoFn = createServerFn({ method: "POST" })
+  .validator((d: { id: string }) => d)
+  .handler(async ({ data }) => {
+    const repo = await import("@/server/repo");
+    await repo.eliminaTipoAbbonamento(data.id);
   });
 
 export const aggiornaAbbonamentoFn = createServerFn({ method: "POST" })
@@ -308,6 +346,9 @@ export const aggiornaRigaSchedaFn = createServerFn({ method: "POST" })
     recupero_secondi: number | null;
     carico_indicativo: string | null;
     note: string | null;
+    metodo: string;
+    gruppo: string | null;
+    tempo: string | null;
   }) => d)
   .handler(async ({ data }) => {
     const repo = await import("@/server/repo");

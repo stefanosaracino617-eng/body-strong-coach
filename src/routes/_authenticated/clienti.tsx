@@ -9,6 +9,7 @@ import { formattaData, formattaDataOra, giorniAllaScadenza } from "@/lib/date";
 import { caricaScadenzePerClienti } from "@/lib/schede";
 import { caricaIdGestori, soloClienti } from "@/lib/clienti";
 import { andamentoCarico, riepilogoCliente } from "@/lib/allenamenti";
+import { FotoProfilo } from "@/components/FotoProfilo";
 import { BloccoErrore, CaricamentoCard, StatoVuoto } from "@/components/Stati";
 
 type Filtro = "tutti" | "in-scadenza" | "senza-scheda" | "abbonamento";
@@ -132,9 +133,12 @@ function Clienti() {
         !errore &&
         voci.map((p) => (
         <article key={p.id} className="card-surface flex flex-col gap-3 p-6">
-          <h2 className="text-lg">
-            {p.nome} {p.cognome}
-          </h2>
+          <div className="flex items-center gap-3">
+            <FotoProfilo nome={p.nome} cognome={p.cognome} fotoUrl={p.foto_url} misura="sm" />
+            <h2 className="text-lg">
+              {p.nome} {p.cognome}
+            </h2>
+          </div>
           {abbonamentoSospeso(p.abbonamento_scadenza) && (
             <span className="inline-block w-fit rounded-[10px] border border-destructive px-2 py-1 text-base text-destructive">
               Sospeso - abbonamento scaduto il {formattaData(p.abbonamento_scadenza)}
@@ -301,7 +305,7 @@ function Riga({ etichetta, valore }: { etichetta: string; valore: string }) {
 function Pagina({ titolo, children }: { titolo: string; children?: React.ReactNode }) {
   return (
     <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-md flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
         <h1 className="text-2xl">{titolo}</h1>
         {children}
       </div>

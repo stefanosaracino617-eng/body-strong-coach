@@ -12,8 +12,13 @@ import type {
 } from "@/lib/allenamenti";
 import type { Scheda, SchedaEsercizio } from "@/lib/schede";
 import { certificatoDaRinnovare } from "@/lib/certificato";
+import { metodoScheda } from "@/lib/schede";
 import { abbonamentoDaRinnovare } from "@/lib/abbonamento";
 import { giorniAllaScadenza, oggiRoma } from "@/lib/date";
+
+function metodoDaTesto(valore: unknown) {
+  return metodoScheda(valore == null ? null : testo(valore));
+}
 
 function chiaveEsercizio(riga: { esercizio_id: string | null; nome_libero: string | null }): string {
   return riga.esercizio_id ?? `libero:${(riga.nome_libero ?? "").trim().toLowerCase()}`;
@@ -52,6 +57,7 @@ function mappaProfilo(r: Record<string, unknown>): Profilo {
     data_approvazione: isoIstante(r.data_approvazione),
     consenso_avvertenze: booleano(r.consenso_avvertenze),
     data_consenso_avvertenze: isoIstante(r.data_consenso_avvertenze),
+    foto_url: r.foto_url == null ? null : testo(r.foto_url),
     created_at: isoIstante(r.created_at) ?? "",
   };
 }
@@ -67,6 +73,11 @@ function mappaEsercizio(r: Record<string, unknown>): Esercizio {
     descrizione_esecuzione: r.descrizione_esecuzione == null ? null : testo(r.descrizione_esecuzione),
     errori_comuni: r.errori_comuni == null ? null : testo(r.errori_comuni),
     immagine_url: r.immagine_url == null ? null : testo(r.immagine_url),
+    video_url: r.video_url == null ? null : testo(r.video_url),
+    fonte: r.fonte == null ? null : testo(r.fonte),
+    fonte_id: r.fonte_id == null ? null : testo(r.fonte_id),
+    licenza: r.licenza == null ? null : testo(r.licenza),
+    autore: r.autore == null ? null : testo(r.autore),
     attivo: booleano(r.attivo, true),
     ordine: Number(r.ordine),
     created_at: isoIstante(r.created_at) ?? "",
@@ -239,6 +250,17 @@ export async function aggiornaAbbonamento(
   },
 ): Promise<void> {
   await richiedeGestore();
+  if (valori.tipo_abbonamento) {
+    const [trovato, attuale] = await Promise.all([
+      db()`SELECT 1 FROM tipi_abbonamento WHERE nome = ${valori.tipo_abbonamento} LIMIT 1`,
+      db()`SELECT tipo_abbonamento FROM profili WHERE id = ${id} LIMIT 1`,
+    ]);
+    const gia =
+      attuale[0] && (attuale[0] as { tipo_abbonamento: string | null }).tipo_abbonamento;
+    if (trovato.length === 0 && gia !== valori.tipo_abbonamento) {
+      throw new Error("Scegli un tipo di abbonamento dall'elenco.");
+    }
+  }
   await db()`
     UPDATE profili SET
       tipo_abbonamento = ${valori.tipo_abbonamento},
@@ -248,9 +270,100 @@ export async function aggiornaAbbonamento(
   `;
 }
 
+export async function caricaTipiAbbonamento(soloAttivi: boolean): Promise<
+  { id: string; nome: string; durata_giorni: number | null; ordine: number; attivo: boolean }[]
+> {
+  await richiedeGestore();
+  const righe = soloAttivi
+    ? await db()`SELECT * FROM tipi_abbonamento WHERE attivo = true ORDER BY ordine ASC, nome ASC`
+    : await db()`SELECT * FROM tipi_abbonamento ORDER BY ordine ASC, nome ASC`;
+  return (righe as Record<string, unknown>[]).map((r) => ({
+    id: testo(r.id),
+    nome: testo(r.nome),
+    durata_giorni: r.durata_giorni == null ? null : Number(r.durata_giorni),
+    ordine: Number(r.ordine ?? 0),
+    attivo: booleano(r.attivo, true),
+  }));
+}
+
+export async function salvaTipoAbbonamento(dati: {
+  id?: string;
+  nome: string;
+  durata_giorni: number | null;
+  attivo: boolean;
+}): Promise<void> {
+  await richiedeGestore();
+  const nome = dati.nome.trim();
+  if (!nome) throw new Error("Il nome è obbligatorio.");
+  if (dati.durata_giorni != null && (!Number.isInteger(dati.durata_giorni) || dati.durata_giorni < 1 || dati.durata_giorni > 3650)) {
+    throw new Error("La durata deve essere un numero di giorni tra 1 e 3650, oppure vuota.");
+  }
+  try {
+    await db().begin(async (tx) => {
+      if (dati.id) {
+        const attuali = await tx`SELECT nome FROM tipi_abbonamento WHERE id = ${dati.id} LIMIT 1`;
+        const vecchio = attuali[0] ? testo((attuali[0] as { nome: string }).nome) : null;
+        await tx`
+          UPDATE tipi_abbonamento SET
+            nome = ${nome},
+            durata_giorni = ${dati.durata_giorni},
+            attivo = ${dati.attivo}
+          WHERE id = ${dati.id}
+        `;
+        if (vecchio && vecchio !== nome) {
+          await tx`UPDATE profili SET tipo_abbonamento = ${nome} WHERE tipo_abbonamento = ${vecchio}`;
+        }
+      } else {
+        const ultimo = await tx`SELECT COALESCE(MAX(ordine), 0) AS ordine FROM tipi_abbonamento`;
+        const ordine = Number((ultimo[0] as { ordine: number }).ordine) + 10;
+        await tx`
+          INSERT INTO tipi_abbonamento (nome, durata_giorni, ordine, attivo)
+          VALUES (${nome}, ${dati.durata_giorni}, ${ordine}, ${dati.attivo})
+        `;
+      }
+    });
+  } catch (err) {
+    erroreDb(err);
+  }
+}
+
+export async function eliminaTipoAbbonamento(id: string): Promise<void> {
+  await richiedeGestore();
+  await db()`DELETE FROM tipi_abbonamento WHERE id = ${id}`;
+}
+
 export async function aggiornaCertificato(id: string, certificato_scadenza: string | null): Promise<void> {
   await richiedeGestore();
   await db()`UPDATE profili SET certificato_scadenza = ${certificato_scadenza} WHERE id = ${id}`;
+}
+
+const TIPI_FOTO = new Set(["image/jpeg", "image/png", "image/webp"]);
+const FOTO_MAX_BYTE = 2_500_000;
+
+/** Il cliente salva la propria foto profilo. Il percorso resta stabile, così una nuova foto sostituisce la precedente. */
+export async function salvaFotoProfilo(file: { contentType: string; base64: string }): Promise<string> {
+  const id = await richiedeUtente();
+  if (!TIPI_FOTO.has(file.contentType)) {
+    throw new Error("Usa una foto JPG, PNG o WebP.");
+  }
+  const bytes = Buffer.from(file.base64, "base64");
+  if (bytes.length === 0) throw new Error("Il file della foto è vuoto.");
+  if (bytes.length > FOTO_MAX_BYTE) throw new Error("La foto deve pesare meno di 2,5 MB.");
+  const percorso = `profili/${id}`;
+  await db()`
+    INSERT INTO media (path, content_type, bytes)
+    VALUES (${percorso}, ${file.contentType}, ${bytes})
+    ON CONFLICT (path) DO UPDATE SET content_type = EXCLUDED.content_type, bytes = EXCLUDED.bytes
+  `;
+  await db()`UPDATE profili SET foto_url = ${percorso} WHERE id = ${id}`;
+  return percorso;
+}
+
+export async function rimuoviFotoProfilo(): Promise<void> {
+  const id = await richiedeUtente();
+  const percorso = `profili/${id}`;
+  await db()`UPDATE profili SET foto_url = NULL WHERE id = ${id}`;
+  await db()`DELETE FROM media WHERE path = ${percorso}`;
 }
 
 export async function caricaCatalogoObiettivi(soloAttivi: boolean): Promise<Obiettivo[]> {
@@ -564,8 +677,11 @@ export async function caricaEserciziScheda(schedaId: string): Promise<SchedaEser
       e.gruppo_muscolare AS e_gruppo,
       e.unita_misura AS e_unita,
       e.immagine_url AS e_immagine,
+      e.video_url AS e_video,
       e.descrizione_esecuzione AS e_descrizione,
-      e.errori_comuni AS e_errori
+      e.errori_comuni AS e_errori,
+      e.licenza AS e_licenza,
+      e.autore AS e_autore
     FROM scheda_esercizi se
     LEFT JOIN esercizi e ON e.id = se.esercizio_id
     WHERE se.scheda_id = ${schedaId}
@@ -586,14 +702,20 @@ export async function caricaEserciziScheda(schedaId: string): Promise<SchedaEser
     recupero_secondi: numeroONull(r.recupero_secondi),
     carico_indicativo: r.carico_indicativo == null ? null : testo(r.carico_indicativo),
     note: r.note == null ? null : testo(r.note),
+    metodo: metodoDaTesto(r.metodo),
+    gruppo: r.gruppo == null || testo(r.gruppo) === "" ? null : testo(r.gruppo),
+    tempo: r.tempo == null || testo(r.tempo) === "" ? null : testo(r.tempo),
     esercizi: r.e_nome
       ? {
           nome: testo(r.e_nome),
           gruppo_muscolare: testo(r.e_gruppo),
           unita_misura: r.e_unita as UnitaMisura,
           immagine_url: r.e_immagine == null ? null : testo(r.e_immagine),
+          video_url: r.e_video == null ? null : testo(r.e_video),
           descrizione_esecuzione: r.e_descrizione == null ? null : testo(r.e_descrizione),
           errori_comuni: r.e_errori == null ? null : testo(r.e_errori),
+          licenza: r.e_licenza == null ? null : testo(r.e_licenza),
+          autore: r.e_autore == null ? null : testo(r.e_autore),
         }
       : null,
   }));
@@ -662,11 +784,13 @@ export async function duplicaScheda(
     await db()`
       INSERT INTO scheda_esercizi (
         scheda_id, esercizio_id, nome_libero, descrizione_libera, immagine_libera_url,
-        sessione, ordine, serie, ripetizioni, durata_minuti, recupero_secondi, carico_indicativo, note
+        sessione, ordine, serie, ripetizioni, durata_minuti, recupero_secondi, carico_indicativo, note,
+        metodo, gruppo, tempo
       ) VALUES (
         ${nuovaId}, ${r.esercizio_id}, ${r.nome_libero}, ${r.descrizione_libera}, ${r.immagine_libera_url},
         ${r.sessione}, ${r.ordine}, ${r.serie}, ${r.ripetizioni}, ${r.durata_minuti},
-        ${r.recupero_secondi}, ${r.carico_indicativo}, ${r.note}
+        ${r.recupero_secondi}, ${r.carico_indicativo}, ${r.note},
+        ${r.metodo}, ${r.gruppo}, ${r.tempo}
       )
     `;
   }
@@ -734,14 +858,20 @@ export async function aggiornaRigaScheda(
     recupero_secondi: number | null;
     carico_indicativo: string | null;
     note: string | null;
+    metodo: string;
+    gruppo: string | null;
+    tempo: string | null;
   },
 ): Promise<void> {
   await richiedeGestore();
+  const metodo = metodoScheda(valori.metodo);
+  const gruppo = metodo === "normale" ? null : valori.gruppo;
   await db()`
     UPDATE scheda_esercizi SET
       serie = ${valori.serie}, ripetizioni = ${valori.ripetizioni},
       durata_minuti = ${valori.durata_minuti}, recupero_secondi = ${valori.recupero_secondi},
-      carico_indicativo = ${valori.carico_indicativo}, note = ${valori.note}
+      carico_indicativo = ${valori.carico_indicativo}, note = ${valori.note},
+      metodo = ${metodo}, gruppo = ${gruppo}, tempo = ${valori.tempo}
     WHERE id = ${id}
   `;
 }

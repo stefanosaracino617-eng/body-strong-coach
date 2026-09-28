@@ -17,7 +17,7 @@ export function StrisciaInstalla() {
   if (!visibile) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card px-4 py-3">
+    <div className="fixed inset-x-0 bottom-16 z-40 border-t border-border bg-card px-4 py-3 lg:bottom-0">
       <div className="mx-auto flex w-full max-w-2xl items-center gap-3">
         <Link to="/installa" className="flex-1 text-base text-accent underline">
           Aggiungi Body Strong alla schermata del telefono

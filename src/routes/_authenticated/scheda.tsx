@@ -16,8 +16,13 @@ import {
 } from "@/lib/fn";
 import { CampoData } from "@/components/CampoData";
 import { VistaSchedaCliente } from "@/components/VistaSchedaCliente";
-import { formattaData, formattaDataOra } from "@/lib/date";
-import { abbonamentoSospeso, statoAbbonamento } from "@/lib/abbonamento";
+import { aggiungiGiorni, formattaData, formattaDataOra } from "@/lib/date";
+import {
+  abbonamentoSospeso,
+  caricaTipiAbbonamento,
+  etichettaDurata,
+  statoAbbonamento,
+} from "@/lib/abbonamento";
 import { GRUPPI_MUSCOLARI, caricaEsercizi, type GruppoMuscolare } from "@/lib/esercizi";
 import { avvisoErrore, avvisoOk, testoErrore } from "@/lib/avvisi";
 import { esportaCliente } from "@/lib/esportazione";
@@ -31,6 +36,10 @@ import {
   nomeRiga,
   numeroOppureNull,
   salvaOrdine,
+  etichettaMetodo,
+  GRUPPI_BLOCCO,
+  METODI_SCHEDA,
+  metodoScheda,
   schedaScaduta,
   schedaProgrammata,
   testoOppureNull,
@@ -253,6 +262,10 @@ function AbbonamentoCliente({
   const [tipo, setTipo] = useState(profilo?.tipo_abbonamento ?? "");
   const [inizio, setInizio] = useState(profilo?.abbonamento_inizio ?? "");
   const [scadenza, setScadenza] = useState(profilo?.abbonamento_scadenza ?? "");
+  const tipi = useQuery({
+    queryKey: ["tipi-abbonamento", "attivi"],
+    queryFn: () => caricaTipiAbbonamento(true),
+  });
 
   useEffect(() => {
     setTipo(profilo?.tipo_abbonamento ?? "");
@@ -280,6 +293,7 @@ function AbbonamentoCliente({
     onError: (e) => avvisoErrore(e instanceof Error ? e.message : "Salvataggio non riuscito."),
   });
 
+  const scelto = (tipi.data ?? []).find((t) => t.nome === tipo);
   const stato = statoAbbonamento(profilo?.abbonamento_scadenza ?? null);
   const sospeso = abbonamentoSospeso(profilo?.abbonamento_scadenza ?? null);
 
@@ -299,15 +313,69 @@ function AbbonamentoCliente({
       )}
       <label className="flex flex-col gap-2 text-base">
         <span className="text-accent">Tipo di abbonamento</span>
-        <input
+        <select
           className="field"
           value={tipo}
-          onChange={(e) => setTipo(e.target.value)}
-          placeholder="Es. Mensile, Trimestrale, Annuale, Open"
-        />
+          onChange={(e) => {
+            const nome = e.target.value;
+            setTipo(nome);
+            const trovato = (tipi.data ?? []).find((t) => t.nome === nome);
+            if (trovato?.durata_giorni && inizio) {
+              const fine = aggiungiGiorni(inizio, trovato.durata_giorni);
+              if (fine) setScadenza(fine);
+            }
+          }}
+        >
+          <option value="">Nessun tipo</option>
+          {(tipi.data ?? []).map((t) => (
+            <option key={t.id} value={t.nome}>
+              {t.nome} · {etichettaDurata(t.durata_giorni)}
+            </option>
+          ))}
+          {tipo && !(tipi.data ?? []).some((t) => t.nome === tipo) && (
+            <option value={tipo}>{tipo} (non più in elenco)</option>
+          )}
+        </select>
       </label>
-      <CampoData label="Abbonamento dal" value={inizio} onChange={setInizio} />
-      <CampoData label="Abbonamento valido fino al" value={scadenza} onChange={setScadenza} />
+      {(tipi.data ?? []).length === 0 && !tipi.isLoading && (
+        <p className="text-base text-muted-foreground">
+          Non ci sono tipi da scegliere.{" "}
+          <Link to="/abbonamenti" className="text-accent underline">
+            Definisci i tipi di abbonamento
+          </Link>
+          .
+        </p>
+      )}
+      {(tipi.data ?? []).length > 0 && (
+        <Link to="/abbonamenti" className="text-base text-accent underline">
+          Gestisci i tipi di abbonamento
+        </Link>
+      )}
+      <CampoData
+        label="Abbonamento dal"
+        value={inizio}
+        anniAvanti={2}
+        onChange={(valore) => {
+          setInizio(valore);
+          const trovato = (tipi.data ?? []).find((t) => t.nome === tipo);
+          if (trovato?.durata_giorni && valore) {
+            const fine = aggiungiGiorni(valore, trovato.durata_giorni);
+            if (fine) setScadenza(fine);
+          }
+        }}
+      />
+      <CampoData
+        label="Abbonamento valido fino al"
+        value={scadenza}
+        onChange={setScadenza}
+        anniAvanti={6}
+      />
+      {scelto?.durata_giorni && (
+        <p className="text-sm text-muted-foreground">
+          Con questo tipo la scadenza si calcola da sola ({etichettaDurata(scelto.durata_giorni)}).
+          Puoi modificarla.
+        </p>
+      )}
       <button
         type="button"
         className="btn-secondary"
@@ -352,7 +420,12 @@ function CertificatoCliente({ clienteId, valore }: { clienteId: string; valore: 
     <section className="card-surface flex flex-col gap-3 p-6">
       <h2 className="text-lg">Certificato medico</h2>
       <p className={`text-base ${stato.colore}`}>{stato.testo}</p>
-      <CampoData label="Certificato medico valido fino al" value={data} onChange={setData} />
+      <CampoData
+        label="Certificato medico valido fino al"
+        value={data}
+        onChange={setData}
+        anniAvanti={3}
+      />
       <button
         type="button"
         className="btn-secondary"
@@ -449,8 +522,14 @@ function DatiScheda({
           placeholder="Es. Scheda ottobre"
         />
       </label>
-      <CampoData label="Data di inizio" value={inizio} onChange={setInizio} />
-      <CampoData label="Data di scadenza" value={scadenza} onChange={setScadenza} required />
+      <CampoData label="Data di inizio" value={inizio} onChange={setInizio} anniAvanti={2} />
+      <CampoData
+        label="Data di scadenza"
+        value={scadenza}
+        onChange={setScadenza}
+        required
+        anniAvanti={3}
+      />
       {abbonamentoScadenza && scadenza && scadenza > abbonamentoScadenza && (
         <p className="rounded-[10px] border border-[#F2A93B] px-3 py-3 text-base text-warning">
           Attenzione: la scheda scade dopo l&apos;abbonamento del cliente, che termina il{" "}
@@ -652,7 +731,7 @@ function SessioneScheda({
           (!testo || e.nome.toLowerCase().includes(testo)) &&
           (!filtro || e.gruppo_muscolare === filtro),
       )
-      .slice(0, 40);
+      .slice(0, 80);
   }, [catalogo.data, ricerca, filtro]);
 
   const aggiungi = useMutation({
@@ -732,8 +811,9 @@ function SessioneScheda({
 
           {ordinate.length > 1 && (
             <p className="text-base text-muted-foreground">
-              Trascina un esercizio per cambiarne la posizione, oppure usa le frecce. Il nuovo ordine
-              viene salvato subito.
+              Trascina un esercizio per cambiarne la posizione, oppure usa le frecce. Per un
+              superset, un triset o un circuito assegna lo stesso gruppo agli esercizi da eseguire
+              di seguito.
             </p>
           )}
 
@@ -1045,6 +1125,9 @@ function RigaEsercizio({
   );
   const [carico, setCarico] = useState(riga.carico_indicativo ?? "");
   const [note, setNote] = useState(riga.note ?? "");
+  const [metodo, setMetodo] = useState(riga.metodo ?? "normale");
+  const [gruppo, setGruppo] = useState(riga.gruppo ?? "A");
+  const [tempo, setTempo] = useState(riga.tempo ?? "");
 
   const salva = useMutation({
     mutationFn: async () => {
@@ -1062,6 +1145,9 @@ function RigaEsercizio({
           recupero_secondi: numeroOppureNull(recupero),
           carico_indicativo: testoOppureNull(carico),
           note: testoOppureNull(note),
+          metodo: metodoScheda(metodo),
+          gruppo: metodo === "normale" ? null : gruppo,
+          tempo: testoOppureNull(tempo),
         },
       });
     },
@@ -1086,6 +1172,47 @@ function RigaEsercizio({
   return (
     <div className="flex flex-col gap-3 rounded-[10px] border border-border p-4">
       <p className="text-base font-semibold">{nomeRiga(riga)}</p>
+      <label className="flex flex-col gap-2 text-base">
+        <span className="text-accent">Metodo</span>
+        <select
+          className="field"
+          value={metodo}
+          onChange={(e) => setMetodo(metodoScheda(e.target.value))}
+        >
+          {METODI_SCHEDA.map((voce) => (
+            <option key={voce} value={voce}>
+              {etichettaMetodo[voce]}
+            </option>
+          ))}
+        </select>
+      </label>
+      {metodo !== "normale" && (
+        <label className="flex flex-col gap-2 text-base">
+          <span className="text-accent">Gruppo</span>
+          <select className="field" value={gruppo} onChange={(e) => setGruppo(e.target.value)}>
+            {GRUPPI_BLOCCO.map((lettera) => (
+              <option key={lettera} value={lettera}>
+                Gruppo {lettera}
+              </option>
+            ))}
+          </select>
+          <span className="text-sm text-muted-foreground">
+            Gli esercizi con lo stesso gruppo, in questa sessione, si eseguono di seguito. Il
+            recupero si fa a fine blocco.
+          </span>
+        </label>
+      )}
+      {!aMinuti && (
+        <label className="flex flex-col gap-2 text-base">
+          <span className="text-accent">Tempo, facoltativo</span>
+          <input
+            className="field"
+            value={tempo}
+            onChange={(e) => setTempo(e.target.value)}
+            placeholder="Es. 3-0-1-0"
+          />
+        </label>
+      )}
 
       {aMinuti ? (
         <label className="flex flex-col gap-2 text-base">
@@ -1315,8 +1442,20 @@ function DuplicaScheda({
               ))}
             </select>
           </label>
-          <CampoData label="Nuova data di inizio" value={inizio} onChange={setInizio} required />
-          <CampoData label="Nuova data di scadenza" value={scadenza} onChange={setScadenza} required />
+          <CampoData
+            label="Nuova data di inizio"
+            value={inizio}
+            onChange={setInizio}
+            required
+            anniAvanti={2}
+          />
+          <CampoData
+            label="Nuova data di scadenza"
+            value={scadenza}
+            onChange={setScadenza}
+            required
+            anniAvanti={3}
+          />
           <button
             type="button"
             className="btn-primary"

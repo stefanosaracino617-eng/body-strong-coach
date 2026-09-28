@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AvvertenzeRouteImport } from './routes/avvertenze'
+import { Route as AuthenticatedAbbonamentiRouteImport } from './routes/_authenticated/abbonamenti'
 import { Route as AuthenticatedAccessiRouteImport } from './routes/_authenticated/accessi'
 import { Route as AuthenticatedAllenamentiRecentiRouteImport } from './routes/_authenticated/allenamenti-recenti'
 import { Route as AuthenticatedAllenamentoRouteImport } from './routes/_authenticated/allenamento'
@@ -42,6 +43,12 @@ const AvvertenzeRoute = AvvertenzeRouteImport.update({
   path: '/avvertenze',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAbbonamentiRoute =
+  AuthenticatedAbbonamentiRouteImport.update({
+    id: '/abbonamenti',
+    path: '/abbonamenti',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAccessiRoute = AuthenticatedAccessiRouteImport.update({
   id: '/accessi',
   path: '/accessi',
@@ -126,6 +133,7 @@ const AuthenticatedStoricoRoute = AuthenticatedStoricoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/avvertenze': typeof AvvertenzeRoute
+  '/abbonamenti': typeof AuthenticatedAbbonamentiRoute
   '/accessi': typeof AuthenticatedAccessiRoute
   '/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/allenamento': typeof AuthenticatedAllenamentoRoute
@@ -145,6 +153,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/avvertenze': typeof AvvertenzeRoute
+  '/abbonamenti': typeof AuthenticatedAbbonamentiRoute
   '/accessi': typeof AuthenticatedAccessiRoute
   '/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/allenamento': typeof AuthenticatedAllenamentoRoute
@@ -166,6 +175,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/avvertenze': typeof AvvertenzeRoute
+  '/_authenticated/abbonamenti': typeof AuthenticatedAbbonamentiRoute
   '/_authenticated/accessi': typeof AuthenticatedAccessiRoute
   '/_authenticated/allenamenti-recenti': typeof AuthenticatedAllenamentiRecentiRoute
   '/_authenticated/allenamento': typeof AuthenticatedAllenamentoRoute
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/avvertenze'
+    | '/abbonamenti'
     | '/accessi'
     | '/allenamenti-recenti'
     | '/allenamento'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/avvertenze'
+    | '/abbonamenti'
     | '/accessi'
     | '/allenamenti-recenti'
     | '/allenamento'
@@ -226,6 +238,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/avvertenze'
+    | '/_authenticated/abbonamenti'
     | '/_authenticated/accessi'
     | '/_authenticated/allenamenti-recenti'
     | '/_authenticated/allenamento'
@@ -271,6 +284,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/avvertenze'
       preLoaderRoute: typeof AvvertenzeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/abbonamenti': {
+      id: '/_authenticated/abbonamenti'
+      path: '/abbonamenti'
+      fullPath: '/abbonamenti'
+      preLoaderRoute: typeof AuthenticatedAbbonamentiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/accessi': {
       id: '/_authenticated/accessi'
@@ -381,6 +401,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAbbonamentiRoute: typeof AuthenticatedAbbonamentiRoute
   AuthenticatedAccessiRoute: typeof AuthenticatedAccessiRoute
   AuthenticatedAllenamentiRecentiRoute: typeof AuthenticatedAllenamentiRecentiRoute
   AuthenticatedAllenamentoRoute: typeof AuthenticatedAllenamentoRoute
@@ -399,6 +420,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAbbonamentiRoute: AuthenticatedAbbonamentiRoute,
   AuthenticatedAccessiRoute: AuthenticatedAccessiRoute,
   AuthenticatedAllenamentiRecentiRoute: AuthenticatedAllenamentiRecentiRoute,
   AuthenticatedAllenamentoRoute: AuthenticatedAllenamentoRoute,

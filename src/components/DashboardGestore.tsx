@@ -42,7 +42,7 @@ export function DashboardGestore() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Link to="/registrazioni">
           <Riquadro
             numero={n.inAttesa}
@@ -89,13 +89,14 @@ export function DashboardGestore() {
         </Link>
       </div>
 
-      <Link to="/clienti" search={{ filtro: "tutti" as const }} className="btn-primary">
-        Tutti i clienti
-      </Link>
-
-      <Link to="/esporta" className="btn-secondary text-center">
-        Esporta dati
-      </Link>
+      <div className="flex flex-col gap-3 lg:hidden">
+        <Link to="/clienti" search={{ filtro: "tutti" as const }} className="btn-primary">
+          Tutti i clienti
+        </Link>
+        <Link to="/esporta" className="btn-secondary text-center">
+          Esporta dati
+        </Link>
+      </div>
     </div>
   );
 }

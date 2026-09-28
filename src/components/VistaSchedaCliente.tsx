@@ -11,6 +11,7 @@ import {
   percorsiImmagini,
   schedaScaduta,
   unitaRiga,
+  etichettaMetodo,
   type Scheda,
   type SchedaEsercizio,
 } from "@/lib/schede";
@@ -142,13 +143,52 @@ function SessioneCliente({
               Avvia allenamento
             </Link>
           )}
-          {righe.map((riga) => (
-            <EsercizioCliente key={riga.id} riga={riga} immagini={immagini} />
+          {blocchi(righe).map((blocco) => (
+            <div
+              key={blocco.chiave}
+              className={
+                blocco.metodo === "normale"
+                  ? "flex flex-col gap-6"
+                  : "flex flex-col gap-6 rounded-[10px] border border-accent px-4 py-4"
+              }
+            >
+              {blocco.metodo !== "normale" && (
+                <p className="text-base font-semibold text-accent">
+                  {etichettaMetodo[blocco.metodo]}
+                  {blocco.gruppo ? ` ${blocco.gruppo}` : ""}
+                  <span className="mt-1 block font-normal text-muted-foreground">
+                    Eseguili di seguito, senza recupero tra un esercizio e l&apos;altro.
+                  </span>
+                </p>
+              )}
+              {blocco.righe.map((riga) => (
+                <EsercizioCliente key={riga.id} riga={riga} immagini={immagini} />
+              ))}
+            </div>
           ))}
         </div>
       )}
     </section>
   );
+}
+
+function blocchi(righe: SchedaEsercizio[]) {
+  const elenco: {
+    chiave: string;
+    metodo: SchedaEsercizio["metodo"];
+    gruppo: string | null;
+    righe: SchedaEsercizio[];
+  }[] = [];
+  for (const riga of righe) {
+    const metodo = riga.metodo === "normale" || !riga.gruppo ? "normale" : riga.metodo;
+    const ultimo = elenco[elenco.length - 1];
+    if (ultimo && metodo !== "normale" && ultimo.metodo === metodo && ultimo.gruppo === riga.gruppo) {
+      ultimo.righe.push(riga);
+      continue;
+    }
+    elenco.push({ chiave: riga.id, metodo, gruppo: riga.gruppo, righe: [riga] });
+  }
+  return elenco;
 }
 
 function EsercizioCliente({ riga, immagini }: { riga: SchedaEsercizio; immagini: Record<string, string> }) {
@@ -174,6 +214,16 @@ function EsercizioCliente({ riga, immagini }: { riga: SchedaEsercizio; immagini:
           <img src={immagine} alt={`Esecuzione di ${nomeRiga(riga)}`} />
         </div>
       )}
+      {riga.esercizi?.video_url && (
+        <a
+          href={riga.esercizi.video_url}
+          target="_blank"
+          rel="noreferrer"
+          className="mb-4 inline-flex text-base font-semibold text-accent underline"
+        >
+          Guarda il video
+        </a>
+      )}
       {descrizione && <p className="whitespace-pre-line text-lg leading-relaxed">{descrizione}</p>}
       {errori && (
         <div className="mt-4 border-l-4 border-warning pl-4">
@@ -196,8 +246,15 @@ function EsercizioCliente({ riga, immagini }: { riga: SchedaEsercizio; immagini:
             )
           )}
           {riga.recupero_secondi !== null && <Parametro etichetta="Recupero" valore={`${riga.recupero_secondi} secondi`} />}
+          {riga.tempo && <Parametro etichetta="Tempo" valore={riga.tempo} />}
           {riga.carico_indicativo && <Parametro etichetta="Carico indicativo" valore={riga.carico_indicativo} />}
           {riga.note && <Parametro etichetta="Note del gestore" valore={riga.note} />}
+          {(riga.esercizi?.autore || riga.esercizi?.licenza) && (
+            <Parametro
+              etichetta="Fonte"
+              valore={[riga.esercizi.autore, riga.esercizi.licenza, "wger.de"].filter(Boolean).join(" · ")}
+            />
+          )}
         </dl>
       )}
     </article>

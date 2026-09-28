@@ -299,7 +299,7 @@ function SchedaRiga({
 
       {aMinuti ? (
         <label className="flex flex-col gap-2">
-          <span className="text-base text-accent">Durata effettiva (minuti)</span>
+            <span className="text-base text-accent">Durata effettiva (minuti), facoltativa</span>
           <input
             className="field"
             inputMode="numeric"
@@ -311,7 +311,7 @@ function SchedaRiga({
       ) : (
         <div className="flex flex-col gap-4">
           <label className="flex flex-col gap-2">
-            <span className="text-base text-accent">Peso utilizzato (kg)</span>
+            <span className="text-base text-accent">Peso utilizzato (kg), facoltativo</span>
             <input
               className="field"
               inputMode="decimal"
@@ -321,7 +321,7 @@ function SchedaRiga({
             />
           </label>
           <label className="flex flex-col gap-2">
-            <span className="text-base text-accent">Ripetizioni effettive</span>
+            <span className="text-base text-accent">Ripetizioni effettive, facoltative</span>
             <input
               className="field"
               value={v.ripetizioni}

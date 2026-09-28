@@ -43,15 +43,49 @@ export type SchedaEsercizio = {
   recupero_secondi: number | null;
   carico_indicativo: string | null;
   note: string | null;
+  metodo: MetodoScheda;
+  gruppo: string | null;
+  tempo: string | null;
   esercizi?: {
     nome: string;
     gruppo_muscolare: string;
     unita_misura: UnitaMisura;
     immagine_url: string | null;
+    video_url: string | null;
     descrizione_esecuzione: string | null;
     errori_comuni: string | null;
+    licenza: string | null;
+    autore: string | null;
   } | null;
 };
+
+export const METODI_SCHEDA = [
+  "normale",
+  "superset",
+  "triset",
+  "circuito",
+  "dropset",
+  "rest_pause",
+] as const;
+
+export type MetodoScheda = (typeof METODI_SCHEDA)[number];
+
+export const etichettaMetodo: Record<MetodoScheda, string> = {
+  normale: "Serie classiche",
+  superset: "Superset",
+  triset: "Triset",
+  circuito: "Circuito",
+  dropset: "Drop set",
+  rest_pause: "Rest-pause",
+};
+
+export const GRUPPI_BLOCCO = ["A", "B", "C", "D", "E", "F"] as const;
+
+export function metodoScheda(valore: string | null | undefined): MetodoScheda {
+  return (METODI_SCHEDA as readonly string[]).includes(valore ?? "")
+    ? (valore as MetodoScheda)
+    : "normale";
+}
 
 /**
  * Regola unica di scheda attiva: stato attiva E inizio già arrivato E scadenza non passata.

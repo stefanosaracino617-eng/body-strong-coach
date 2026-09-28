@@ -18,13 +18,15 @@ type Props = {
   value: string;
   onChange: (isoOppureVuoto: string) => void;
   required?: boolean;
+  /** Quanti anni oltre l'anno corrente il calendario può raggiungere. */
+  anniAvanti?: number;
 };
 
 /**
  * Campo data unico dell'app: si digita e si legge sempre in gg/mm/aaaa,
  * il valore restituito è in formato ISO per il database.
  */
-export function CampoData({ label, value, onChange, required }: Props) {
+export function CampoData({ label, value, onChange, required, anniAvanti = 0 }: Props) {
   const [testo, setTesto] = useState(value ? formattaData(value) : "");
   const [aperto, setAperto] = useState(false);
   const [errore, setErrore] = useState(false);
@@ -82,7 +84,7 @@ export function CampoData({ label, value, onChange, required }: Props) {
               weekStartsOn={PRIMO_GIORNO_SETTIMANA}
               captionLayout="dropdown"
               startMonth={new Date(1930, 0)}
-              endMonth={new Date(new Date().getFullYear(), 11)}
+              endMonth={new Date(new Date().getFullYear() + anniAvanti, 11)}
               defaultMonth={isoAData(value) ?? new Date(1995, 0)}
               selected={isoAData(value)}
               onSelect={(d) => {

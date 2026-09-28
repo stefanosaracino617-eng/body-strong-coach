@@ -1,4 +1,5 @@
 import { formattaData, giorniAllaScadenza } from "@/lib/date";
+import { eliminaTipoAbbonamentoFn, salvaTipoAbbonamentoFn, tipiAbbonamentoFn } from "@/lib/fn";
 
 export type StatoAbbonamento = "assente" | "scaduto" | "in-scadenza" | "valido";
 
@@ -57,4 +58,35 @@ export function abbonamentoDaRinnovare(data: string | null | undefined): boolean
 export function abbonamentoSospeso(data: string | null | undefined): boolean {
   if (!data) return false;
   return giorniAllaScadenza(data) < -GIORNI_TOLLERANZA;
+}
+
+export type TipoAbbonamento = {
+  id: string;
+  nome: string;
+  durata_giorni: number | null;
+  ordine: number;
+  attivo: boolean;
+};
+
+export async function caricaTipiAbbonamento(soloAttivi = true): Promise<TipoAbbonamento[]> {
+  return tipiAbbonamentoFn({ data: { soloAttivi } });
+}
+
+export async function salvaTipoAbbonamento(dati: {
+  id?: string;
+  nome: string;
+  durata_giorni: number | null;
+  attivo: boolean;
+}): Promise<void> {
+  await salvaTipoAbbonamentoFn({ data: dati });
+}
+
+export async function eliminaTipoAbbonamento(id: string): Promise<void> {
+  await eliminaTipoAbbonamentoFn({ data: { id } });
+}
+
+export function etichettaDurata(giorni: number | null): string {
+  if (!giorni) return "Durata libera";
+  if (giorni === 1) return "1 giorno";
+  return `${giorni} giorni`;
 }

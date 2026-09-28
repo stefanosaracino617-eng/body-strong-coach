@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS profili (
   abbonamento_inizio date,
   abbonamento_scadenza date,
   data_approvazione timestamptz,
+  foto_url text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -81,6 +82,11 @@ CREATE TABLE IF NOT EXISTS esercizi (
   descrizione_esecuzione text,
   errori_comuni text,
   immagine_url text,
+  video_url text,
+  fonte text,
+  fonte_id text,
+  licenza text,
+  autore text,
   attivo boolean NOT NULL DEFAULT true,
   ordine integer NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -119,6 +125,9 @@ CREATE TABLE IF NOT EXISTS scheda_esercizi (
   recupero_secondi integer,
   carico_indicativo text,
   note text,
+  metodo text NOT NULL DEFAULT 'normale',
+  gruppo text,
+  tempo text,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -147,6 +156,18 @@ CREATE TABLE IF NOT EXISTS allenamento_esercizi (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (allenamento_id, scheda_esercizio_id)
+);
+
+CREATE TABLE IF NOT EXISTS tipi_abbonamento (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome text NOT NULL,
+  durata_giorni integer,
+  ordine integer NOT NULL DEFAULT 0,
+  attivo boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT tipi_abbonamento_nome_unico UNIQUE (nome),
+  CONSTRAINT tipi_abbonamento_durata_positiva CHECK (durata_giorni IS NULL OR durata_giorni > 0)
 );
 
 CREATE TABLE IF NOT EXISTS media (
@@ -184,6 +205,9 @@ CREATE TRIGGER update_allenamenti_updated_at BEFORE UPDATE ON allenamenti
 FOR EACH ROW EXECUTE FUNCTION aggiorna_updated_at();
 DROP TRIGGER IF EXISTS update_allenamento_esercizi_updated_at ON allenamento_esercizi;
 CREATE TRIGGER update_allenamento_esercizi_updated_at BEFORE UPDATE ON allenamento_esercizi
+FOR EACH ROW EXECUTE FUNCTION aggiorna_updated_at();
+DROP TRIGGER IF EXISTS update_tipi_abbonamento_updated_at ON tipi_abbonamento;
+CREATE TRIGGER update_tipi_abbonamento_updated_at BEFORE UPDATE ON tipi_abbonamento
 FOR EACH ROW EXECUTE FUNCTION aggiorna_updated_at();
 
 CREATE OR REPLACE FUNCTION registra_data_approvazione()
@@ -250,4 +274,22 @@ INSERT INTO obiettivi (nome, descrizione, gruppo, ordine) VALUES
   ('Addominali', 'Rinforzo della fascia addominale', 'zona', 110),
   ('Postura e mobilita', 'Miglioramento di postura e mobilita articolare', 'benessere', 120)
 ON CONFLICT (nome) DO NOTHING;
+
+ALTER TABLE profili ADD COLUMN IF NOT EXISTS foto_url text;
+
+ALTER TABLE esercizi ADD COLUMN IF NOT EXISTS video_url text;
+ALTER TABLE esercizi ADD COLUMN IF NOT EXISTS fonte text;
+ALTER TABLE esercizi ADD COLUMN IF NOT EXISTS fonte_id text;
+ALTER TABLE esercizi ADD COLUMN IF NOT EXISTS licenza text;
+ALTER TABLE esercizi ADD COLUMN IF NOT EXISTS autore text;
+CREATE UNIQUE INDEX IF NOT EXISTS esercizi_fonte_id_unico ON esercizi (fonte_id) WHERE fonte_id IS NOT NULL;
+
+ALTER TABLE scheda_esercizi ADD COLUMN IF NOT EXISTS metodo text NOT NULL DEFAULT 'normale';
+ALTER TABLE scheda_esercizi ADD COLUMN IF NOT EXISTS gruppo text;
+ALTER TABLE scheda_esercizi ADD COLUMN IF NOT EXISTS tempo text;
+DO $$ BEGIN
+  ALTER TABLE scheda_esercizi ADD CONSTRAINT scheda_esercizi_metodo_valido
+    CHECK (metodo IN ('normale', 'superset', 'triset', 'circuito', 'dropset', 'rest_pause'));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 `.trim();

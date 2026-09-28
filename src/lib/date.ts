@@ -73,6 +73,14 @@ export function giorniAllaScadenza(iso: string): number {
   return Math.round((fine - oggi) / 86400000);
 }
 
+/** Somma giorni a una data ISO, senza scivolamenti di fuso orario. */
+export function aggiungiGiorni(iso: string, giorni: number): string | null {
+  const data = isoAData(iso);
+  if (!data || !Number.isInteger(giorni)) return null;
+  data.setDate(data.getDate() + giorni);
+  return dataAIso(data);
+}
+
 /** ISO (aaaa-mm-gg) -> Date locale */
 export function isoAData(iso: string | null): Date | undefined {
   if (!iso) return undefined;

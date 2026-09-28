@@ -32,6 +32,11 @@ export type Esercizio = {
   descrizione_esecuzione: string | null;
   errori_comuni: string | null;
   immagine_url: string | null;
+  video_url: string | null;
+  fonte: string | null;
+  fonte_id: string | null;
+  licenza: string | null;
+  autore: string | null;
   attivo: boolean;
   ordine: number;
   created_at: string;

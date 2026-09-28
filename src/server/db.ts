@@ -72,6 +72,9 @@ export function erroreDb(err: unknown): never {
       if (constraint.includes("esercizi_ordine")) {
         throw new Error("Esiste già un esercizio con questo numero.");
       }
+      if (constraint.includes("tipi_abbonamento_nome")) {
+        throw new Error("Esiste già un tipo di abbonamento con questo nome.");
+      }
       if (constraint.includes("obiettivi_nome") || constraint.includes("nome")) {
         throw new Error("Esiste già un obiettivo con questo nome.");
       }

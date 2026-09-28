@@ -197,6 +197,7 @@ function PaginaEsercizi() {
         (!filtro || e.gruppo_muscolare === filtro),
     );
   }, [esercizi, ricerca, filtro]);
+  const visibili = filtrati.slice(0, 60);
 
   if (sessione.isLoading) return <Pagina titolo="Caricamento"><CaricamentoCard /></Pagina>;
 
@@ -415,11 +416,21 @@ function PaginaEsercizi() {
 
       {elenco.isLoading && <CaricamentoCard />}
       {elenco.isError && <BloccoErrore onRiprova={() => elenco.refetch()} />}
+      <p className="text-sm text-muted-foreground">
+        Il catalogo di base arriva da wger, con licenza Creative Commons. Nome in italiano quando
+        c&apos;è, altrimenti in inglese, come si usa in sala.
+      </p>
+
       {!elenco.isLoading && filtrati.length === 0 && (
         <p className="text-base text-muted-foreground">Nessun esercizio trovato.</p>
       )}
+      {!elenco.isLoading && filtrati.length > visibili.length && (
+        <p className="text-base text-muted-foreground">
+          {filtrati.length} esercizi. Qui ne vedi {visibili.length}: cerca il nome per restringere.
+        </p>
+      )}
 
-      {filtrati.map((e) => (
+      {visibili.map((e) => (
         <article key={e.id} className="card-surface flex flex-col gap-2 p-6">
           {e.immagine_url && immagini.data?.[e.immagine_url] && (
             <div className="immagine-esercizio">
@@ -430,6 +441,11 @@ function PaginaEsercizi() {
               />
             </div>
           )}
+          {e.video_url && (
+            <a href={e.video_url} target="_blank" rel="noreferrer" className="text-base font-semibold text-accent underline">
+              Guarda il video
+            </a>
+          )}
           <h2 className="text-lg">
             {String(e.ordine).padStart(3, "0")} · {e.nome}
           </h2>
@@ -438,10 +454,15 @@ function PaginaEsercizi() {
             {e.attrezzatura ? ` · ${e.attrezzatura}` : ""} · {etichettaUnita[e.unita_misura]}
           </p>
           {e.descrizione_esecuzione && (
-            <p className="text-base text-muted-foreground">{e.descrizione_esecuzione}</p>
+            <p className="line-clamp-3 text-base text-muted-foreground">{e.descrizione_esecuzione}</p>
           )}
           {e.errori_comuni && (
             <p className="text-base text-warning">Errori comuni: {e.errori_comuni}</p>
+          )}
+          {(e.autore || e.licenza) && (
+            <p className="text-sm text-muted-foreground">
+              Fonte: {[e.autore, e.licenza, "wger.de"].filter(Boolean).join(" · ")}
+            </p>
           )}
           <p className={`text-base ${e.attivo ? "text-success" : "text-warning"}`}>
             {e.attivo ? "Attivo" : "Non attivo"}
