@@ -88,8 +88,8 @@ function ObiettiviCliente() {
   return (
     <Pagina titolo={primaVolta ? "Scegli i tuoi obiettivi" : "I miei obiettivi"}>
       <p className="text-base text-muted-foreground">
-        Seleziona uno o più obiettivi: aiuteranno il gestore a costruire la tua scheda. Potrai
-        modificarli in qualsiasi momento.
+        Seleziona uno o più obiettivi: aiuteranno il gestore a costruire la tua scheda. Puoi
+        anche andare subito alla scheda e modificarli in qualsiasi momento.
       </p>
 
       {errore && (
@@ -144,11 +144,9 @@ function ObiettiviCliente() {
         {selezionati.length === 0 ? "Seleziona almeno un obiettivo" : "Salva obiettivi"}
       </button>
 
-      {!primaVolta && (
-        <Link to="/area" className="btn-secondary w-full">
-          Torna alla mia area
-        </Link>
-      )}
+      <Link to="/area" className="btn-secondary w-full">
+        {primaVolta ? "Vai alla scheda" : "Torna alla mia area"}
+      </Link>
     </Pagina>
   );
 }

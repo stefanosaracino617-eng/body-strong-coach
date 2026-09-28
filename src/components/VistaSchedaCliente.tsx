@@ -116,7 +116,7 @@ function SessioneCliente({
   immagini: Record<string, string>;
   conAvvio?: boolean;
 }) {
-  const [aperta, setAperta] = useState(false);
+  const [aperta, setAperta] = useState(conAvvio);
   return (
     <section className="card-surface overflow-hidden">
       <button

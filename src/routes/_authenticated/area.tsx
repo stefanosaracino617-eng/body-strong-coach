@@ -1,6 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { caricaSessioneApp } from "@/lib/profilo";
 import { caricaObiettiviCliente } from "@/lib/obiettivi";
 import { DashboardCliente } from "@/components/DashboardCliente";
@@ -33,18 +32,17 @@ export const Route = createFileRoute("/_authenticated/area")({
 });
 
 function Area() {
-  const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ["sessione-app"],
     queryFn: caricaSessioneApp,
   });
 
   const profilo0 = data?.profilo;
-  const deveSceglierne = !!profilo0 && !data?.isGestore && profilo0.stato === "approvato";
+  const puoScegliereObiettivi = !!profilo0 && !data?.isGestore && profilo0.stato === "approvato";
 
   const miei = useQuery({
     queryKey: ["obiettivi-cliente", profilo0?.id],
-    enabled: deveSceglierne,
+    enabled: puoScegliereObiettivi,
     queryFn: () => {
       if (!profilo0) return Promise.resolve([]);
       return caricaObiettiviCliente(profilo0.id);
@@ -54,11 +52,7 @@ function Area() {
   const regole = useQuery({ queryKey: ["regole-palestra"], queryFn: caricaRegole });
   const regoleVisibili = regoleNonVuote(regole.data?.contenuto);
 
-  const nessunObiettivo = deveSceglierne && miei.isSuccess && miei.data.length === 0;
-
-  useEffect(() => {
-    if (nessunObiettivo) navigate({ to: "/obiettivi", replace: true });
-  }, [nessunObiettivo, navigate]);
+  const nessunObiettivo = puoScegliereObiettivi && miei.isSuccess && miei.data.length === 0;
 
   if (isLoading) {
     return (
@@ -135,6 +129,15 @@ function Area() {
     <Schermo titolo={`Ciao ${profilo.nome}`} contenutoLibero>
       <AvvisoCertificato scadenza={profilo.certificato_scadenza} />
       <AvvisoAbbonamento scadenza={profilo.abbonamento_scadenza} />
+      {nessunObiettivo && (
+        <div className="rounded-[10px] border border-[#F2A93B] px-4 py-4 text-base text-warning">
+          Non hai ancora scelto gli obiettivi. Puoi farlo quando vuoi: la scheda e il registro
+          degli allenamenti restano disponibili.{" "}
+          <Link to="/obiettivi" className="font-semibold text-accent underline">
+            Scegli gli obiettivi
+          </Link>
+        </div>
+      )}
       <DashboardCliente profilo={profilo} allenamentoBloccato={sospeso} />
       <div className="flex flex-col gap-3 lg:hidden">
         {regoleVisibili && (

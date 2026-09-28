@@ -95,7 +95,7 @@ export function DashboardCliente({
 
   return (
     <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start">
-      <div className="flex flex-col gap-4">
+      <div className="order-2 flex flex-col gap-4 lg:order-1">
         <section className="card-surface flex flex-col gap-4 p-5">
           <FotoProfilo
             nome={profilo.nome}
@@ -188,7 +188,7 @@ export function DashboardCliente({
         </section>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="order-1 flex flex-col gap-4 lg:order-2">
         {scheda.isLoading && <CaricamentoCard quante={2} />}
         {scheda.isError && <BloccoErrore onRiprova={() => scheda.refetch()} />}
         {!scheda.isLoading && !scheda.isError && !scheda.data && (
