@@ -43,9 +43,19 @@ function Certificati() {
   });
 
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-md flex-col gap-6">
-        <h1 className="text-2xl">Certificati da rinnovare</h1>
+    <main className="pagina">
+      <div className="pagina-contenuto">
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl">Certificati da rinnovare</h1>
+            <p className="mt-1 text-base text-muted-foreground">
+              Scaduti o in scadenza entro 30 giorni.
+            </p>
+          </div>
+          <Link to="/area" className="text-sm font-semibold text-accent">
+            Torna all&apos;area
+          </Link>
+        </header>
 
         {(sessione.isLoading || elenco.isLoading) && <CaricamentoCard />}
         {elenco.isError && <BloccoErrore onRiprova={() => elenco.refetch()} />}
@@ -59,10 +69,11 @@ function Certificati() {
           <StatoVuoto testo="Nessun certificato scaduto o in scadenza nei prossimi 30 giorni." />
         )}
 
+        <div className="griglia-voci">
         {(elenco.data ?? []).map((p) => {
           const stato = statoCertificato(p.certificato_scadenza);
           return (
-            <article key={p.id} className="card-surface flex flex-col gap-2 p-6">
+            <article key={p.id} className="card-surface flex h-full flex-col gap-2 p-6">
               <h2 className="text-lg">
                 {p.nome} {p.cognome}
               </h2>
@@ -73,10 +84,7 @@ function Certificati() {
             </article>
           );
         })}
-
-        <Link to="/area" className="btn-secondary w-full text-center">
-          Torna alla mia area
-        </Link>
+        </div>
       </div>
     </main>
   );

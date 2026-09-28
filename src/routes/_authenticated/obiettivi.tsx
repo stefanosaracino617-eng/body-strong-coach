@@ -106,7 +106,7 @@ function ObiettiviCliente() {
       {gruppi.map(([gruppo, voci]) => (
         <section key={gruppo} className="flex flex-col gap-3">
           <h2 className="text-lg text-accent">{nomeGruppo(gruppo)}</h2>
-          <div className="flex flex-col gap-3">
+          <div className="griglia-voci">
             {voci.map((o) => {
               const attivo = selezionati.includes(o.id);
               return (
@@ -163,9 +163,14 @@ function raggruppa(voci: Obiettivo[]): [string, Obiettivo[]][] {
 
 function Pagina({ titolo, children }: { titolo: string; children?: React.ReactNode }) {
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-md flex-col gap-6">
-        <h1 className="text-2xl">{titolo}</h1>
+    <main className="pagina">
+      <div className="pagina-contenuto">
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <h1 className="text-2xl">{titolo}</h1>
+          <Link to="/area" className="text-sm font-semibold text-accent">
+            Torna all&apos;area
+          </Link>
+        </header>
         {children}
       </div>
     </main>

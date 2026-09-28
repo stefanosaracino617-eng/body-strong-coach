@@ -207,11 +207,35 @@
   }
 }
 
+.pagina {
+  min-height: 100%;
+  padding: 1.5rem 1rem 6.5rem;
+}
+
+.pagina-contenuto {
+  margin-inline: auto;
+  display: flex;
+  width: 100%;
+  max-width: 88rem;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.griglia-voci {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  align-items: start;
+}
+
+.btn-auto {
+  width: auto !important;
+  min-width: 8.5rem;
+}
+
 @media (min-width: 1024px) {
-  .guscio main .max-w-md,
-  .guscio main .max-w-2xl,
-  .guscio main .max-w-3xl {
-    max-width: 72rem;
+  .pagina {
+    padding: 2rem 2rem 2.5rem;
   }
 }
 

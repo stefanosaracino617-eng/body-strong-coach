@@ -23,10 +23,16 @@ export const Route = createFileRoute("/_authenticated/installa")({
 
 function Installa() {
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-        <h1 className="text-2xl">Installa l&apos;app</h1>
+    <main className="pagina">
+      <div className="pagina-contenuto">
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <h1 className="text-2xl">Installa l&apos;app</h1>
+          <Link to="/area" className="text-sm font-semibold text-accent">
+            Torna all&apos;area
+          </Link>
+        </header>
 
+        <div className="griglia-voci">
         <section className="card-surface flex flex-col gap-2 p-6">
           <h2 className="text-xl">Android</h2>
           <p className="text-lg leading-relaxed">
@@ -41,10 +47,7 @@ function Installa() {
             schermata Home.
           </p>
         </section>
-
-        <Link to="/area" className="btn-secondary w-full text-center">
-          Torna alla mia area
-        </Link>
+        </div>
       </div>
     </main>
   );

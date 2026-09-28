@@ -78,23 +78,6 @@ function Area() {
     return (
       <Schermo titolo={`Ciao ${profilo.nome || "gestore"}`} contenutoLibero>
         <DashboardGestore />
-        <div className="flex flex-col gap-3 lg:hidden">
-          <Link to="/abbonamenti" className="btn-secondary w-full">
-            Tipi di abbonamento
-          </Link>
-          <Link to="/catalogo-obiettivi" className="btn-secondary w-full">
-            Catalogo obiettivi
-          </Link>
-          <Link to="/accessi" className="btn-secondary w-full">
-            Gestione accessi
-          </Link>
-          <Link to="/regole" className="btn-secondary w-full">
-            Regole della palestra
-          </Link>
-          <Link to="/installa" className="btn-secondary w-full">
-            Installa l&apos;app
-          </Link>
-        </div>
       </Schermo>
     );
   }
@@ -218,8 +201,8 @@ function Schermo({
   contenutoLibero?: boolean;
 }) {
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+    <main className="pagina">
+      <div className="pagina-contenuto">
         <h1 className="text-2xl">{titolo}</h1>
         <div className={contenutoLibero ? "flex flex-col gap-4" : "card-surface flex flex-col gap-4 p-6"}>
           {children}

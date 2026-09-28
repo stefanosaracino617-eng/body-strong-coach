@@ -115,7 +115,29 @@ function Clienti() {
   });
 
   return (
-    <Pagina titolo={etichettaFiltro[filtro]}>
+    <Pagina titolo={etichettaFiltro[filtro]} nota="Scegli un cliente per aprire la scheda o vedere i dati.">
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            ["tutti", "Tutti"],
+            ["in-scadenza", "Schede in scadenza"],
+            ["senza-scheda", "Senza scheda"],
+            ["abbonamento", "Abbonamenti"],
+          ] as const
+        ).map(([chiave, etichetta]) => (
+          <Link
+            key={chiave}
+            to="/clienti"
+            search={{ filtro: chiave }}
+            className={`rounded-full border px-3 py-2 text-sm font-semibold ${
+              filtro === chiave ? "border-primary bg-primary text-white" : "border-border text-muted-foreground"
+            }`}
+          >
+            {etichetta}
+          </Link>
+        ))}
+      </div>
+
       {caricamento && <CaricamentoCard />}
 
       {!caricamento && errore && (
@@ -129,30 +151,48 @@ function Clienti() {
 
       {!caricamento && !errore && voci.length === 0 && <StatoVuoto testo={vuotoFiltro[filtro]} />}
 
+      {!caricamento && !errore && voci.length > 0 && (
+        <p className="text-sm text-muted-foreground">
+          {voci.length} {voci.length === 1 ? "cliente" : "clienti"}
+        </p>
+      )}
+
       {!caricamento &&
         !errore &&
         voci.map((p) => (
-        <article key={p.id} className="card-surface flex flex-col gap-3 p-6">
-          <div className="flex items-center gap-3">
-            <FotoProfilo nome={p.nome} cognome={p.cognome} fotoUrl={p.foto_url} misura="sm" />
-            <h2 className="text-lg">
-              {p.nome} {p.cognome}
-            </h2>
+        <article key={p.id} className="card-surface flex flex-col gap-4 p-4 lg:p-5">
+          <div className="grid items-center gap-4 lg:grid-cols-[minmax(14rem,1.1fr)_minmax(16rem,1.6fr)_auto]">
+            <div className="flex items-center gap-3">
+              <FotoProfilo nome={p.nome} cognome={p.cognome} fotoUrl={p.foto_url} misura="sm" />
+              <h2 className="text-lg">
+                {p.nome} {p.cognome}
+              </h2>
+            </div>
+            <div className="flex flex-col gap-1 text-sm">
+              {abbonamentoSospeso(p.abbonamento_scadenza) && (
+                <span className="text-destructive">
+                  Sospeso — abbonamento scaduto il {formattaData(p.abbonamento_scadenza)}
+                </span>
+              )}
+              <ScadenzaScheda scadenza={mappaScadenze[p.id] ?? null} />
+              <p className={statoAbbonamento(p.abbonamento_scadenza).colore}>
+                {statoAbbonamento(p.abbonamento_scadenza).testo}
+              </p>
+              <p className={statoCertificato(p.certificato_scadenza).colore}>
+                {statoCertificato(p.certificato_scadenza).testo}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+              <button type="button" className="btn-secondary btn-auto" onClick={() => setAperto(aperto === p.id ? null : p.id)}>
+                {aperto === p.id ? "Chiudi" : "Dettaglio"}
+              </button>
+              <Link to="/scheda" search={{ cliente: p.id }} className="btn-primary btn-auto text-center">
+                {mappaScadenze[p.id] ? "Scheda" : "Crea scheda"}
+              </Link>
+            </div>
           </div>
-          {abbonamentoSospeso(p.abbonamento_scadenza) && (
-            <span className="inline-block w-fit rounded-[10px] border border-destructive px-2 py-1 text-base text-destructive">
-              Sospeso - abbonamento scaduto il {formattaData(p.abbonamento_scadenza)}
-            </span>
-          )}
-          <ScadenzaScheda scadenza={mappaScadenze[p.id] ?? null} />
-          <p className={`text-base ${statoAbbonamento(p.abbonamento_scadenza).colore}`}>
-            {statoAbbonamento(p.abbonamento_scadenza).testo}
-          </p>
-          <p className={`text-base ${statoCertificato(p.certificato_scadenza).colore}`}>
-            {statoCertificato(p.certificato_scadenza).testo}
-          </p>
-          {aperto === p.id ? (
-            <>
+          {aperto === p.id && (
+            <div className="grid gap-4 border-t border-border pt-4 lg:grid-cols-3">
               <dl className="flex flex-col gap-2 text-base text-muted-foreground">
                 <Riga etichetta="Email" valore={p.email} />
                 <Riga etichetta="Telefono" valore={p.telefono ?? "—"} />
@@ -163,6 +203,8 @@ function Clienti() {
                   etichetta="Approvato il"
                   valore={p.data_approvazione ? formattaDataOra(p.data_approvazione) : "—"}
                 />
+              </dl>
+              <dl className="flex flex-col gap-2 text-base text-muted-foreground">
                 <Riga etichetta="Tipo di abbonamento" valore={p.tipo_abbonamento ?? "—"} />
                 <Riga etichetta="Abbonamento dal" valore={formattaData(p.abbonamento_inizio)} />
                 <Riga
@@ -170,35 +212,14 @@ function Clienti() {
                   valore={formattaData(p.abbonamento_scadenza)}
                 />
               </dl>
-              <ObiettiviCliente clienteId={p.id} />
-              <AllenamentiCliente clienteId={p.id} />
-              <Link
-                to="/scheda"
-                search={{ cliente: p.id }}
-                className="btn-primary text-center"
-              >
-                Scheda di allenamento
-              </Link>
-              <button type="button" className="btn-secondary w-full" onClick={() => setAperto(null)}>
-                Chiudi dettaglio
-              </button>
-            </>
-          ) : (
-            <div className="grid grid-cols-2 gap-2">
-              <button type="button" className="btn-secondary w-full" onClick={() => setAperto(p.id)}>
-                Dettaglio
-              </button>
-              <Link to="/scheda" search={{ cliente: p.id }} className="btn-primary text-center">
-                {mappaScadenze[p.id] ? "Scheda" : "Crea scheda"}
-              </Link>
+              <div className="flex flex-col gap-4">
+                <ObiettiviCliente clienteId={p.id} />
+                <AllenamentiCliente clienteId={p.id} />
+              </div>
             </div>
           )}
         </article>
         ))}
-
-      <Link to="/area" className="btn-secondary w-full">
-        Torna alla mia area
-      </Link>
     </Pagina>
   );
 }
@@ -307,11 +328,27 @@ function Riga({ etichetta, valore }: { etichetta: string; valore: string }) {
   );
 }
 
-function Pagina({ titolo, children }: { titolo: string; children?: React.ReactNode }) {
+function Pagina({
+  titolo,
+  nota,
+  children,
+}: {
+  titolo: string;
+  nota?: string;
+  children?: React.ReactNode;
+}) {
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-        <h1 className="text-2xl">{titolo}</h1>
+    <main className="pagina">
+      <div className="pagina-contenuto">
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl">{titolo}</h1>
+            {nota && <p className="mt-1 text-base text-muted-foreground">{nota}</p>}
+          </div>
+          <Link to="/area" className="text-sm font-semibold text-accent">
+            Torna all&apos;area
+          </Link>
+        </header>
         {children}
       </div>
     </main>

@@ -61,25 +61,34 @@ function AllenamentiRecenti() {
       {elenco.isSuccess && elenco.data.length === 0 && (
         <StatoVuoto testo="Nessun cliente ha ancora concluso allenamenti." />
       )}
+      <div className="griglia-voci">
       {(elenco.data ?? []).map((a) => (
-        <article key={a.id} className="card-surface flex flex-col gap-1 p-6">
+        <article key={a.id} className="card-surface flex h-full flex-col gap-1 p-6">
           <h2 className="text-lg">{a.nome}</h2>
           <p className="text-base text-muted-foreground">{a.sessione}</p>
           <p className="text-base text-muted-foreground">{formattaData(a.data)}</p>
         </article>
       ))}
-      <Link to="/area" className="btn-secondary w-full">
-        Torna alla mia area
-      </Link>
+      </div>
     </Pagina>
   );
 }
 
 function Pagina({ titolo, children }: { titolo: string; children?: React.ReactNode }) {
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-md flex-col gap-6">
-        <h1 className="text-2xl">{titolo}</h1>
+    <main className="pagina">
+      <div className="pagina-contenuto">
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl">{titolo}</h1>
+            <p className="mt-1 text-base text-muted-foreground">
+              Allenamenti conclusi da tutti i clienti.
+            </p>
+          </div>
+          <Link to="/area" className="text-sm font-semibold text-accent">
+            Torna all&apos;area
+          </Link>
+        </header>
         {children}
       </div>
     </main>

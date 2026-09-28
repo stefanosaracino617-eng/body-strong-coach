@@ -78,10 +78,6 @@ function Accessi() {
 
   return (
     <Pagina titolo="Gestione accessi">
-      <p className="text-base text-muted-foreground">
-        Assegna o revoca il ruolo di gestore ai profili approvati.
-      </p>
-
       {errore && (
         <p className="rounded-[10px] border border-destructive px-3 py-3 text-base text-destructive">
           {errore}
@@ -97,10 +93,11 @@ function Accessi() {
         </div>
       )}
 
+      <div className="griglia-voci">
       {voci.map((v) => {
         const sonoIo = v.id === mioId;
         return (
-          <article key={v.id} className="card-surface flex flex-col gap-3 p-6">
+          <article key={v.id} className="card-surface flex h-full flex-col gap-3 p-6">
             <h2 className="text-lg">
               {v.nome} {v.cognome}
               {sonoIo ? " (tu)" : ""}
@@ -169,19 +166,26 @@ function Accessi() {
           </article>
         );
       })}
-
-      <Link to="/area" className="btn-secondary w-full">
-        Torna alla mia area
-      </Link>
+      </div>
     </Pagina>
   );
 }
 
 function Pagina({ titolo, children }: { titolo: string; children?: React.ReactNode }) {
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-md flex-col gap-6">
-        <h1 className="text-2xl">{titolo}</h1>
+    <main className="pagina">
+      <div className="pagina-contenuto">
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl">{titolo}</h1>
+            <p className="mt-1 text-base text-muted-foreground">
+              Assegna o revoca il ruolo di gestore.
+            </p>
+          </div>
+          <Link to="/area" className="text-sm font-semibold text-accent">
+            Torna all&apos;area
+          </Link>
+        </header>
         {children}
       </div>
     </main>

@@ -75,8 +75,9 @@ function Esporta() {
   }
 
   return (
-    <Pagina titolo="Esporta dati">
-      <section className="card-surface flex flex-col gap-3 p-6">
+    <Pagina titolo="Esporta dati" nota="Un file con clienti, schede e allenamenti, da conservare in un luogo sicuro.">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+      <section className="card-surface flex h-full flex-col gap-3 p-6">
         <h2 className="text-lg">Che cosa contiene</h2>
         <ul className="flex list-disc flex-col gap-1 pl-5 text-base text-muted-foreground">
           <li>Clienti, con obiettivi e consensi</li>
@@ -89,6 +90,7 @@ function Esporta() {
         </p>
       </section>
 
+      <div className="flex flex-col gap-4">
       {errore && (
         <section className="card-surface flex flex-col gap-3 border-destructive p-6">
           <p className="text-base text-destructive">{errore}</p>
@@ -124,19 +126,33 @@ function Esporta() {
           {attesa && <CaricamentoCard />}
         </section>
       )}
-
-      <Link to="/area" className="btn-secondary w-full">
-        Torna alla mia area
-      </Link>
+      </div>
+      </div>
     </Pagina>
   );
 }
 
-function Pagina({ titolo, children }: { titolo: string; children?: React.ReactNode }) {
+function Pagina({
+  titolo,
+  nota,
+  children,
+}: {
+  titolo: string;
+  nota?: string;
+  children?: React.ReactNode;
+}) {
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto flex w-full max-w-md flex-col gap-6">
-        <h1 className="text-2xl">{titolo}</h1>
+    <main className="pagina">
+      <div className="pagina-contenuto">
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl">{titolo}</h1>
+            {nota && <p className="mt-1 text-base text-muted-foreground">{nota}</p>}
+          </div>
+          <Link to="/area" className="text-sm font-semibold text-accent">
+            Torna all&apos;area
+          </Link>
+        </header>
         {children}
       </div>
     </main>
